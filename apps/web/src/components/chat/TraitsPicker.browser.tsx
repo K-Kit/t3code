@@ -5,7 +5,9 @@ import {
   ClaudeModelOptions,
   CodexModelOptions,
   DEFAULT_MODEL_BY_PROVIDER,
+  DEFAULT_SERVER_SETTINGS,
   ProjectId,
+  type ServerProvider,
   ThreadId,
 } from "@t3tools/contracts";
 import { page } from "vitest/browser";
@@ -21,23 +23,111 @@ import {
   useComposerThreadDraft,
   useEffectiveComposerModelState,
 } from "../../composerDraftStore";
+import { DEFAULT_CLIENT_SETTINGS } from "@t3tools/contracts/settings";
 
 // ── Claude TraitsPicker tests ─────────────────────────────────────────
 
 const CLAUDE_THREAD_ID = ThreadId.makeUnsafe("thread-claude-traits");
+const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
+  {
+    provider: "codex",
+    enabled: true,
+    installed: true,
+    version: "0.1.0",
+    status: "ready",
+    authStatus: "authenticated",
+    checkedAt: "2026-01-01T00:00:00.000Z",
+    models: [
+      {
+        slug: "gpt-5.4",
+        name: "GPT-5.4",
+        isCustom: false,
+        capabilities: {
+          reasoningEffortLevels: [
+            { value: "xhigh", label: "Extra High" },
+            { value: "high", label: "High", isDefault: true },
+          ],
+          supportsFastMode: true,
+          supportsThinkingToggle: false,
+          promptInjectedEffortLevels: [],
+        },
+      },
+    ],
+  },
+  {
+    provider: "claudeAgent",
+    enabled: true,
+    installed: true,
+    version: "0.1.0",
+    status: "ready",
+    authStatus: "authenticated",
+    checkedAt: "2026-01-01T00:00:00.000Z",
+    models: [
+      {
+        slug: "claude-opus-4-6",
+        name: "Claude Opus 4.6",
+        isCustom: false,
+        capabilities: {
+          reasoningEffortLevels: [
+            { value: "low", label: "Low" },
+            { value: "medium", label: "Medium" },
+            { value: "high", label: "High", isDefault: true },
+            { value: "max", label: "Max" },
+            { value: "ultrathink", label: "Ultrathink" },
+          ],
+          supportsFastMode: true,
+          supportsThinkingToggle: false,
+          promptInjectedEffortLevels: ["ultrathink"],
+        },
+      },
+      {
+        slug: "claude-sonnet-4-6",
+        name: "Claude Sonnet 4.6",
+        isCustom: false,
+        capabilities: {
+          reasoningEffortLevels: [
+            { value: "low", label: "Low" },
+            { value: "medium", label: "Medium" },
+            { value: "high", label: "High", isDefault: true },
+            { value: "ultrathink", label: "Ultrathink" },
+          ],
+          supportsFastMode: false,
+          supportsThinkingToggle: false,
+          promptInjectedEffortLevels: ["ultrathink"],
+        },
+      },
+      {
+        slug: "claude-haiku-4-5",
+        name: "Claude Haiku 4.5",
+        isCustom: false,
+        capabilities: {
+          reasoningEffortLevels: [],
+          supportsFastMode: false,
+          supportsThinkingToggle: true,
+          promptInjectedEffortLevels: [],
+        },
+      },
+    ],
+  },
+];
 
 function ClaudeTraitsPickerHarness(props: {
   model: string;
   fallbackModelSelection: ModelSelection | null;
+  triggerVariant?: "ghost" | "outline";
 }) {
   const prompt = useComposerThreadDraft(CLAUDE_THREAD_ID).prompt;
   const setPrompt = useComposerDraftStore((store) => store.setPrompt);
   const { modelOptions, selectedModel } = useEffectiveComposerModelState({
     threadId: CLAUDE_THREAD_ID,
+    providers: TEST_PROVIDERS,
     selectedProvider: "claudeAgent",
     threadModelSelection: props.fallbackModelSelection,
     projectModelSelection: null,
-    customModelsByProvider: { codex: [], claudeAgent: [] },
+    settings: {
+      ...DEFAULT_SERVER_SETTINGS,
+      ...DEFAULT_CLIENT_SETTINGS,
+    },
   });
   const handlePromptChange = useCallback(
     (nextPrompt: string) => {
@@ -49,11 +139,13 @@ function ClaudeTraitsPickerHarness(props: {
   return (
     <TraitsPicker
       provider="claudeAgent"
+      models={TEST_PROVIDERS[1]!.models}
       threadId={CLAUDE_THREAD_ID}
       model={selectedModel ?? props.model}
       prompt={prompt}
       modelOptions={modelOptions?.claudeAgent}
       onPromptChange={handlePromptChange}
+      triggerVariant={props.triggerVariant}
     />
   );
 }
@@ -68,6 +160,7 @@ async function mountClaudePicker(props?: {
     fastMode?: boolean;
   } | null;
   skipDraftModelOptions?: boolean;
+  triggerVariant?: "ghost" | "outline";
 }) {
   const model = props?.model ?? "claude-opus-4-6";
   const claudeOptions = !props?.skipDraftModelOptions ? props?.options : undefined;
@@ -106,11 +199,15 @@ async function mountClaudePicker(props?: {
       ? ({
           provider: "claudeAgent",
           model,
-          options: props.fallbackModelOptions ?? undefined,
+          ...(props.fallbackModelOptions ? { options: props.fallbackModelOptions } : {}),
         } satisfies ModelSelection)
       : null;
   const screen = await render(
-    <ClaudeTraitsPickerHarness model={model} fallbackModelSelection={fallbackModelSelection} />,
+    <ClaudeTraitsPickerHarness
+      model={model}
+      fallbackModelSelection={fallbackModelSelection}
+      {...(props?.triggerVariant ? { triggerVariant: props.triggerVariant } : {})}
+    />,
     { container: host },
   );
 
@@ -234,6 +331,19 @@ describe("TraitsPicker (Claude)", () => {
       },
     });
   });
+
+  it("accepts outline trigger styling", async () => {
+    await using _ = await mountClaudePicker({
+      triggerVariant: "outline",
+    });
+
+    const button = document.querySelector("button");
+    if (!(button instanceof HTMLButtonElement)) {
+      throw new Error("Expected traits trigger button to be rendered.");
+    }
+    expect(button.className).toContain("border-input");
+    expect(button.className).toContain("bg-popover");
+  });
 });
 
 // ── Codex TraitsPicker tests ──────────────────────────────────────────
@@ -273,6 +383,7 @@ async function mountCodexPicker(props: { model?: string; options?: CodexModelOpt
   const screen = await render(
     <TraitsPicker
       provider="codex"
+      models={TEST_PROVIDERS[0]!.models}
       threadId={threadId}
       model={props.model ?? DEFAULT_MODEL_BY_PROVIDER.codex}
       prompt=""
@@ -339,10 +450,10 @@ describe("TraitsPicker (Codex)", () => {
 
     await vi.waitFor(() => {
       const text = document.body.textContent ?? "";
-      expect(text).toContain("Low");
-      expect(text).toContain("Medium");
-      expect(text).toContain("High");
       expect(text).toContain("Extra High");
+      expect(text).toContain("High");
+      expect(text).not.toContain("Low");
+      expect(text).not.toContain("Medium");
     });
   });
 

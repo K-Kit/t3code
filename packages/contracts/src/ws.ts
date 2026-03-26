@@ -37,7 +37,8 @@ import {
 import { KeybindingRule } from "./keybindings";
 import { ProjectSearchEntriesInput, ProjectWriteFileInput } from "./project";
 import { OpenInEditorInput } from "./editor";
-import { ServerConfigUpdatedPayload } from "./server";
+import { ServerConfigUpdatedPayload, ServerProviderUpdatedPayload } from "./server";
+import { ServerSettingsPatch } from "./settings";
 import { SkillsSetEnabledInput } from "./skills";
 
 // ── WebSocket RPC Method Names ───────────────────────────────────────
@@ -80,7 +81,10 @@ export const WS_METHODS = {
 
   // Server meta
   serverGetConfig: "server.getConfig",
+  serverRefreshProviders: "server.refreshProviders",
   serverUpsertKeybinding: "server.upsertKeybinding",
+  serverGetSettings: "server.getSettings",
+  serverUpdateSettings: "server.updateSettings",
 } as const;
 
 // ── Push Event Channels ──────────────────────────────────────────────
@@ -90,6 +94,7 @@ export const WS_CHANNELS = {
   terminalEvent: "terminal.event",
   serverWelcome: "server.welcome",
   serverConfigUpdated: "server.configUpdated",
+  serverProvidersUpdated: "server.providersUpdated",
 } as const;
 
 // -- Tagged Union of all request body schemas ─────────────────────────
@@ -149,7 +154,10 @@ const WebSocketRequestBody = Schema.Union([
 
   // Server meta
   tagRequestBody(WS_METHODS.serverGetConfig, Schema.Struct({})),
+  tagRequestBody(WS_METHODS.serverRefreshProviders, Schema.Struct({})),
   tagRequestBody(WS_METHODS.serverUpsertKeybinding, KeybindingRule),
+  tagRequestBody(WS_METHODS.serverGetSettings, Schema.Struct({})),
+  tagRequestBody(WS_METHODS.serverUpdateSettings, Schema.Struct({ patch: ServerSettingsPatch })),
 ]);
 
 export const WebSocketRequest = Schema.Struct({
@@ -183,6 +191,7 @@ export type WsWelcomePayload = typeof WsWelcomePayload.Type;
 export interface WsPushPayloadByChannel {
   readonly [WS_CHANNELS.serverWelcome]: WsWelcomePayload;
   readonly [WS_CHANNELS.serverConfigUpdated]: typeof ServerConfigUpdatedPayload.Type;
+  readonly [WS_CHANNELS.serverProvidersUpdated]: typeof ServerProviderUpdatedPayload.Type;
   readonly [WS_CHANNELS.gitActionProgress]: typeof GitActionProgressEvent.Type;
   readonly [WS_CHANNELS.terminalEvent]: typeof TerminalEvent.Type;
   readonly [ORCHESTRATION_WS_CHANNELS.domainEvent]: OrchestrationEvent;
@@ -207,6 +216,10 @@ export const WsPushServerConfigUpdated = makeWsPushSchema(
   WS_CHANNELS.serverConfigUpdated,
   ServerConfigUpdatedPayload,
 );
+export const WsPushServerProvidersUpdated = makeWsPushSchema(
+  WS_CHANNELS.serverProvidersUpdated,
+  ServerProviderUpdatedPayload,
+);
 export const WsPushGitActionProgress = makeWsPushSchema(
   WS_CHANNELS.gitActionProgress,
   GitActionProgressEvent,
@@ -221,6 +234,7 @@ export const WsPushChannelSchema = Schema.Literals([
   WS_CHANNELS.gitActionProgress,
   WS_CHANNELS.serverWelcome,
   WS_CHANNELS.serverConfigUpdated,
+  WS_CHANNELS.serverProvidersUpdated,
   WS_CHANNELS.terminalEvent,
   ORCHESTRATION_WS_CHANNELS.domainEvent,
 ]);
@@ -229,6 +243,7 @@ export type WsPushChannelSchema = typeof WsPushChannelSchema.Type;
 export const WsPush = Schema.Union([
   WsPushServerWelcome,
   WsPushServerConfigUpdated,
+  WsPushServerProvidersUpdated,
   WsPushGitActionProgress,
   WsPushTerminalEvent,
   WsPushOrchestrationDomainEvent,

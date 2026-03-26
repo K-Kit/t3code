@@ -49,12 +49,13 @@ import { createLogger } from "./logger";
 import { GitManager } from "./git/Services/GitManager.ts";
 import { TerminalManager } from "./terminal/Services/Manager.ts";
 import { Keybindings } from "./keybindings";
+import { ServerSettingsService } from "./serverSettings";
 import { searchWorkspaceEntries } from "./workspaceEntries";
 import { OrchestrationEngineService } from "./orchestration/Services/OrchestrationEngine";
 import { ProjectionSnapshotQuery } from "./orchestration/Services/ProjectionSnapshotQuery";
 import { OrchestrationReactor } from "./orchestration/Services/OrchestrationReactor";
 import { ProviderService } from "./provider/Services/ProviderService";
-import { ProviderHealth } from "./provider/Services/ProviderHealth";
+import { ProviderRegistry } from "./provider/Services/ProviderRegistry";
 import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuery";
 import { clamp } from "effect/Number";
 import { Open, resolveAvailableEditors } from "./open";
@@ -209,7 +210,7 @@ export type ServerCoreRuntimeServices =
   | CheckpointDiffQuery
   | OrchestrationReactor
   | ProviderService
-  | ProviderHealth;
+  | ProviderRegistry;
 
 export type ServerRuntimeServices =
   | ServerCoreRuntimeServices
@@ -217,6 +218,7 @@ export type ServerRuntimeServices =
   | GitCore
   | TerminalManager
   | Keybindings
+  | ServerSettingsService
   | Open
   | AnalyticsService;
 
@@ -254,7 +256,8 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
   const gitManager = yield* GitManager;
   const terminalManager = yield* TerminalManager;
   const keybindingsManager = yield* Keybindings;
-  const providerHealth = yield* ProviderHealth;
+  const serverSettingsManager = yield* ServerSettingsService;
+  const providerRegistry = yield* ProviderRegistry;
   const git = yield* GitCore;
   const fileSystem = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
@@ -269,7 +272,7 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
     ),
   );
 
-  const providerStatuses = yield* providerHealth.getStatuses;
+  const providersRef = yield* Ref.make(yield* providerRegistry.getProviders);
 
   const clients = yield* Ref.make(new Set<WebSocket>());
   const logger = createLogger("ws");
@@ -296,6 +299,11 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
     ),
   );
   yield* readiness.markKeybindingsReady;
+  yield* serverSettingsManager.start.pipe(
+    Effect.mapError(
+      (cause) => new ServerLifecycleError({ operation: "serverSettingsRuntimeStart", cause }),
+    ),
+  );
 
   const normalizeDispatchCommand = Effect.fnUntraced(function* (input: {
     readonly command: ClientOrchestrationCommand;
@@ -615,7 +623,22 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
   yield* Stream.runForEach(keybindingsManager.streamChanges, (event) =>
     pushBus.publishAll(WS_CHANNELS.serverConfigUpdated, {
       issues: event.issues,
-      providers: providerStatuses,
+    }),
+  ).pipe(Effect.forkIn(subscriptionsScope));
+
+  yield* Stream.runForEach(serverSettingsManager.streamChanges, (settings) =>
+    pushBus.publishAll(WS_CHANNELS.serverConfigUpdated, {
+      issues: [],
+      settings,
+    }),
+  ).pipe(Effect.forkIn(subscriptionsScope));
+
+  yield* Stream.runForEach(providerRegistry.streamChanges, (providers) =>
+    Effect.gen(function* () {
+      yield* Ref.set(providersRef, providers);
+      yield* pushBus.publishAll(WS_CHANNELS.serverProvidersUpdated, {
+        providers,
+      });
     }),
   ).pipe(Effect.forkIn(subscriptionsScope));
 
@@ -879,16 +902,26 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
         return yield* terminalManager.close(body);
       }
 
-      case WS_METHODS.serverGetConfig:
+      case WS_METHODS.serverGetConfig: {
         const keybindingsConfig = yield* keybindingsManager.loadConfigState;
+        const settings = yield* serverSettingsManager.getSettings;
+        const providers = yield* Ref.get(providersRef);
         return {
           cwd,
           keybindingsConfigPath,
           keybindings: keybindingsConfig.keybindings,
           issues: keybindingsConfig.issues,
-          providers: providerStatuses,
+          providers,
           availableEditors,
+          settings,
         };
+      }
+
+      case WS_METHODS.serverRefreshProviders: {
+        const providers = yield* providerRegistry.refresh();
+        yield* Ref.set(providersRef, providers);
+        return { providers };
+      }
 
       case WS_METHODS.serverUpsertKeybinding: {
         const body = stripRequestTag(request.body);
@@ -902,6 +935,15 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
       case WS_METHODS.skillsSetEnabled: {
         const body = stripRequestTag(request.body);
         return yield* skillsModule.setSkillEnabled(body);
+      }
+
+      case WS_METHODS.serverGetSettings: {
+        return yield* serverSettingsManager.getSettings;
+      }
+
+      case WS_METHODS.serverUpdateSettings: {
+        const body = stripRequestTag(request.body);
+        return yield* serverSettingsManager.updateSettings(body.patch);
       }
 
       default: {
