@@ -376,6 +376,42 @@ describe("ProviderRuntimeIngestion", () => {
     expect(thread.session?.lastError).toBeNull();
   });
 
+  it("preserves auth failure session errors when a later session.exited arrives", async () => {
+    const harness = await createHarness();
+    const authMessage =
+      "Codex/OpenAI authentication expired. Run `codex login` and send the message again.";
+
+    harness.emit({
+      type: "session.state.changed",
+      eventId: asEventId("evt-session-state-auth-error"),
+      provider: "codex",
+      threadId: asThreadId("thread-1"),
+      createdAt: new Date().toISOString(),
+      payload: {
+        state: "error",
+        reason: authMessage,
+      },
+    });
+
+    harness.emit({
+      type: "session.exited",
+      eventId: asEventId("evt-session-exited-after-auth-error"),
+      provider: "codex",
+      threadId: asThreadId("thread-1"),
+      createdAt: new Date().toISOString(),
+      payload: {
+        reason: "Session stopped",
+      },
+    });
+
+    const thread = await waitForThread(
+      harness.engine,
+      (entry) => entry.session?.status === "error" && entry.session?.lastError === authMessage,
+    );
+    expect(thread.session?.status).toBe("error");
+    expect(thread.session?.lastError).toBe(authMessage);
+  });
+
   it("does not clear active turn when session/thread started arrives mid-turn", async () => {
     const harness = await createHarness();
     const now = new Date().toISOString();

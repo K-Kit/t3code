@@ -76,7 +76,42 @@ const defaultProviderStatuses: ReadonlyArray<ServerProviderStatus> = [
 
 const defaultProviderHealthService: ProviderHealthShape = {
   getStatuses: Effect.succeed(defaultProviderStatuses),
+  setStatus: () => Effect.void,
+  replaceStatuses: () => Effect.void,
+  streamChanges: Stream.empty,
 };
+
+function createMutableProviderHealthService(
+  initialStatuses: ReadonlyArray<ServerProviderStatus> = defaultProviderStatuses,
+) {
+  let statuses = [...initialStatuses];
+  const changes = Effect.runSync(PubSub.unbounded<ReadonlyArray<ServerProviderStatus>>());
+
+  const service: ProviderHealthShape = {
+    getStatuses: Effect.sync(() => statuses),
+    setStatus: (_provider, nextStatus) =>
+      Effect.gen(function* () {
+        statuses = statuses.some((status) => status.provider === nextStatus.provider)
+          ? statuses.map((status) =>
+              status.provider === nextStatus.provider ? nextStatus : status,
+            )
+          : [...statuses, nextStatus];
+        yield* PubSub.publish(changes, statuses);
+      }),
+    replaceStatuses: (nextStatuses) =>
+      Effect.gen(function* () {
+        statuses = [...nextStatuses];
+        yield* PubSub.publish(changes, statuses);
+      }),
+    streamChanges: Stream.fromPubSub(changes),
+  };
+
+  return {
+    service,
+    setStatus: (provider: ServerProviderStatus["provider"], nextStatus: ServerProviderStatus) =>
+      Effect.runPromise(service.setStatus(provider, nextStatus)),
+  };
+}
 
 class MockTerminalManager implements TerminalManagerShape {
   private readonly sessions = new Map<string, TerminalSessionSnapshot>();
@@ -1010,6 +1045,55 @@ describe("WebSocket Server", () => {
       (push) => Array.isArray(push.data.issues) && push.data.issues.length === 0,
     );
     expect(successPush.data).toEqual({ issues: [], providers: defaultProviderStatuses });
+  });
+
+  it("pushes server.configUpdated when provider health changes at runtime", async () => {
+    const baseDir = makeTempDir("t3code-state-provider-health-watch-");
+    const { keybindingsConfigPath: keybindingsPath } = deriveServerPathsSync(baseDir, undefined);
+    ensureParentDir(keybindingsPath);
+    fs.writeFileSync(keybindingsPath, "[]", "utf8");
+    const providerHealth = createMutableProviderHealthService();
+
+    server = await createTestServer({
+      cwd: "/my/workspace",
+      baseDir,
+      providerHealth: providerHealth.service,
+    });
+    const addr = server.address();
+    const port = typeof addr === "object" && addr !== null ? addr.port : 0;
+
+    const [ws] = await connectAndAwaitWelcome(port);
+    connections.push(ws);
+
+    const nextProviderStatus: ServerProviderStatus = {
+      provider: "codex",
+      status: "error",
+      available: true,
+      authStatus: "unauthenticated",
+      checkedAt: "2026-03-25T00:00:00.000Z",
+      message: "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+    };
+
+    const pushPromise = waitForPush(
+      ws,
+      WS_CHANNELS.serverConfigUpdated,
+      (push) =>
+        Array.isArray(push.data.providers) &&
+        push.data.providers.some(
+          (provider) =>
+            provider.provider === "codex" &&
+            provider.authStatus === "unauthenticated" &&
+            provider.message === nextProviderStatus.message,
+        ),
+    );
+
+    await providerHealth.setStatus("codex", nextProviderStatus);
+    const push = await pushPromise;
+
+    expect(push.data).toEqual({
+      issues: [],
+      providers: [nextProviderStatus],
+    });
   });
 
   it("routes shell.openInEditor through the injected open service", async () => {

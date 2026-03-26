@@ -24,6 +24,7 @@ import {
 import { ServerConfig } from "../../config.ts";
 import { ProviderAdapterValidationError } from "../Errors.ts";
 import { CodexAdapter } from "../Services/CodexAdapter.ts";
+import { ProviderHealth, type ProviderHealthShape } from "../Services/ProviderHealth.ts";
 import { ProviderSessionDirectory } from "../Services/ProviderSessionDirectory.ts";
 import { makeCodexAdapterLive } from "./CodexAdapter.ts";
 
@@ -147,10 +148,18 @@ const providerSessionDirectoryTestLayer = Layer.succeed(ProviderSessionDirectory
   listThreadIds: () => Effect.succeed([]),
 });
 
+const noopProviderHealthService: ProviderHealthShape = {
+  getStatuses: Effect.succeed([]),
+  setStatus: () => Effect.void,
+  replaceStatuses: () => Effect.void,
+  streamChanges: Stream.empty,
+};
+
 const validationManager = new FakeCodexManager();
 const validationLayer = it.layer(
   makeCodexAdapterLive({ manager: validationManager }).pipe(
     Layer.provideMerge(ServerConfig.layerTest(process.cwd(), process.cwd())),
+    Layer.provideMerge(Layer.succeed(ProviderHealth, noopProviderHealthService)),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
   ),
@@ -216,6 +225,7 @@ sessionErrorManager.sendTurnImpl.mockImplementation(async () => {
 const sessionErrorLayer = it.layer(
   makeCodexAdapterLive({ manager: sessionErrorManager }).pipe(
     Layer.provideMerge(ServerConfig.layerTest(process.cwd(), process.cwd())),
+    Layer.provideMerge(Layer.succeed(ProviderHealth, noopProviderHealthService)),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
   ),
@@ -284,6 +294,7 @@ const lifecycleManager = new FakeCodexManager();
 const lifecycleLayer = it.layer(
   makeCodexAdapterLive({ manager: lifecycleManager }).pipe(
     Layer.provideMerge(ServerConfig.layerTest(process.cwd(), process.cwd())),
+    Layer.provideMerge(Layer.succeed(ProviderHealth, noopProviderHealthService)),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
   ),
@@ -430,6 +441,48 @@ lifecycleLayer("CodexAdapterLive lifecycle", (it) => {
       }
       assert.equal(firstEvent.value.threadId, "thread-1");
       assert.equal(firstEvent.value.payload.reason, "Session stopped");
+    }),
+  );
+
+  it.effect("maps session/authFailed to session.state.changed(error) and runtime.error", () =>
+    Effect.gen(function* () {
+      const adapter = yield* CodexAdapter;
+      const eventsFiber = yield* Stream.runCollect(Stream.take(adapter.streamEvents, 2)).pipe(
+        Effect.forkChild,
+      );
+
+      lifecycleManager.emit("event", {
+        id: asEventId("evt-auth-failed"),
+        kind: "session",
+        provider: "codex",
+        threadId: asThreadId("thread-1"),
+        createdAt: new Date().toISOString(),
+        method: "session/authFailed",
+        message:
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        payload: {
+          kind: "invalid_refresh_token",
+          rawMessage: "invalid_grant",
+        },
+      } satisfies ProviderEvent);
+
+      const events = Array.from(yield* Fiber.join(eventsFiber));
+      assert.equal(events.length, 2);
+      assert.equal(events[0]?.type, "session.state.changed");
+      if (events[0]?.type === "session.state.changed") {
+        assert.equal(events[0].payload.state, "error");
+        assert.equal(
+          events[0].payload.reason,
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        );
+      }
+      assert.equal(events[1]?.type, "runtime.error");
+      if (events[1]?.type === "runtime.error") {
+        assert.equal(
+          events[1].payload.message,
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        );
+      }
     }),
   );
 

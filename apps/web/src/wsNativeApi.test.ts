@@ -233,6 +233,48 @@ describe("wsNativeApi", () => {
     });
   });
 
+  it("replays successive provider auth status updates from server.configUpdated", async () => {
+    const { createWsNativeApi, onServerConfigUpdated } = await import("./wsNativeApi");
+
+    createWsNativeApi();
+    const listener = vi.fn();
+    onServerConfigUpdated(listener);
+
+    emitPush(WS_CHANNELS.serverConfigUpdated, {
+      issues: [],
+      providers: defaultProviders,
+    });
+    emitPush(WS_CHANNELS.serverConfigUpdated, {
+      issues: [],
+      providers: [
+        {
+          provider: "codex",
+          status: "error",
+          available: true,
+          authStatus: "unauthenticated",
+          checkedAt: "2026-03-25T00:00:00.000Z",
+          message:
+            "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        },
+      ],
+    });
+
+    expect(listener).toHaveBeenNthCalledWith(2, {
+      issues: [],
+      providers: [
+        {
+          provider: "codex",
+          status: "error",
+          available: true,
+          authStatus: "unauthenticated",
+          checkedAt: "2026-03-25T00:00:00.000Z",
+          message:
+            "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        },
+      ],
+    });
+  });
+
   it("forwards valid terminal and orchestration events", async () => {
     const { createWsNativeApi } = await import("./wsNativeApi");
 

@@ -1,14 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { PassThrough } from "node:stream";
+import readline from "node:readline";
 import { ApprovalRequestId, ThreadId } from "@t3tools/contracts";
 
 import {
   buildCodexInitializeParams,
+  classifyCodexAuthFailure,
   CODEX_DEFAULT_MODE_DEVELOPER_INSTRUCTIONS,
   CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS,
+  CODEX_REAUTH_MESSAGE,
   CodexAppServerManager,
   classifyCodexStderrLine,
   isRecoverableThreadResumeError,
@@ -18,6 +23,61 @@ import {
 } from "./codexAppServerManager";
 
 const asThreadId = (value: string): ThreadId => ThreadId.makeUnsafe(value);
+
+function createProcessListenerHarness() {
+  class FakeChild extends EventEmitter {
+    readonly stdin = new PassThrough();
+    readonly stdout = new PassThrough();
+    readonly stderr = new PassThrough();
+    killed = false;
+    pid = 123;
+
+    kill() {
+      this.killed = true;
+      return true;
+    }
+  }
+  const manager = new CodexAppServerManager();
+  const child = new FakeChild();
+  const context = {
+    session: {
+      provider: "codex",
+      status: "running",
+      threadId: asThreadId("thread_1"),
+      runtimeMode: "full-access",
+      model: "gpt-5.3-codex",
+      activeTurnId: "turn_1",
+      lastError: null,
+      resumeCursor: { threadId: "provider_thread_1" },
+      createdAt: "2026-02-10T00:00:00.000Z",
+      updatedAt: "2026-02-10T00:00:00.000Z",
+    },
+    account: {
+      type: "unknown",
+      planType: null,
+      sparkEnabled: true,
+    },
+    child,
+    output: readline.createInterface({ input: child.stdout }),
+    pending: new Map(),
+    pendingApprovals: new Map(),
+    pendingUserInputs: new Map(),
+    collabReceiverTurns: new Map(),
+    nextRequestId: 1,
+    stopping: false,
+  };
+
+  (manager as unknown as { sessions: Map<ThreadId, unknown> }).sessions.set(
+    asThreadId("thread_1"),
+    context,
+  );
+
+  (
+    manager as unknown as { attachProcessListeners: (context: unknown) => void }
+  ).attachProcessListeners(context);
+
+  return { manager, child, context };
+}
 
 function createSendTurnHarness() {
   const manager = new CodexAppServerManager();
@@ -207,6 +267,23 @@ describe("classifyCodexStderrLine", () => {
   });
 });
 
+describe("classifyCodexAuthFailure", () => {
+  it("matches invalid refresh token failures", () => {
+    expect(
+      classifyCodexAuthFailure(
+        'Auth(TokenRefreshFailed("Server returned error response: invalid_grant: Invalid refresh token"))',
+      ),
+    ).toEqual({
+      kind: "invalid_refresh_token",
+      userMessage: CODEX_REAUTH_MESSAGE,
+    });
+  });
+
+  it("ignores unrelated errors", () => {
+    expect(classifyCodexAuthFailure("transport closed")).toBeNull();
+  });
+});
+
 describe("normalizeCodexModelSlug", () => {
   it("maps 5.3 aliases to gpt-5.3-codex", () => {
     expect(normalizeCodexModelSlug("5.3")).toBe("gpt-5.3-codex");
@@ -284,6 +361,67 @@ describe("readCodexAccountSnapshot", () => {
       planType: null,
       sparkEnabled: true,
     });
+  });
+});
+
+describe("auth failure process handling", () => {
+  it("marks the session error and emits session/authFailed on invalid refresh token stderr", async () => {
+    const { manager, child, context } = createProcessListenerHarness();
+    const events: Array<{ method: string; message: string | undefined }> = [];
+    manager.on("event", (event) => {
+      events.push({ method: event.method, message: event.message });
+    });
+
+    child.stderr.emit(
+      "data",
+      Buffer.from(
+        'Auth(TokenRefreshFailed("Server returned error response: invalid_grant: Invalid refresh token"))\n',
+      ),
+    );
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(context.session.status).toBe("closed");
+    expect(context.session.lastError).toBe(CODEX_REAUTH_MESSAGE);
+    expect(events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          method: "session/authFailed",
+          message: CODEX_REAUTH_MESSAGE,
+        }),
+      ]),
+    );
+  });
+
+  it("rejects pending turn/start requests with the normalized auth message", async () => {
+    const { child, context } = createProcessListenerHarness();
+    const reject = vi.fn();
+    context.pending.set("1", {
+      method: "turn/start",
+      timeout: setTimeout(() => undefined, 10_000),
+      resolve: vi.fn(),
+      reject,
+    });
+
+    child.stderr.emit("data", Buffer.from("invalid_grant: Invalid refresh token\n"));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(reject).toHaveBeenCalledWith(expect.objectContaining({ message: CODEX_REAUTH_MESSAGE }));
+  });
+
+  it("does not emit a generic session/exited after auth failure is already known", async () => {
+    const { manager, child } = createProcessListenerHarness();
+    const events: string[] = [];
+    manager.on("event", (event) => {
+      events.push(event.method);
+    });
+
+    child.stderr.emit("data", Buffer.from("TokenRefreshFailed invalid_grant\n"));
+    await new Promise((resolve) => setImmediate(resolve));
+    child.emit("exit", 1, null);
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(events).toContain("session/authFailed");
+    expect(events).not.toContain("session/exited");
   });
 });
 

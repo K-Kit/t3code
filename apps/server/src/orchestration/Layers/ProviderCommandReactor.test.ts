@@ -932,6 +932,66 @@ describe("ProviderCommandReactor", () => {
     });
   });
 
+  it("records normalized auth failure detail when sendTurn fails after provider auth loss", async () => {
+    const harness = await createHarness();
+    const now = new Date().toISOString();
+    const authMessage =
+      "Codex/OpenAI authentication expired. Run `codex login` and send the message again.";
+
+    (
+      harness.sendTurn as unknown as {
+        mockImplementationOnce: (impl: (...args: Array<unknown>) => unknown) => void;
+      }
+    ).mockImplementationOnce(() =>
+      Effect.fail(
+        new ProviderAdapterRequestError({
+          provider: "codex",
+          method: "turn/start",
+          detail: authMessage,
+        }),
+      ),
+    );
+
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.turn.start",
+        commandId: CommandId.makeUnsafe("cmd-turn-start-auth-failure"),
+        threadId: ThreadId.makeUnsafe("thread-1"),
+        message: {
+          messageId: asMessageId("user-message-auth-failure"),
+          role: "user",
+          text: "hello",
+          attachments: [],
+        },
+        interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+        runtimeMode: "approval-required",
+        createdAt: now,
+      }),
+    );
+
+    await waitFor(async () => {
+      const readModel = await Effect.runPromise(harness.engine.getReadModel());
+      const thread = readModel.threads.find(
+        (entry) => entry.id === ThreadId.makeUnsafe("thread-1"),
+      );
+      return (
+        thread?.activities.some((activity) => activity.kind === "provider.turn.start.failed") ??
+        false
+      );
+    });
+
+    const readModel = await Effect.runPromise(harness.engine.getReadModel());
+    const thread = readModel.threads.find((entry) => entry.id === ThreadId.makeUnsafe("thread-1"));
+    expect(
+      thread?.activities.find((activity) => activity.kind === "provider.turn.start.failed"),
+    ).toMatchObject({
+      summary: "Provider turn start failed",
+      payload: {
+        detail: authMessage,
+      },
+    });
+  });
+
   it("does not stop the active session when restart fails before rebind", async () => {
     const harness = await createHarness();
     const now = new Date().toISOString();

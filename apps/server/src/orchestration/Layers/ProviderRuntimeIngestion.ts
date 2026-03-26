@@ -974,7 +974,7 @@ const make = Effect.gen(function* () {
             case "turn.started":
               return "running";
             case "session.exited":
-              return "stopped";
+              return thread.session?.status === "error" ? "error" : "stopped";
             case "turn.completed":
               return runtimeTurnState(event) === "failed" ? "error" : "ready";
             case "session.started":

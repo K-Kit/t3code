@@ -32,6 +32,7 @@ import {
   type ProviderAdapterError,
 } from "../Errors.ts";
 import { CodexAdapter, type CodexAdapterShape } from "../Services/CodexAdapter.ts";
+import { ProviderHealth } from "../Services/ProviderHealth.ts";
 import {
   CodexAppServerManager,
   type CodexAppServerStartSessionInput,
@@ -663,6 +664,30 @@ function mapToRuntimeEvents(
         payload: {
           state: "ready",
           ...(event.message ? { reason: event.message } : {}),
+        },
+      },
+    ];
+  }
+
+  if (event.method === "session/authFailed") {
+    const message = event.message ?? "Provider authentication failed";
+    return [
+      {
+        ...runtimeEventBase(event, canonicalThreadId),
+        type: "session.state.changed",
+        payload: {
+          state: "error",
+          reason: message,
+          ...(event.payload !== undefined ? { detail: event.payload } : {}),
+        },
+      },
+      {
+        ...runtimeEventBase(event, canonicalThreadId),
+        type: "runtime.error",
+        payload: {
+          message,
+          class: "provider_error",
+          ...(event.payload !== undefined ? { detail: event.payload } : {}),
         },
       },
     ];
@@ -1317,6 +1342,7 @@ const makeCodexAdapter = (options?: CodexAdapterLiveOptions) =>
   Effect.gen(function* () {
     const fileSystem = yield* FileSystem.FileSystem;
     const serverConfig = yield* Effect.service(ServerConfig);
+    const providerHealth = yield* ProviderHealth;
     const nativeEventLogger =
       options?.nativeEventLogger ??
       (options?.nativeEventLogPath !== undefined
@@ -1540,6 +1566,17 @@ const makeCodexAdapter = (options?: CodexAdapterLiveOptions) =>
         const listener = (event: ProviderEvent) =>
           Effect.gen(function* () {
             yield* writeNativeEvent(event);
+            if (event.method === "session/authFailed") {
+              const message = event.message ?? "Provider authentication failed";
+              yield* providerHealth.setStatus("codex", {
+                provider: "codex",
+                status: "error",
+                available: true,
+                authStatus: "unauthenticated",
+                checkedAt: new Date().toISOString(),
+                message,
+              });
+            }
             const runtimeEvents = mapToRuntimeEvents(event, event.threadId);
             if (runtimeEvents.length === 0) {
               yield* Effect.logDebug("ignoring unhandled Codex provider event", {

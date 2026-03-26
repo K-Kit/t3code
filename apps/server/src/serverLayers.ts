@@ -22,6 +22,7 @@ import { makeCodexAdapterLive } from "./provider/Layers/CodexAdapter";
 import { ProviderAdapterRegistryLive } from "./provider/Layers/ProviderAdapterRegistry";
 import { makeProviderServiceLive } from "./provider/Layers/ProviderService";
 import { ProviderSessionDirectoryLive } from "./provider/Layers/ProviderSessionDirectory";
+import { ProviderHealth } from "./provider/Services/ProviderHealth";
 import { ProviderService } from "./provider/Services/ProviderService";
 import { makeEventNdjsonLogger } from "./provider/Layers/EventNdjsonLogger";
 
@@ -54,7 +55,7 @@ const makeRuntimePtyAdapterLayer = () =>
 export function makeServerProviderLayer(): Layer.Layer<
   ProviderService,
   ProviderUnsupportedError,
-  SqlClient.SqlClient | ServerConfig | FileSystem.FileSystem | AnalyticsService
+  SqlClient.SqlClient | ServerConfig | FileSystem.FileSystem | AnalyticsService | ProviderHealth
 > {
   return Effect.gen(function* () {
     const { providerEventLogPath } = yield* ServerConfig;

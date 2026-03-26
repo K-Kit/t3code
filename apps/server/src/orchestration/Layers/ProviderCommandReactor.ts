@@ -106,6 +106,17 @@ function stalePendingRequestDetail(
   return `Stale pending ${requestKind} request: ${requestId}. Provider callback state does not survive app restarts or recovered sessions. Restart the turn to continue.`;
 }
 
+function providerFailureDetailFromCause(cause: Cause.Cause<unknown>): string {
+  const error = Cause.squash(cause);
+  if (Schema.is(ProviderAdapterRequestError)(error)) {
+    return error.detail;
+  }
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+  return Cause.pretty(cause);
+}
+
 function isTemporaryWorktreeBranch(branch: string): boolean {
   return TEMP_WORKTREE_BRANCH_PATTERN.test(branch.trim().toLowerCase());
 }
@@ -526,7 +537,7 @@ const make = Effect.gen(function* () {
           threadId: event.payload.threadId,
           kind: "provider.turn.start.failed",
           summary: "Provider turn start failed",
-          detail: Cause.pretty(cause),
+          detail: providerFailureDetailFromCause(cause),
           turnId: null,
           createdAt: event.payload.createdAt,
         }),

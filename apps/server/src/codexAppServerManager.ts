@@ -73,6 +73,12 @@ interface CodexSessionContext {
   collabReceiverTurns: Map<string, TurnId>;
   nextRequestId: number;
   stopping: boolean;
+  fatalAuthFailure?: CodexAuthFailure;
+}
+
+export interface CodexAuthFailure {
+  readonly kind: "invalid_refresh_token";
+  readonly userMessage: string;
 }
 
 interface JsonRpcError {
@@ -165,6 +171,8 @@ const RECOVERABLE_THREAD_RESUME_ERROR_SNIPPETS = [
 const CODEX_DEFAULT_MODEL = "gpt-5.3-codex";
 const CODEX_SPARK_MODEL = "gpt-5.3-codex-spark";
 const CODEX_SPARK_DISABLED_PLAN_TYPES = new Set<CodexPlanType>(["free", "go", "plus"]);
+export const CODEX_REAUTH_MESSAGE =
+  "Codex/OpenAI authentication expired. Run `codex login` and send the message again.";
 
 function asObject(value: unknown): Record<string, unknown> | undefined {
   if (!value || typeof value !== "object") {
@@ -498,6 +506,22 @@ export function classifyCodexStderrLine(rawLine: string): { message: string } | 
   }
 
   return { message: line };
+}
+
+export function classifyCodexAuthFailure(message: string): CodexAuthFailure | null {
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("invalid_grant") ||
+    normalized.includes("invalid refresh token") ||
+    normalized.includes("tokenrefreshfailed")
+  ) {
+    return {
+      kind: "invalid_refresh_token",
+      userMessage: CODEX_REAUTH_MESSAGE,
+    };
+  }
+
+  return null;
 }
 
 export function isRecoverableThreadResumeError(error: unknown): boolean {
@@ -1047,12 +1071,30 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
           continue;
         }
 
+        const authFailure = classifyCodexAuthFailure(classified.message);
+        if (authFailure) {
+          this.handleFatalAuthFailure(context, authFailure, {
+            method: "process/stderr",
+            rawMessage: classified.message,
+          });
+          continue;
+        }
+
         this.emitErrorEvent(context, "process/stderr", classified.message);
       }
     });
 
     context.child.on("error", (error) => {
-      const message = error.message || "codex app-server process errored.";
+      const fatalAuthFailure = context.fatalAuthFailure;
+      const message =
+        fatalAuthFailure?.userMessage ?? error.message ?? "codex app-server process errored.";
+      if (fatalAuthFailure) {
+        this.handleFatalAuthFailure(context, fatalAuthFailure, {
+          method: "process/error",
+          rawMessage: error.message || "codex app-server process errored.",
+        });
+        return;
+      }
       this.updateSession(context, {
         status: "error",
         lastError: message,
@@ -1062,6 +1104,14 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
 
     context.child.on("exit", (code, signal) => {
       if (context.stopping) {
+        return;
+      }
+
+      if (context.fatalAuthFailure) {
+        this.handleFatalAuthFailure(context, context.fatalAuthFailure, {
+          method: "session/exited",
+          rawMessage: `codex app-server exited (code=${code ?? "null"}, signal=${signal ?? "null"}).`,
+        });
         return;
       }
 
@@ -1284,7 +1334,18 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
     context.pending.delete(key);
 
     if (response.error?.message) {
-      pending.reject(new Error(`${pending.method} failed: ${String(response.error.message)}`));
+      const rawMessage = `${pending.method} failed: ${String(response.error.message)}`;
+      const authFailure = classifyCodexAuthFailure(rawMessage);
+      if (authFailure) {
+        this.handleFatalAuthFailure(context, authFailure, {
+          method: pending.method,
+          rawMessage,
+          detail: response.error,
+        });
+        pending.reject(new Error(authFailure.userMessage));
+        return;
+      }
+      pending.reject(new Error(rawMessage));
       return;
     }
 
@@ -1300,26 +1361,37 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
     const id = context.nextRequestId;
     context.nextRequestId += 1;
 
-    const result = await new Promise<unknown>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        context.pending.delete(String(id));
-        reject(new Error(`Timed out waiting for ${method}.`));
-      }, timeoutMs);
+    try {
+      const result = await new Promise<unknown>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          context.pending.delete(String(id));
+          reject(new Error(`Timed out waiting for ${method}.`));
+        }, timeoutMs);
 
-      context.pending.set(String(id), {
-        method,
-        timeout,
-        resolve,
-        reject,
+        context.pending.set(String(id), {
+          method,
+          timeout,
+          resolve,
+          reject,
+        });
+        this.writeMessage(context, {
+          method,
+          id,
+          params,
+        });
       });
-      this.writeMessage(context, {
-        method,
-        id,
-        params,
-      });
-    });
 
-    return result as TResponse;
+      return result as TResponse;
+    } catch (error) {
+      const authFailure =
+        context.fatalAuthFailure ??
+        classifyCodexAuthFailure(error instanceof Error ? error.message : String(error));
+      if (authFailure) {
+        context.fatalAuthFailure = authFailure;
+        throw new Error(authFailure.userMessage, { cause: error });
+      }
+      throw error;
+    }
   }
 
   private writeMessage(context: CodexSessionContext, message: unknown): void {
@@ -1357,6 +1429,52 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
 
   private emitEvent(event: ProviderEvent): void {
     this.emit("event", event);
+  }
+
+  private handleFatalAuthFailure(
+    context: CodexSessionContext,
+    failure: CodexAuthFailure,
+    input: {
+      readonly method: string;
+      readonly rawMessage: string;
+      readonly detail?: unknown;
+    },
+  ): void {
+    const alreadyHandled = context.fatalAuthFailure !== undefined;
+    context.fatalAuthFailure = failure;
+
+    if (!alreadyHandled) {
+      this.updateSession(context, {
+        status: "error",
+        activeTurnId: undefined,
+        lastError: failure.userMessage,
+      });
+      this.emitEvent({
+        id: EventId.makeUnsafe(randomUUID()),
+        kind: "session",
+        provider: "codex",
+        threadId: context.session.threadId,
+        createdAt: new Date().toISOString(),
+        method: "session/authFailed",
+        message: failure.userMessage,
+        payload: {
+          kind: failure.kind,
+          sourceMethod: input.method,
+          rawMessage: input.rawMessage,
+          ...(input.detail !== undefined ? { detail: input.detail } : {}),
+        },
+      });
+      this.rejectPendingRequests(context, failure.userMessage);
+      this.stopSession(context.session.threadId);
+    }
+  }
+
+  private rejectPendingRequests(context: CodexSessionContext, message: string): void {
+    for (const pending of context.pending.values()) {
+      clearTimeout(pending.timeout);
+      pending.reject(new Error(message));
+    }
+    context.pending.clear();
   }
 
   private assertSupportedCodexCliVersion(input: {

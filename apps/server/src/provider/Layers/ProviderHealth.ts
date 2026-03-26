@@ -14,7 +14,18 @@ import type {
   ServerProviderStatus,
   ServerProviderStatusState,
 } from "@t3tools/contracts";
-import { Array, Effect, Fiber, FileSystem, Layer, Option, Path, Result, Stream } from "effect";
+import {
+  Array,
+  Effect,
+  FileSystem,
+  Layer,
+  Option,
+  Path,
+  PubSub,
+  Ref,
+  Result,
+  Stream,
+} from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 
 import {
@@ -23,6 +34,7 @@ import {
   parseCodexCliVersion,
 } from "../codexCliVersion";
 import { ProviderHealth, type ProviderHealthShape } from "../Services/ProviderHealth";
+import { classifyCodexAuthFailure } from "../../codexAppServerManager";
 
 const DEFAULT_TIMEOUT_MS = 4_000;
 const CODEX_PROVIDER = "codex" as const;
@@ -90,6 +102,7 @@ export function parseAuthStatusFromOutput(result: CommandResult): {
   readonly message?: string;
 } {
   const lowerOutput = `${result.stdout}\n${result.stderr}`.toLowerCase();
+  const authFailure = classifyCodexAuthFailure(`${result.stdout}\n${result.stderr}`);
 
   if (
     lowerOutput.includes("unknown command") ||
@@ -100,6 +113,14 @@ export function parseAuthStatusFromOutput(result: CommandResult): {
       status: "warning",
       authStatus: "unknown",
       message: "Codex CLI authentication status command is unavailable in this Codex version.",
+    };
+  }
+
+  if (authFailure) {
+    return {
+      status: "error",
+      authStatus: "unauthenticated",
+      message: authFailure.userMessage,
     };
   }
 
@@ -592,12 +613,37 @@ export const checkClaudeProviderStatus: Effect.Effect<
 export const ProviderHealthLive = Layer.effect(
   ProviderHealth,
   Effect.gen(function* () {
-    const statusesFiber = yield* Effect.all([checkCodexProviderStatus, checkClaudeProviderStatus], {
-      concurrency: "unbounded",
-    }).pipe(Effect.forkScoped);
+    const initialStatuses = yield* Effect.all(
+      [checkCodexProviderStatus, checkClaudeProviderStatus],
+      {
+        concurrency: "unbounded",
+      },
+    );
+    const statusesRef = yield* Ref.make<ReadonlyArray<ServerProviderStatus>>(initialStatuses);
+    const changes = yield* PubSub.unbounded<ReadonlyArray<ServerProviderStatus>>();
+
+    const publishStatuses = (
+      nextStatuses: ReadonlyArray<ServerProviderStatus>,
+    ): Effect.Effect<void> =>
+      Effect.gen(function* () {
+        yield* Ref.set(statusesRef, nextStatuses);
+        yield* PubSub.publish(changes, nextStatuses);
+      });
 
     return {
-      getStatuses: Fiber.join(statusesFiber),
+      getStatuses: Ref.get(statusesRef),
+      setStatus: (provider, nextStatus) =>
+        Ref.get(statusesRef).pipe(
+          Effect.flatMap((statuses) =>
+            publishStatuses(
+              statuses.some((status) => status.provider === provider)
+                ? statuses.map((status) => (status.provider === provider ? nextStatus : status))
+                : [...statuses, nextStatus],
+            ),
+          ),
+        ),
+      replaceStatuses: (nextStatuses) => publishStatuses(nextStatuses),
+      streamChanges: Stream.fromPubSub(changes),
     } satisfies ProviderHealthShape;
   }),
 );

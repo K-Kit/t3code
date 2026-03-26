@@ -210,6 +210,32 @@ it.layer(NodeServices.layer)("ProviderHealth", (it) => {
       ),
     );
 
+    it.effect("returns unauthenticated when auth probe reports invalid_grant", () =>
+      Effect.gen(function* () {
+        yield* withTempCodexHome();
+        const status = yield* checkCodexProviderStatus;
+        assert.strictEqual(status.provider, "codex");
+        assert.strictEqual(status.status, "error");
+        assert.strictEqual(status.available, true);
+        assert.strictEqual(status.authStatus, "unauthenticated");
+        assert.strictEqual(
+          status.message,
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+        );
+      }).pipe(
+        Effect.provide(
+          mockSpawnerLayer((args) => {
+            const joined = args.join(" ");
+            if (joined === "--version") return { stdout: "codex 1.0.0\n", stderr: "", code: 0 };
+            if (joined === "login status") {
+              return { stdout: "", stderr: "invalid_grant: Invalid refresh token", code: 1 };
+            }
+            throw new Error(`Unexpected args: ${joined}`);
+          }),
+        ),
+      ),
+    );
+
     it.effect("returns warning when login status command is unsupported", () =>
       Effect.gen(function* () {
         yield* withTempCodexHome();
@@ -340,6 +366,48 @@ it.layer(NodeServices.layer)("ProviderHealth", (it) => {
       });
       assert.strictEqual(parsed.status, "warning");
       assert.strictEqual(parsed.authStatus, "unknown");
+    });
+
+    it("treats invalid_grant output as unauthenticated", () => {
+      const parsed = parseAuthStatusFromOutput({
+        stdout: "",
+        stderr: 'Auth(TokenRefreshFailed("Server returned error response: invalid_grant"))',
+        code: 1,
+      });
+      assert.deepStrictEqual(parsed, {
+        status: "error",
+        authStatus: "unauthenticated",
+        message:
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+      });
+    });
+
+    it("treats invalid refresh token output as unauthenticated", () => {
+      const parsed = parseAuthStatusFromOutput({
+        stdout: "",
+        stderr: "Invalid refresh token",
+        code: 1,
+      });
+      assert.deepStrictEqual(parsed, {
+        status: "error",
+        authStatus: "unauthenticated",
+        message:
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+      });
+    });
+
+    it("treats TokenRefreshFailed output as unauthenticated", () => {
+      const parsed = parseAuthStatusFromOutput({
+        stdout: "",
+        stderr: "TokenRefreshFailed",
+        code: 1,
+      });
+      assert.deepStrictEqual(parsed, {
+        status: "error",
+        authStatus: "unauthenticated",
+        message:
+          "Codex/OpenAI authentication expired. Run `codex login` and send the message again.",
+      });
     });
   });
 

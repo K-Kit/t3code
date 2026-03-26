@@ -37,6 +37,7 @@ import { ProjectionCheckpointRepository } from "../src/persistence/Services/Proj
 import { ProjectionPendingApprovalRepository } from "../src/persistence/Services/ProjectionPendingApprovals.ts";
 import { ProviderUnsupportedError } from "../src/provider/Errors.ts";
 import { ProviderAdapterRegistry } from "../src/provider/Services/ProviderAdapterRegistry.ts";
+import { ProviderHealth } from "../src/provider/Services/ProviderHealth.ts";
 import { ProviderSessionDirectoryLive } from "../src/provider/Layers/ProviderSessionDirectory.ts";
 import { makeProviderServiceLive } from "../src/provider/Layers/ProviderService.ts";
 import { makeCodexAdapterLive } from "../src/provider/Layers/CodexAdapter.ts";
@@ -255,6 +256,12 @@ export const makeOrchestrationIntegrationHarness = (
     const providerSessionDirectoryLayer = ProviderSessionDirectoryLive.pipe(
       Layer.provide(ProviderSessionRuntimeRepositoryLive),
     );
+    const providerHealthLayer = Layer.succeed(ProviderHealth, {
+      getStatuses: Effect.succeed([]),
+      setStatus: () => Effect.void,
+      replaceStatuses: () => Effect.void,
+      streamChanges: Stream.empty,
+    });
     const realCodexRegistry = Layer.effect(
       ProviderAdapterRegistry,
       Effect.gen(function* () {
@@ -269,6 +276,7 @@ export const makeOrchestrationIntegrationHarness = (
       }),
     ).pipe(
       Layer.provide(makeCodexAdapterLive()),
+      Layer.provide(providerHealthLayer),
       Layer.provideMerge(ServerConfig.layerTest(workspaceDir, rootDir)),
       Layer.provideMerge(NodeServices.layer),
       Layer.provideMerge(providerSessionDirectoryLayer),
