@@ -38,6 +38,7 @@ import { KeybindingRule } from "./keybindings";
 import { ProjectSearchEntriesInput, ProjectWriteFileInput } from "./project";
 import { OpenInEditorInput } from "./editor";
 import { ServerConfigUpdatedPayload } from "./server";
+import { SkillsSetEnabledInput } from "./skills";
 
 // ── WebSocket RPC Method Names ───────────────────────────────────────
 
@@ -72,6 +73,10 @@ export const WS_METHODS = {
   terminalClear: "terminal.clear",
   terminalRestart: "terminal.restart",
   terminalClose: "terminal.close",
+
+  // Skills methods
+  skillsList: "skills.list",
+  skillsSetEnabled: "skills.setEnabled",
 
   // Server meta
   serverGetConfig: "server.getConfig",
@@ -137,6 +142,10 @@ const WebSocketRequestBody = Schema.Union([
   tagRequestBody(WS_METHODS.terminalClear, TerminalClearInput),
   tagRequestBody(WS_METHODS.terminalRestart, TerminalRestartInput),
   tagRequestBody(WS_METHODS.terminalClose, TerminalCloseInput),
+
+  // Skills methods
+  tagRequestBody(WS_METHODS.skillsList, Schema.Struct({})),
+  tagRequestBody(WS_METHODS.skillsSetEnabled, SkillsSetEnabledInput),
 
   // Server meta
   tagRequestBody(WS_METHODS.serverGetConfig, Schema.Struct({})),

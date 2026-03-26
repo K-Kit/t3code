@@ -26,6 +26,7 @@ import type {
   ProjectWriteFileResult,
 } from "./project";
 import type { ServerConfig } from "./server";
+import type { SkillsListResult, SkillsSetEnabledInput, SkillsSetEnabledResult } from "./skills";
 import type {
   TerminalClearInput,
   TerminalCloseInput,
@@ -161,6 +162,10 @@ export interface NativeApi {
   server: {
     getConfig: () => Promise<ServerConfig>;
     upsertKeybinding: (input: ServerUpsertKeybindingInput) => Promise<ServerUpsertKeybindingResult>;
+  };
+  skills: {
+    list: () => Promise<SkillsListResult>;
+    setEnabled: (input: SkillsSetEnabledInput) => Promise<SkillsSetEnabledResult>;
   };
   orchestration: {
     getSnapshot: () => Promise<OrchestrationReadModel>;

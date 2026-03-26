@@ -25,6 +25,13 @@ export type ComposerCommandItem =
     }
   | {
       id: string;
+      type: "skill";
+      skillName: string;
+      label: string;
+      description: string;
+    }
+  | {
+      id: string;
       type: "model";
       provider: ProviderKind;
       model: ModelSlug;
@@ -111,10 +118,17 @@ const ComposerCommandMenuItem = memo(function ComposerCommandMenuItem(props: {
           model
         </Badge>
       ) : null}
-      <span className="flex min-w-0 items-center gap-1.5 truncate">
-        <span className="truncate">{props.item.label}</span>
+      {props.item.type === "skill" ? (
+        <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+          skill
+        </Badge>
+      ) : null}
+      <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+        <span className="shrink-0 whitespace-nowrap font-medium">{props.item.label}</span>
+        <span className="min-w-0 truncate text-muted-foreground/70 text-xs">
+          {props.item.description}
+        </span>
       </span>
-      <span className="truncate text-muted-foreground/70 text-xs">{props.item.description}</span>
     </CommandItem>
   );
 });

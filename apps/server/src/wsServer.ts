@@ -59,6 +59,7 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { clamp } from "effect/Number";
 import { Open, resolveAvailableEditors } from "./open";
 import { ServerConfig } from "./config";
+import * as skillsModule from "./skills";
 import { GitCore } from "./git/Services/GitCore.ts";
 import { tryHandleProjectFaviconRequest } from "./projectFaviconRoute";
 import {
@@ -893,6 +894,14 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
         const body = stripRequestTag(request.body);
         const keybindingsConfig = yield* keybindingsManager.upsertKeybindingRule(body);
         return { keybindings: keybindingsConfig, issues: [] };
+      }
+
+      case WS_METHODS.skillsList:
+        return yield* skillsModule.listSkills;
+
+      case WS_METHODS.skillsSetEnabled: {
+        const body = stripRequestTag(request.body);
+        return yield* skillsModule.setSkillEnabled(body);
       }
 
       default: {
