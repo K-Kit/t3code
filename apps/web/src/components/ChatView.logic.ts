@@ -191,23 +191,13 @@ const BUILT_IN_SLASH_COMMAND_ITEMS = [
   },
 ] satisfies ReadonlyArray<Extract<ComposerCommandItem, { type: "slash-command" }>>;
 
-export function buildComposerSlashCommandItems(options: {
-  query: string;
-  skills: ReadonlyArray<SkillSummary>;
-}): ComposerCommandItem[] {
+function buildComposerSkillItems(options: { query: string; skills: ReadonlyArray<SkillSummary> }) {
   const query = options.query.trim().toLowerCase();
   const enabledSkills = options.skills
     .filter((skill) => skill.enabled)
     .toSorted((a, b) => a.name.localeCompare(b.name));
 
-  const matchingCommands =
-    query.length === 0
-      ? BUILT_IN_SLASH_COMMAND_ITEMS
-      : BUILT_IN_SLASH_COMMAND_ITEMS.filter(
-          (item) => item.command.includes(query) || item.label.slice(1).includes(query),
-        );
-
-  const matchingSkills = enabledSkills
+  return enabledSkills
     .filter((skill) => {
       if (query.length === 0) {
         return true;
@@ -228,6 +218,28 @@ export function buildComposerSlashCommandItems(options: {
           description: skill.description?.trim() || "Skill",
         }) satisfies Extract<ComposerCommandItem, { type: "skill" }>,
     );
+}
+
+export function buildComposerSlashCommandItems(options: {
+  query: string;
+  skills: ReadonlyArray<SkillSummary>;
+}): ComposerCommandItem[] {
+  const query = options.query.trim().toLowerCase();
+  const matchingCommands =
+    query.length === 0
+      ? BUILT_IN_SLASH_COMMAND_ITEMS
+      : BUILT_IN_SLASH_COMMAND_ITEMS.filter(
+          (item) => item.command.includes(query) || item.label.slice(1).includes(query),
+        );
+
+  const matchingSkills = buildComposerSkillItems(options);
 
   return [...matchingCommands, ...matchingSkills];
+}
+
+export function buildComposerSkillMenuItems(options: {
+  query: string;
+  skills: ReadonlyArray<SkillSummary>;
+}): ComposerCommandItem[] {
+  return buildComposerSkillItems(options);
 }

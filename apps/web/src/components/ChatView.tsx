@@ -172,6 +172,7 @@ import {
 import { ProviderHealthBanner } from "./chat/ProviderHealthBanner";
 import { ThreadErrorBanner } from "./chat/ThreadErrorBanner";
 import {
+  buildComposerSkillMenuItems,
   buildComposerSlashCommandItems,
   buildExpiredTerminalContextToastCopy,
   buildLocalDraftThread,
@@ -1065,6 +1066,12 @@ export default function ChatView({ threadId }: ChatViewProps) {
 
     if (composerTrigger.kind === "slash-command") {
       return buildComposerSlashCommandItems({
+        query: composerTrigger.query,
+        skills: enabledSkills,
+      });
+    }
+    if (composerTrigger.kind === "skill") {
+      return buildComposerSkillMenuItems({
         query: composerTrigger.query,
         skills: enabledSkills,
       });

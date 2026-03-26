@@ -2,6 +2,7 @@ import { ThreadId, type SkillSummary } from "@t3tools/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
+  buildComposerSkillMenuItems,
   buildComposerSlashCommandItems,
   buildExpiredTerminalContextToastCopy,
   deriveComposerSendState,
@@ -154,6 +155,54 @@ describe("buildComposerSlashCommandItems", () => {
         skillName: "plain-skill",
         label: "plain-skill",
         description: "Skill",
+      },
+    ]);
+  });
+});
+
+describe("buildComposerSkillMenuItems", () => {
+  const enabledSkill: SkillSummary = {
+    name: "frontend-design",
+    description: "Build polished interfaces",
+    enabled: true,
+  };
+
+  const disabledSkill: SkillSummary = {
+    name: "hidden-skill",
+    description: "Should not appear",
+    enabled: false,
+  };
+
+  it("shows only enabled skills for $ queries", () => {
+    expect(
+      buildComposerSkillMenuItems({
+        query: "",
+        skills: [enabledSkill, disabledSkill],
+      }),
+    ).toEqual([
+      {
+        id: "skill:frontend-design",
+        type: "skill",
+        skillName: "frontend-design",
+        label: "frontend-design",
+        description: "Build polished interfaces",
+      },
+    ]);
+  });
+
+  it("filters $ queries against skill fields", () => {
+    expect(
+      buildComposerSkillMenuItems({
+        query: "front",
+        skills: [enabledSkill],
+      }),
+    ).toEqual([
+      {
+        id: "skill:frontend-design",
+        type: "skill",
+        skillName: "frontend-design",
+        label: "frontend-design",
+        description: "Build polished interfaces",
       },
     ]);
   });
