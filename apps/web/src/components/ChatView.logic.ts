@@ -1,4 +1,9 @@
-import { ProjectId, type ModelSelection, type ThreadId } from "@t3tools/contracts";
+import {
+  ProjectId,
+  type ModelSelection,
+  type SkillSummary,
+  type ThreadId,
+} from "@t3tools/contracts";
 import { type ChatMessage, type Thread } from "../types";
 import { randomUUID } from "~/lib/utils";
 import { type ComposerImageAttachment, type DraftThreadState } from "../composerDraftStore";
@@ -8,6 +13,7 @@ import {
   stripInlineTerminalContextPlaceholders,
   type TerminalContextDraft,
 } from "../lib/terminalContext";
+import type { ComposerCommandItem } from "./chat/ComposerCommandMenu";
 
 export const LAST_INVOKED_SCRIPT_BY_PROJECT_KEY = "t3code:last-invoked-script-by-project";
 const WORKTREE_BRANCH_PREFIX = "t3code";
@@ -159,4 +165,81 @@ export function buildExpiredTerminalContextToastCopy(
     title: `${noun} omitted from message`,
     description: "Re-add it if you want that terminal output included.",
   };
+}
+
+const BUILT_IN_SLASH_COMMAND_ITEMS = [
+  {
+    id: "slash:model",
+    type: "slash-command",
+    command: "model",
+    label: "/model",
+    description: "Switch response model for this thread",
+  },
+  {
+    id: "slash:plan",
+    type: "slash-command",
+    command: "plan",
+    label: "/plan",
+    description: "Switch this thread into plan mode",
+  },
+  {
+    id: "slash:default",
+    type: "slash-command",
+    command: "default",
+    label: "/default",
+    description: "Switch this thread back to normal chat mode",
+  },
+] satisfies ReadonlyArray<Extract<ComposerCommandItem, { type: "slash-command" }>>;
+
+function buildComposerSkillItems(options: { query: string; skills: ReadonlyArray<SkillSummary> }) {
+  const query = options.query.trim().toLowerCase();
+  const enabledSkills = options.skills
+    .filter((skill) => skill.enabled)
+    .toSorted((a, b) => a.name.localeCompare(b.name));
+
+  return enabledSkills
+    .filter((skill) => {
+      if (query.length === 0) {
+        return true;
+      }
+      return (
+        skill.name.toLowerCase().includes(query) ||
+        skill.description?.toLowerCase().includes(query) ||
+        skill.source?.toLowerCase().includes(query)
+      );
+    })
+    .map(
+      (skill) =>
+        ({
+          id: `skill:${skill.name}`,
+          type: "skill",
+          skillName: skill.name,
+          label: skill.name,
+          description: skill.description?.trim() || "Skill",
+        }) satisfies Extract<ComposerCommandItem, { type: "skill" }>,
+    );
+}
+
+export function buildComposerSlashCommandItems(options: {
+  query: string;
+  skills: ReadonlyArray<SkillSummary>;
+}): ComposerCommandItem[] {
+  const query = options.query.trim().toLowerCase();
+  const matchingCommands =
+    query.length === 0
+      ? BUILT_IN_SLASH_COMMAND_ITEMS
+      : BUILT_IN_SLASH_COMMAND_ITEMS.filter(
+          (item) => item.command.includes(query) || item.label.slice(1).includes(query),
+        );
+
+  const matchingSkills = buildComposerSkillItems(options);
+
+  return [...matchingCommands, ...matchingSkills];
+}
+
+export function buildComposerSkillMenuItems(options: {
+  query: string;
+  skills: ReadonlyArray<SkillSummary>;
+}): ComposerCommandItem[] {
+  return buildComposerSkillItems(options);
 }

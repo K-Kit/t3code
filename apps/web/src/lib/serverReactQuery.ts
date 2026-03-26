@@ -16,3 +16,19 @@ export function serverConfigQueryOptions() {
     staleTime: Infinity,
   });
 }
+
+export const skillsQueryKeys = {
+  all: ["skills"] as const,
+  list: () => ["skills", "list"] as const,
+};
+
+export function skillsListQueryOptions() {
+  return queryOptions({
+    queryKey: skillsQueryKeys.list(),
+    queryFn: async () => {
+      const api = ensureNativeApi();
+      return api.skills.list();
+    },
+    staleTime: 30_000,
+  });
+}
