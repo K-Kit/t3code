@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["python3", "gcc", "gnumake"]
+
+[phases.install]
+cmds = [
+  "npm install -g node-gyp corepack@0.24.1",
+  "corepack enable",
+  "bun i --no-save",
+]
