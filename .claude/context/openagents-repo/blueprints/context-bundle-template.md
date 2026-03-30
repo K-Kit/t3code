@@ -241,6 +241,7 @@ Create a context bundle when:
    - Provide specific instructions
 
 4. **Pass to subagent**:
+
    ```javascript
     task(
       subagent_type="{SubagentName}",

@@ -1,0 +1,71 @@
+{
+  "agents": [
+    {
+      "agent_id": "a6232a2d2f98af512",
+      "agent_type": "explore",
+      "started_at": "2026-03-30T01:57:20.801Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T01:57:56.814Z",
+      "duration_ms": 36013
+    },
+    {
+      "agent_id": "af32d1e3cb9c4a905",
+      "agent_type": "architect",
+      "started_at": "2026-03-30T01:57:24.278Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T01:58:54.715Z",
+      "duration_ms": 90437
+    },
+    {
+      "agent_id": "a2eeadd1ab7c348b6",
+      "agent_type": "writer",
+      "started_at": "2026-03-30T02:01:06.804Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T02:04:07.411Z",
+      "duration_ms": 180607
+    },
+    {
+      "agent_id": "afbfe4195f4e069f5",
+      "agent_type": "writer",
+      "started_at": "2026-03-30T02:01:17.584Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T02:05:48.578Z",
+      "duration_ms": 270994
+    },
+    {
+      "agent_id": "a63cf14817d992856",
+      "agent_type": "writer",
+      "started_at": "2026-03-30T02:01:30.150Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T02:02:51.267Z",
+      "duration_ms": 81117
+    },
+    {
+      "agent_id": "a1156a0b5eb7ca9c8",
+      "agent_type": "writer",
+      "started_at": "2026-03-30T02:01:32.829Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T02:02:40.331Z",
+      "duration_ms": 67502
+    },
+    {
+      "agent_id": "a82c3fcfb519dd81f",
+      "agent_type": "explore",
+      "started_at": "2026-03-30T02:02:23.089Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-30T02:03:17.118Z",
+      "duration_ms": 54029
+    }
+  ],
+  "total_spawned": 7,
+  "total_completed": 7,
+  "total_failed": 0,
+  "last_updated": "2026-03-30T02:05:48.679Z"
+}

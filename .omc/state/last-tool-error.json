@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/home/kit/t3code/apps/server/src/provider/Layers/ClaudeAdapter.ts\"}",
+  "error": "File content (28397 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+  "timestamp": "2026-03-30T02:02:30.307Z",
+  "retry_count": 1
+}
