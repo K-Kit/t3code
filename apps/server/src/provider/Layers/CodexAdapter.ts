@@ -680,6 +680,18 @@ function mapToRuntimeEvents(
           ...(event.payload !== undefined ? { resume: event.payload } : {}),
         },
       },
+      // Codex app-server doesn't emit a dedicated config event, so synthesise
+      // session.configured here so ProviderRuntimeIngestion picks up the
+      // known slash commands that the server supports.
+      {
+        ...runtimeEventBase(event, canonicalThreadId),
+        type: "session.configured" as const,
+        payload: {
+          config: {
+            slash_commands: ["/compact", "/clear", "/help"],
+          },
+        },
+      },
     ];
   }
 

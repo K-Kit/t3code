@@ -930,7 +930,7 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
       }
 
       case WS_METHODS.skillsList:
-        return yield* skillsModule.listSkills;
+        return yield* skillsModule.listSkills(serverConfig.cwd);
 
       case WS_METHODS.skillsSetEnabled: {
         const body = stripRequestTag(request.body);

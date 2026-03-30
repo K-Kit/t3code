@@ -100,6 +100,30 @@ describe("detectComposerTrigger", () => {
     expect(trigger?.query).toBe("");
   });
 
+  it("detects trigger for custom/session slash commands not in built-in list", () => {
+    const text = "/refactor";
+    const trigger = detectComposerTrigger(text, text.length);
+
+    expect(trigger).toEqual({
+      kind: "slash-command",
+      query: "refactor",
+      rangeStart: 0,
+      rangeEnd: text.length,
+    });
+  });
+
+  it("detects trigger for partial custom slash command input", () => {
+    const text = "/ref";
+    const trigger = detectComposerTrigger(text, text.length);
+
+    expect(trigger).toEqual({
+      kind: "slash-command",
+      query: "ref",
+      rangeStart: 0,
+      rangeEnd: text.length,
+    });
+  });
+
   it("detects $skill trigger at cursor", () => {
     const text = "Use $front";
     const trigger = detectComposerTrigger(text, text.length);
