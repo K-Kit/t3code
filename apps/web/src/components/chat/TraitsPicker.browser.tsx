@@ -35,7 +35,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
     installed: true,
     version: "0.1.0",
     status: "ready",
-    authStatus: "authenticated",
+    auth: { status: "authenticated" },
     checkedAt: "2026-01-01T00:00:00.000Z",
     models: [
       {
@@ -49,6 +49,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
           ],
           supportsFastMode: true,
           supportsThinkingToggle: false,
+          contextWindowOptions: [],
           promptInjectedEffortLevels: [],
         },
       },
@@ -60,7 +61,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
     installed: true,
     version: "0.1.0",
     status: "ready",
-    authStatus: "authenticated",
+    auth: { status: "authenticated" },
     checkedAt: "2026-01-01T00:00:00.000Z",
     models: [
       {
@@ -77,6 +78,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
           ],
           supportsFastMode: true,
           supportsThinkingToggle: false,
+          contextWindowOptions: [],
           promptInjectedEffortLevels: ["ultrathink"],
         },
       },
@@ -93,6 +95,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
           ],
           supportsFastMode: false,
           supportsThinkingToggle: false,
+          contextWindowOptions: [],
           promptInjectedEffortLevels: ["ultrathink"],
         },
       },
@@ -104,6 +107,7 @@ const TEST_PROVIDERS: ReadonlyArray<ServerProvider> = [
           reasoningEffortLevels: [],
           supportsFastMode: false,
           supportsThinkingToggle: true,
+          contextWindowOptions: [],
           promptInjectedEffortLevels: [],
         },
       },
@@ -292,7 +296,7 @@ describe("TraitsPicker (Claude)", () => {
     });
   });
 
-  it("shows prompt-controlled Ultrathink state with disabled effort controls", async () => {
+  it("shows prompt-controlled Ultrathink state with selectable effort controls", async () => {
     await using _ = await mountClaudePicker({
       model: "claude-opus-4-6",
       options: { effort: "high" },
@@ -308,8 +312,24 @@ describe("TraitsPicker (Claude)", () => {
     await vi.waitFor(() => {
       const text = document.body.textContent ?? "";
       expect(text).toContain("Effort");
-      expect(text).toContain("Remove Ultrathink from the prompt to change effort.");
-      expect(text).not.toContain("Fallback Effort");
+      expect(text).not.toContain("ultrathink");
+    });
+  });
+
+  it("warns when ultrathink appears in prompt body text", async () => {
+    await using _ = await mountClaudePicker({
+      model: "claude-opus-4-6",
+      options: { effort: "high" },
+      prompt: "Ultrathink:\nplease ultrathink about this problem",
+    });
+
+    await page.getByRole("button").click();
+
+    await vi.waitFor(() => {
+      const text = document.body.textContent ?? "";
+      expect(text).toContain(
+        'Your prompt contains "ultrathink" in the text. Remove it to change effort.',
+      );
     });
   });
 

@@ -253,6 +253,11 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
   } = serverConfig;
   const availableEditors = resolveAvailableEditors();
 
+  const runtimeServices = yield* Effect.services<
+    ServerRuntimeServices | ServerConfig | FileSystem.FileSystem | Path.Path
+  >();
+  const runPromise = Effect.runPromiseWith(runtimeServices);
+
   const gitManager = yield* GitManager;
   const terminalManager = yield* TerminalManager;
   const keybindingsManager = yield* Keybindings;
@@ -430,7 +435,7 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
       res.end(body);
     };
 
-    void Effect.runPromise(
+    void runPromise(
       Effect.gen(function* () {
         const url = new URL(req.url ?? "/", `http://localhost:${port}`);
         if (tryHandleProjectFaviconRequest(url, res)) {
@@ -642,7 +647,7 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
     }),
   ).pipe(Effect.forkIn(subscriptionsScope));
 
-  yield* Scope.provide(orchestrationReactor.start, subscriptionsScope);
+  yield* Scope.provide(orchestrationReactor.start(), subscriptionsScope);
   yield* readiness.markOrchestrationSubscriptionsReady;
 
   let welcomeBootstrapProjectId: ProjectId | undefined;
@@ -714,13 +719,8 @@ export const createServer = Effect.fn(function* (): Effect.fn.Return<
     );
   }
 
-  const runtimeServices = yield* Effect.services<
-    ServerRuntimeServices | ServerConfig | FileSystem.FileSystem | Path.Path
-  >();
-  const runPromise = Effect.runPromiseWith(runtimeServices);
-
-  const unsubscribeTerminalEvents = yield* terminalManager.subscribe(
-    (event) => void Effect.runPromise(pushBus.publishAll(WS_CHANNELS.terminalEvent, event)),
+  const unsubscribeTerminalEvents = yield* terminalManager.subscribe((event) =>
+    runPromise(pushBus.publishAll(WS_CHANNELS.terminalEvent, event)),
   );
   yield* Effect.addFinalizer(() => Effect.sync(() => unsubscribeTerminalEvents()));
   yield* readiness.markTerminalSubscriptionsReady;

@@ -56,6 +56,7 @@ interface TestFixture {
 
 let fixture: TestFixture;
 const wsRequests: WsRequestEnvelope["body"][] = [];
+let customWsRpcResolver: ((body: WsRequestEnvelope["body"]) => unknown | undefined) | null = null;
 const wsLink = ws.link(/ws(s)?:\/\/.*/);
 
 interface ViewportSpec {
@@ -116,7 +117,7 @@ function createBaseServerConfig(): ServerConfig {
         installed: true,
         version: "0.116.0",
         status: "ready",
-        authStatus: "authenticated",
+        auth: { status: "authenticated" },
         checkedAt: NOW_ISO,
         models: [],
       },
@@ -257,6 +258,7 @@ function createSnapshotForTargetUser(options: {
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
+        archivedAt: null,
         deletedAt: null,
         messages,
         activities: [],
@@ -314,6 +316,7 @@ function addThreadToSnapshot(
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
+        archivedAt: null,
         deletedAt: null,
         messages: [],
         activities: [],
@@ -354,6 +357,25 @@ function withProjectScripts(
       project.id === PROJECT_ID ? { ...project, scripts: Array.from(scripts) } : project,
     ),
   };
+}
+
+function setDraftThreadWithoutWorktree(): void {
+  useComposerDraftStore.setState({
+    draftThreadsByThreadId: {
+      [THREAD_ID]: {
+        projectId: PROJECT_ID,
+        createdAt: NOW_ISO,
+        runtimeMode: "full-access",
+        interactionMode: "default",
+        branch: null,
+        worktreePath: null,
+        envMode: "local",
+      },
+    },
+    projectDraftThreadIdByProjectId: {
+      [PROJECT_ID]: THREAD_ID,
+    },
+  });
 }
 
 function createSnapshotWithLongProposedPlan(): OrchestrationReadModel {
@@ -414,6 +436,10 @@ function createSnapshotWithLongProposedPlan(): OrchestrationReadModel {
 }
 
 function resolveWsRpc(body: WsRequestEnvelope["body"]): unknown {
+  const customResult = customWsRpcResolver?.(body);
+  if (customResult !== undefined) {
+    return customResult;
+  }
   const tag = body._tag;
   if (tag === ORCHESTRATION_WS_METHODS.getSnapshot) {
     return fixture.snapshot;
@@ -748,9 +774,11 @@ async function mountChatView(options: {
   viewport: ViewportSpec;
   snapshot: OrchestrationReadModel;
   configureFixture?: (fixture: TestFixture) => void;
+  resolveRpc?: (body: WsRequestEnvelope["body"]) => unknown | undefined;
 }): Promise<MountedChatView> {
   fixture = buildFixture(options.snapshot);
   options.configureFixture?.(fixture);
+  customWsRpcResolver = options.resolveRpc ?? null;
   await setViewport(options.viewport);
   await waitForProductionStyles();
 
@@ -776,6 +804,7 @@ async function mountChatView(options: {
   await waitForLayout();
 
   const cleanup = async () => {
+    customWsRpcResolver = null;
     await screen.unmount();
     host.remove();
   };
@@ -835,6 +864,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
     localStorage.clear();
     document.body.innerHTML = "";
     wsRequests.length = 0;
+    customWsRpcResolver = null;
     useComposerDraftStore.setState({
       draftsByThreadId: {},
       draftThreadsByThreadId: {},
@@ -850,6 +880,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
   });
 
   afterEach(() => {
+    customWsRpcResolver = null;
     document.body.innerHTML = "";
   });
 
@@ -1010,23 +1041,21 @@ describe("ChatView timeline estimator parity (full app)", () => {
     },
   );
 
-  it("opens the project cwd for draft threads without a worktree path", async () => {
-    useComposerDraftStore.setState({
-      draftThreadsByThreadId: {
-        [THREAD_ID]: {
-          projectId: PROJECT_ID,
-          createdAt: NOW_ISO,
-          runtimeMode: "full-access",
-          interactionMode: "default",
-          branch: null,
-          worktreePath: null,
-          envMode: "local",
-        },
-      },
-      projectDraftThreadIdByProjectId: {
-        [PROJECT_ID]: THREAD_ID,
-      },
+  it("shows an explicit empty state for projects without threads in the sidebar", async () => {
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createDraftOnlySnapshot(),
     });
+
+    try {
+      await expect.element(page.getByText("No threads yet")).toBeInTheDocument();
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("opens the project cwd for draft threads without a worktree path", async () => {
+    setDraftThreadWithoutWorktree();
 
     const mounted = await mountChatView({
       viewport: DEFAULT_VIEWPORT,
@@ -1058,6 +1087,153 @@ describe("ChatView timeline estimator parity (full app)", () => {
             _tag: WS_METHODS.shellOpenInEditor,
             cwd: "/repo/project",
             editor: "vscode",
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("opens the project cwd with VS Code Insiders when it is the only available editor", async () => {
+    setDraftThreadWithoutWorktree();
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createDraftOnlySnapshot(),
+      configureFixture: (nextFixture) => {
+        nextFixture.serverConfig = {
+          ...nextFixture.serverConfig,
+          availableEditors: ["vscode-insiders"],
+        };
+      },
+    });
+
+    try {
+      const openButton = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll("button")).find(
+            (button) => button.textContent?.trim() === "Open",
+          ) as HTMLButtonElement | null,
+        "Unable to find Open button.",
+      );
+      openButton.click();
+
+      await vi.waitFor(
+        () => {
+          const openRequest = wsRequests.find(
+            (request) => request._tag === WS_METHODS.shellOpenInEditor,
+          );
+          expect(openRequest).toMatchObject({
+            _tag: WS_METHODS.shellOpenInEditor,
+            cwd: "/repo/project",
+            editor: "vscode-insiders",
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("filters the open picker menu and opens VSCodium from the menu", async () => {
+    setDraftThreadWithoutWorktree();
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createDraftOnlySnapshot(),
+      configureFixture: (nextFixture) => {
+        nextFixture.serverConfig = {
+          ...nextFixture.serverConfig,
+          availableEditors: ["vscode-insiders", "vscodium"],
+        };
+      },
+    });
+
+    try {
+      const menuButton = await waitForElement(
+        () => document.querySelector('button[aria-label="Copy options"]'),
+        "Unable to find Open picker button.",
+      );
+      (menuButton as HTMLButtonElement).click();
+
+      await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll('[data-slot="menu-item"]')).find((item) =>
+            item.textContent?.includes("VS Code Insiders"),
+          ) ?? null,
+        "Unable to find VS Code Insiders menu item.",
+      );
+
+      expect(
+        Array.from(document.querySelectorAll('[data-slot="menu-item"]')).some((item) =>
+          item.textContent?.includes("Zed"),
+        ),
+      ).toBe(false);
+
+      const vscodiumItem = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll('[data-slot="menu-item"]')).find((item) =>
+            item.textContent?.includes("VSCodium"),
+          ) ?? null,
+        "Unable to find VSCodium menu item.",
+      );
+      (vscodiumItem as HTMLElement).click();
+
+      await vi.waitFor(
+        () => {
+          const openRequest = wsRequests.find(
+            (request) => request._tag === WS_METHODS.shellOpenInEditor,
+          );
+          expect(openRequest).toMatchObject({
+            _tag: WS_METHODS.shellOpenInEditor,
+            cwd: "/repo/project",
+            editor: "vscodium",
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("falls back to the first installed editor when the stored favorite is unavailable", async () => {
+    localStorage.setItem("t3code:last-editor", "vscodium");
+    setDraftThreadWithoutWorktree();
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createDraftOnlySnapshot(),
+      configureFixture: (nextFixture) => {
+        nextFixture.serverConfig = {
+          ...nextFixture.serverConfig,
+          availableEditors: ["vscode-insiders"],
+        };
+      },
+    });
+
+    try {
+      const openButton = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll("button")).find(
+            (button) => button.textContent?.trim() === "Open",
+          ) as HTMLButtonElement | null,
+        "Unable to find Open button.",
+      );
+      openButton.click();
+
+      await vi.waitFor(
+        () => {
+          const openRequest = wsRequests.find(
+            (request) => request._tag === WS_METHODS.shellOpenInEditor,
+          );
+          expect(openRequest).toMatchObject({
+            _tag: WS_METHODS.shellOpenInEditor,
+            cwd: "/repo/project",
+            editor: "vscode-insiders",
           });
         },
         { timeout: 8_000, interval: 16 },
@@ -1197,6 +1373,154 @@ describe("ChatView timeline estimator parity (full app)", () => {
               T3CODE_PROJECT_ROOT: "/repo/project",
               T3CODE_WORKTREE_PATH: "/repo/worktrees/feature-draft",
             },
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("runs setup scripts after preparing a pull request worktree thread", async () => {
+    useComposerDraftStore.setState({
+      draftThreadsByThreadId: {
+        [THREAD_ID]: {
+          projectId: PROJECT_ID,
+          createdAt: NOW_ISO,
+          runtimeMode: "full-access",
+          interactionMode: "default",
+          branch: null,
+          worktreePath: null,
+          envMode: "local",
+        },
+      },
+      projectDraftThreadIdByProjectId: {
+        [PROJECT_ID]: THREAD_ID,
+      },
+    });
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: withProjectScripts(createDraftOnlySnapshot(), [
+        {
+          id: "setup",
+          name: "Setup",
+          command: "bun install",
+          icon: "configure",
+          runOnWorktreeCreate: true,
+        },
+      ]),
+      resolveRpc: (body) => {
+        if (body._tag === WS_METHODS.gitResolvePullRequest) {
+          return {
+            pullRequest: {
+              number: 1359,
+              title: "Add thread archiving and settings navigation",
+              url: "https://github.com/pingdotgg/t3code/pull/1359",
+              baseBranch: "main",
+              headBranch: "archive-settings-overhaul",
+              state: "open",
+            },
+          };
+        }
+        if (body._tag === WS_METHODS.gitPreparePullRequestThread) {
+          return {
+            pullRequest: {
+              number: 1359,
+              title: "Add thread archiving and settings navigation",
+              url: "https://github.com/pingdotgg/t3code/pull/1359",
+              baseBranch: "main",
+              headBranch: "archive-settings-overhaul",
+              state: "open",
+            },
+            branch: "archive-settings-overhaul",
+            worktreePath: "/repo/worktrees/pr-1359",
+          };
+        }
+        return undefined;
+      },
+    });
+
+    try {
+      const branchButton = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll("button")).find(
+            (button) => button.textContent?.trim() === "main",
+          ) as HTMLButtonElement | null,
+        "Unable to find branch selector button.",
+      );
+      branchButton.click();
+
+      const branchInput = await waitForElement(
+        () => document.querySelector<HTMLInputElement>('input[placeholder="Search branches..."]'),
+        "Unable to find branch search input.",
+      );
+      branchInput.focus();
+      await page.getByPlaceholder("Search branches...").fill("1359");
+
+      const checkoutItem = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll("span")).find(
+            (element) => element.textContent?.trim() === "Checkout Pull Request",
+          ) as HTMLSpanElement | null,
+        "Unable to find checkout pull request option.",
+      );
+      checkoutItem.click();
+
+      const worktreeButton = await waitForElement(
+        () =>
+          Array.from(document.querySelectorAll("button")).find(
+            (button) => button.textContent?.trim() === "Worktree",
+          ) as HTMLButtonElement | null,
+        "Unable to find Worktree button.",
+      );
+      worktreeButton.click();
+
+      await vi.waitFor(
+        () => {
+          const prepareRequest = wsRequests.find(
+            (request) => request._tag === WS_METHODS.gitPreparePullRequestThread,
+          );
+          expect(prepareRequest).toMatchObject({
+            _tag: WS_METHODS.gitPreparePullRequestThread,
+            cwd: "/repo/project",
+            reference: "1359",
+            mode: "worktree",
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+
+      await vi.waitFor(
+        () => {
+          const openRequest = wsRequests.find(
+            (request) =>
+              request._tag === WS_METHODS.terminalOpen && request.cwd === "/repo/worktrees/pr-1359",
+          );
+          expect(openRequest).toMatchObject({
+            _tag: WS_METHODS.terminalOpen,
+            threadId: expect.any(String),
+            cwd: "/repo/worktrees/pr-1359",
+            env: {
+              T3CODE_PROJECT_ROOT: "/repo/project",
+              T3CODE_WORKTREE_PATH: "/repo/worktrees/pr-1359",
+            },
+          });
+        },
+        { timeout: 8_000, interval: 16 },
+      );
+
+      await vi.waitFor(
+        () => {
+          const writeRequest = wsRequests.find(
+            (request) =>
+              request._tag === WS_METHODS.terminalWrite && request.data === "bun install\r",
+          );
+          expect(writeRequest).toMatchObject({
+            _tag: WS_METHODS.terminalWrite,
+            threadId: expect.any(String),
+            data: "bun install\r",
           });
         },
         { timeout: 8_000, interval: 16 },
@@ -1445,6 +1769,87 @@ describe("ChatView timeline estimator parity (full app)", () => {
 
       expect(getComputedStyle(stopButton).cursor).toBe("pointer");
     } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("hides the archive action when the pointer leaves a thread row", async () => {
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createSnapshotForTargetUser({
+        targetMessageId: "msg-user-archive-hover-test" as MessageId,
+        targetText: "archive hover target",
+      }),
+    });
+
+    try {
+      const threadRow = page.getByTestId(`thread-row-${THREAD_ID}`);
+
+      await expect.element(threadRow).toBeInTheDocument();
+      const archiveButton = await waitForElement(
+        () =>
+          document.querySelector<HTMLButtonElement>(`[data-testid="thread-archive-${THREAD_ID}"]`),
+        "Unable to find archive button.",
+      );
+      const archiveAction = archiveButton.parentElement;
+      expect(
+        archiveAction,
+        "Archive button should render inside a visibility wrapper.",
+      ).not.toBeNull();
+      expect(getComputedStyle(archiveAction!).opacity).toBe("0");
+
+      await threadRow.hover();
+      await vi.waitFor(
+        () => {
+          expect(getComputedStyle(archiveAction!).opacity).toBe("1");
+        },
+        { timeout: 4_000, interval: 16 },
+      );
+
+      await page.getByTestId("composer-editor").hover();
+      await vi.waitFor(
+        () => {
+          expect(getComputedStyle(archiveAction!).opacity).toBe("0");
+        },
+        { timeout: 4_000, interval: 16 },
+      );
+    } finally {
+      await mounted.cleanup();
+    }
+  });
+
+  it("shows the confirm archive action after clicking the archive button", async () => {
+    localStorage.setItem(
+      "t3code:client-settings:v1",
+      JSON.stringify({
+        ...DEFAULT_CLIENT_SETTINGS,
+        confirmThreadArchive: true,
+      }),
+    );
+
+    const mounted = await mountChatView({
+      viewport: DEFAULT_VIEWPORT,
+      snapshot: createSnapshotForTargetUser({
+        targetMessageId: "msg-user-archive-confirm-test" as MessageId,
+        targetText: "archive confirm target",
+      }),
+    });
+
+    try {
+      const threadRow = page.getByTestId(`thread-row-${THREAD_ID}`);
+
+      await expect.element(threadRow).toBeInTheDocument();
+      await threadRow.hover();
+
+      const archiveButton = page.getByTestId(`thread-archive-${THREAD_ID}`);
+      await expect.element(archiveButton).toBeInTheDocument();
+      await archiveButton.click();
+
+      const confirmButton = page.getByTestId(`thread-archive-confirm-${THREAD_ID}`);
+      await expect.element(confirmButton).toBeInTheDocument();
+      await expect.element(confirmButton).toBeVisible();
+    } finally {
+      localStorage.removeItem("t3code:client-settings:v1");
       await mounted.cleanup();
     }
   });

@@ -20,7 +20,7 @@ import * as Stream from "effect/Stream";
 import * as Reactivity from "effect/unstable/reactivity/Reactivity";
 import * as Client from "effect/unstable/sql/SqlClient";
 import type { Connection } from "effect/unstable/sql/SqlConnection";
-import { SqlError } from "effect/unstable/sql/SqlError";
+import { SqlError, classifySqliteError } from "effect/unstable/sql/SqlError";
 import * as Statement from "effect/unstable/sql/Statement";
 
 const ATTR_DB_SYSTEM_NAME = "db.system.name";
@@ -109,7 +109,13 @@ const makeWithDatabase = (
         lookup: (sql: string) =>
           Effect.try({
             try: () => db.prepare(sql),
-            catch: (cause) => new SqlError({ cause, message: "Failed to prepare statement" }),
+            catch: (cause) =>
+              new SqlError({
+                reason: classifySqliteError(cause, {
+                  message: "Failed to prepare statement",
+                  operation: "prepare",
+                }),
+              }),
           }),
       });
 
@@ -127,7 +133,14 @@ const makeWithDatabase = (
             const result = statement.run(...(params as any));
             return Effect.succeed(raw ? (result as unknown as ReadonlyArray<any>) : []);
           } catch (cause) {
-            return Effect.fail(new SqlError({ cause, message: "Failed to execute statement" }));
+            return Effect.fail(
+              new SqlError({
+                reason: classifySqliteError(cause, {
+                  message: "Failed to execute statement",
+                  operation: "execute",
+                }),
+              }),
+            );
           }
         });
 
@@ -150,7 +163,13 @@ const makeWithDatabase = (
                 statement.run(...(params as any));
                 return [];
               },
-              catch: (cause) => new SqlError({ cause, message: "Failed to execute statement" }),
+              catch: (cause) =>
+                new SqlError({
+                  reason: classifySqliteError(cause, {
+                    message: "Failed to execute statement",
+                    operation: "execute",
+                  }),
+                }),
             }),
           (statement) =>
             Effect.sync(() => {
