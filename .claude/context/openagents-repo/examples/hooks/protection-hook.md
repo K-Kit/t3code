@@ -11,13 +11,17 @@
 ```json
 {
   "hooks": {
-    "PreToolUse": [{
-      "matcher": "Edit|Write",
-      "hooks": [{
-        "type": "command",
-        "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/']) else 0)\""
-      }]
-    }]
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/']) else 0)\""
+          }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -37,6 +41,7 @@
 ## Protected Patterns
 
 Default patterns to block:
+
 - `.env` - Environment secrets
 - `package-lock.json` - Dependency locks
 - `.git/` - Git internals
@@ -51,7 +56,7 @@ Default patterns to block:
 #!/usr/bin/env python3
 import json, sys
 
-PROTECTED = ['.env', 'package-lock.json', '.git/', 
+PROTECTED = ['.env', 'package-lock.json', '.git/',
              'credentials', '.pem', '.key', 'secrets']
 
 data = json.load(sys.stdin)

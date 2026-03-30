@@ -11,6 +11,7 @@
 Plugins are directories containing a manifest (`.claude-plugin/plugin.json`) plus optional components (commands, agents, skills, hooks). They enable sharing functionality across projects and teams with namespaced commands.
 
 **Key Difference**:
+
 - **Standalone** (`.claude/`): Personal workflows, short names like `/hello`
 - **Plugins**: Shareable, versioned, namespaced like `/plugin-name:hello`
 

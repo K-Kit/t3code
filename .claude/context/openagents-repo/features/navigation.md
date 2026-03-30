@@ -20,10 +20,10 @@ features/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Package refactor** | `oac-package-refactor.md` |
-| **Refactor feedback** | `oac-refactor-feedback.md` |
+| Task                    | Path                         |
+| ----------------------- | ---------------------------- |
+| **Package refactor**    | `oac-package-refactor.md`    |
+| **Refactor feedback**   | `oac-refactor-feedback.md`   |
 | **Refactor quickstart** | `oac-refactor-quickstart.md` |
 
 ---

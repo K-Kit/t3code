@@ -72,6 +72,7 @@ Make executable: `chmod +x ./scripts/validate-readonly-query.sh`
 ## Key Pattern
 
 Use hooks for **conditional validation** when:
+
 - Tool access is needed but constrained
 - Rules are dynamic/complex
 - You need finer control than `tools` field provides

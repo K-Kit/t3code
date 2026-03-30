@@ -252,6 +252,7 @@ Desktop (> 1024px)
 ```
 
 **Breakpoint Classes**:
+
 - `sm:` - 640px (small tablets)
 - `md:` - 768px (tablets)
 - `lg:` - 1024px (laptops)
@@ -423,6 +424,7 @@ Large (800px):
 ```
 
 **Usage**:
+
 - Small: Subtle accents, corner glows
 - Medium: Standard sections
 - Large: Hero sections, important CTAs
@@ -466,6 +468,7 @@ Error:
 ```
 
 **Usage**:
+
 - `size-4`: Inline icons, badges
 - `size-6`: Button icons
 - `size-10-12`: Feature icons, decorative
@@ -483,6 +486,7 @@ xl:  shadow-xl   ▄
 ```
 
 **Usage**:
+
 - `shadow-lg`: Default for cards
 - `shadow-xl`: Hover state for cards
 - `shadow-2xl`: Modals, dropdowns

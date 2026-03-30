@@ -11,17 +11,20 @@
 This document defines TypeScript coding standards specifically for the context system. These standards are extracted from the main OpenCode TypeScript standards and tailored for context-related code.
 
 **Relationship to TypeScript Standards**:
+
 - **Universal TypeScript** (`core/standards/typescript.md`) - Universal TypeScript patterns applicable to any project
 - **OpenCode TypeScript** (`openagents-repo/standards/opencode-typescript.md`) - OpenCode-specific patterns (fn() wrapper, namespaces, etc.)
 - **This file** (`typescript-coding.md`) - Context system-specific subset focused on context resolver, CLI tools, and context management utilities
 
 **When to use which**:
+
 - Writing TypeScript code anywhere → Load universal typescript.md
 - Writing OpenCode-specific code → Load opencode-typescript.md
 - Writing context system code specifically → Load universal typescript.md, opencode-typescript.md, AND this file
 - This file extends the base standards with context-specific patterns, not replaces them
 
 **Key Principles**:
+
 1. **Type Safety First** - Use Zod schemas for runtime validation
 2. **Functional Patterns** - Prefer pure functions over classes
 3. **Error Handling** - Explicit error types with context
@@ -35,11 +38,13 @@ This document defines TypeScript coding standards specifically for the context s
 This document describes both **current implementation** and **recommended patterns** for the context system.
 
 **Legend**:
+
 - ✅ **Current Implementation** - Patterns currently used in the codebase
 - 🎯 **Recommended** - Patterns to adopt for improvements
 - ⚠️ **Note** - Important clarifications or caveats
 
 **Priority Improvements**:
+
 1. Add Zod schemas for runtime validation (Section 1.1)
 2. Implement typed error classes (Section 3.1)
 3. Convert to async file operations (Section 4.1)
@@ -71,36 +76,40 @@ export interface OACConfig {
       check_on_start?: boolean;
       auto_update?: boolean;
       interval?: string;
-      strategy?: 'auto' | 'manual' | 'notify';
+      strategy?: "auto" | "manual" | "notify";
     };
   };
 }
 
 // Usage (current)
 function loadConfig(path: string): OACConfig {
-  const content = fs.readFileSync(path, 'utf-8');
+  const content = fs.readFileSync(path, "utf-8");
   return JSON.parse(content); // No runtime validation
 }
 
 // 🎯 RECOMMENDED - Zod schema with runtime validation
-import { z } from 'zod';
+import { z } from "zod";
 
 export const OACConfigSchema = z.object({
   version: z.string(),
-  project: z.object({
-    name: z.string(),
-    type: z.string(),
-    version: z.string(),
-  }).optional(),
+  project: z
+    .object({
+      name: z.string(),
+      type: z.string(),
+      version: z.string(),
+    })
+    .optional(),
   context: z.object({
     root: z.string(),
     locations: z.record(z.string()).optional(),
-    update: z.object({
-      check_on_start: z.boolean().optional(),
-      auto_update: z.boolean().optional(),
-      interval: z.string().optional(),
-      strategy: z.enum(['auto', 'manual', 'notify']).optional(),
-    }).optional(),
+    update: z
+      .object({
+        check_on_start: z.boolean().optional(),
+        auto_update: z.boolean().optional(),
+        interval: z.string().optional(),
+        strategy: z.enum(["auto", "manual", "notify"]).optional(),
+      })
+      .optional(),
   }),
 });
 
@@ -108,7 +117,7 @@ export type OACConfig = z.infer<typeof OACConfigSchema>;
 
 // Usage (recommended)
 function loadConfig(path: string): OACConfig {
-  const content = fs.readFileSync(path, 'utf-8');
+  const content = fs.readFileSync(path, "utf-8");
   const parsed = JSON.parse(content);
   return OACConfigSchema.parse(parsed); // Validates at runtime
 }
@@ -122,7 +131,7 @@ function loadConfig(path: string): OACConfig {
 
 ```typescript
 // ✅ GOOD - Discriminated union for results
-export type ResolveResult = 
+export type ResolveResult =
   | { success: true; path: string }
   | { success: false; error: string; category?: string };
 
@@ -136,15 +145,15 @@ async function resolve(reference: string): Promise<ResolveResult> {
     const path = await resolveReference(reference);
     return { success: true, path };
   } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : String(error) 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 }
 
 // Consuming code
-const result = await resolve('{context.root}/file.md');
+const result = await resolve("{context.root}/file.md");
 if (result.success) {
   console.log(result.path); // TypeScript knows path exists
 } else {
@@ -154,7 +163,7 @@ if (result.success) {
 // ❌ BAD - Throwing errors for expected failures
 async function resolve(reference: string): Promise<string> {
   if (!isValid(reference)) {
-    throw new Error('Invalid reference'); // Forces try/catch everywhere
+    throw new Error("Invalid reference"); // Forces try/catch everywhere
   }
   return resolveReference(reference);
 }
@@ -168,19 +177,19 @@ async function resolve(reference: string): Promise<string> {
 
 ```typescript
 // 🎯 RECOMMENDED - Branded types for type safety
-export type CategoryName = string & { readonly __brand: 'CategoryName' };
-export type ContextReference = string & { readonly __brand: 'ContextReference' };
+export type CategoryName = string & { readonly __brand: "CategoryName" };
+export type ContextReference = string & { readonly __brand: "ContextReference" };
 
 function createCategoryName(value: string): CategoryName {
   if (!/^[a-z][a-z0-9-]*$/.test(value)) {
-    throw new Error('Invalid category name format');
+    throw new Error("Invalid category name format");
   }
   return value as CategoryName;
 }
 
 function createContextReference(value: string): ContextReference {
   if (!/^\{context\.\w+\}\/.+$/.test(value)) {
-    throw new Error('Invalid context reference format');
+    throw new Error("Invalid context reference format");
   }
   return value as ContextReference;
 }
@@ -212,17 +221,17 @@ function resolveCategory(category: string): string {
 // ✅ GOOD - Single responsibility: context resolution
 export class ContextResolver {
   private config: OACConfig;
-  private cacheDir = '.oac-cache/remote';
-  
-  constructor(configPath: string = '.oac') {
+  private cacheDir = ".oac-cache/remote";
+
+  constructor(configPath: string = ".oac") {
     this.config = this.loadConfig(configPath);
     this.ensureCacheDir();
   }
-  
+
   async resolve(reference: string): Promise<string> {
     // Only handles resolution logic
   }
-  
+
   private loadConfig(path: string): OACConfig {
     // Only handles config loading
   }
@@ -231,15 +240,15 @@ export class ContextResolver {
 // ✅ GOOD - Separate class for cache management
 export class CacheManager {
   constructor(private cacheDir: string) {}
-  
+
   async get(category: string): Promise<string | null> {
     // Only handles cache operations
   }
-  
+
   async set(category: string, path: string): Promise<void> {
     // Only handles cache operations
   }
-  
+
   clear(category: string): void {
     // Only handles cache operations
   }
@@ -269,17 +278,17 @@ export class ContextResolver {
   async resolve(reference: string): Promise<string> {
     const parsed = this.parseReference(reference);
     if (!parsed) return reference;
-    
+
     const location = this.getLocation(parsed.category);
-    
+
     if (this.isRemote(location)) {
       const localPath = await this.ensureRemote(location, parsed.category);
       return path.join(localPath, parsed.filePath);
     }
-    
+
     return path.join(location, parsed.filePath);
   }
-  
+
   // Private implementation details
   private parseReference(reference: string): { category: string; filePath: string } | null {
     const match = reference.match(/\{context\.(\w+)\}\/(.+)/);
@@ -287,16 +296,18 @@ export class ContextResolver {
     const [_, category, filePath] = match;
     return { category, filePath };
   }
-  
+
   private getLocation(category: string): string {
-    if (category === 'root') return this.config.context.root;
-    return this.config.context.locations?.[category] ?? path.join(this.config.context.root, category);
+    if (category === "root") return this.config.context.root;
+    return (
+      this.config.context.locations?.[category] ?? path.join(this.config.context.root, category)
+    );
   }
-  
+
   private isRemote(location: string): boolean {
-    return location.startsWith('git@') || location.startsWith('https://');
+    return location.startsWith("git@") || location.startsWith("https://");
   }
-  
+
   private async ensureRemote(url: string, category: string): Promise<string> {
     // Implementation
   }
@@ -332,46 +343,46 @@ if (!fs.existsSync(this.configPath)) {
 export class ConfigNotFoundError extends Error {
   constructor(public readonly configPath: string) {
     super(`Config file not found at ${configPath}`);
-    this.name = 'ConfigNotFoundError';
+    this.name = "ConfigNotFoundError";
   }
 }
 
 export class InvalidConfigError extends Error {
   constructor(
     public readonly configPath: string,
-    public readonly validationErrors: string[]
+    public readonly validationErrors: string[],
   ) {
-    super(`Invalid config at ${configPath}: ${validationErrors.join(', ')}`);
-    this.name = 'InvalidConfigError';
+    super(`Invalid config at ${configPath}: ${validationErrors.join(", ")}`);
+    this.name = "InvalidConfigError";
   }
 }
 
 export class CategoryNotFoundError extends Error {
   constructor(public readonly category: string) {
     super(`Unknown context category: ${category}`);
-    this.name = 'CategoryNotFoundError';
+    this.name = "CategoryNotFoundError";
   }
 }
 
 export class RemoteCloneError extends Error {
   constructor(
     public readonly url: string,
-    public readonly cause: Error
+    public readonly cause: Error,
   ) {
     super(`Failed to clone ${url}: ${cause.message}`);
-    this.name = 'RemoteCloneError';
+    this.name = "RemoteCloneError";
   }
 }
 
 // Usage with type checking
 try {
-  const config = loadConfig('.oac');
+  const config = loadConfig(".oac");
 } catch (error) {
   if (error instanceof ConfigNotFoundError) {
     console.error(`Config not found: ${error.configPath}`);
     // Suggest creating config
   } else if (error instanceof InvalidConfigError) {
-    console.error(`Invalid config: ${error.validationErrors.join('\n')}`);
+    console.error(`Invalid config: ${error.validationErrors.join("\n")}`);
     // Show validation errors
   } else {
     throw error; // Unexpected error
@@ -391,7 +402,7 @@ private loadConfig(configPath: string): OACConfig {
   if (!fs.existsSync(configPath)) {
     throw new ConfigNotFoundError(configPath);
   }
-  
+
   try {
     const content = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(content);
@@ -426,15 +437,15 @@ private loadConfig(configPath: string): OACConfig {
 
 ```typescript
 // ✅ GOOD - Async with proper error handling
-import { promises as fs } from 'fs';
+import { promises as fs } from "fs";
 
 async function loadConfig(configPath: string): Promise<OACConfig> {
   try {
-    const content = await fs.readFile(configPath, 'utf-8');
+    const content = await fs.readFile(configPath, "utf-8");
     const parsed = JSON.parse(content);
     return OACConfigSchema.parse(parsed);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       throw new ConfigNotFoundError(configPath);
     }
     throw error;
@@ -445,9 +456,9 @@ async function loadConfig(configPath: string): Promise<OACConfig> {
 async function readIfExists(filePath: string): Promise<string | null> {
   try {
     await fs.access(filePath);
-    return await fs.readFile(filePath, 'utf-8');
+    return await fs.readFile(filePath, "utf-8");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return null;
     }
     throw error;
@@ -456,7 +467,7 @@ async function readIfExists(filePath: string): Promise<string | null> {
 
 // ❌ BAD - Synchronous file operations
 function loadConfig(configPath: string): OACConfig {
-  const content = fs.readFileSync(configPath, 'utf-8'); // Blocks event loop
+  const content = fs.readFileSync(configPath, "utf-8"); // Blocks event loop
   return JSON.parse(content);
 }
 ```
@@ -469,34 +480,33 @@ function loadConfig(configPath: string): OACConfig {
 
 ```typescript
 // ✅ GOOD - Git operations with error handling
-import { execSync } from 'child_process';
+import { execSync } from "child_process";
 
 async function cloneRemote(url: string, localPath: string, category: string): Promise<void> {
   console.log(`📦 Cloning ${category} context from ${url}...`);
-  
+
   try {
     await fs.mkdir(path.dirname(localPath), { recursive: true });
-    execSync(`git clone ${url} ${localPath}`, { stdio: 'inherit' });
-    
+    execSync(`git clone ${url} ${localPath}`, { stdio: "inherit" });
+
     this.recordUpdate(category);
     console.log(`✅ Cloned ${category} successfully`);
   } catch (error) {
-    throw new RemoteCloneError(
-      url,
-      error instanceof Error ? error : new Error(String(error))
-    );
+    throw new RemoteCloneError(url, error instanceof Error ? error : new Error(String(error)));
   }
 }
 
 async function updateRemote(category: string, localPath: string): Promise<void> {
   console.log(`🔄 Updating ${category} context...`);
-  
+
   try {
-    execSync('git pull', { cwd: localPath, stdio: 'inherit' });
+    execSync("git pull", { cwd: localPath, stdio: "inherit" });
     this.recordUpdate(category);
     console.log(`✅ Updated ${category} successfully`);
   } catch (error) {
-    console.warn(`⚠️  Failed to update ${category}: ${error instanceof Error ? error.message : String(error)}`);
+    console.warn(
+      `⚠️  Failed to update ${category}: ${error instanceof Error ? error.message : String(error)}`,
+    );
     // Don't throw - update failures are non-fatal
   }
 }
@@ -519,21 +529,21 @@ async function cloneRemote(url: string, localPath: string): Promise<void> {
 
 ```typescript
 // ✅ GOOD - Comprehensive test structure
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { ContextResolver } from '../resolver';
-import type { OACConfig } from '../resolver';
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import { ContextResolver } from "../resolver";
+import type { OACConfig } from "../resolver";
 
-describe('ContextResolver', () => {
+describe("ContextResolver", () => {
   let tempDir: string;
   let configPath: string;
   let resolver: ContextResolver;
 
   beforeEach(() => {
     // Create temporary directory for tests
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'oac-test-'));
-    configPath = path.join(tempDir, '.oac');
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "oac-test-"));
+    configPath = path.join(tempDir, ".oac");
     process.chdir(tempDir);
   });
 
@@ -544,35 +554,35 @@ describe('ContextResolver', () => {
     }
   });
 
-  describe('resolve', () => {
+  describe("resolve", () => {
     beforeEach(() => {
       const config: OACConfig = {
-        version: '1.0.0',
+        version: "1.0.0",
         context: {
-          root: '.opencode/context',
+          root: ".opencode/context",
           locations: {
-            tasks: 'tasks/subtasks',
-            docs: 'docs'
-          }
-        }
+            tasks: "tasks/subtasks",
+            docs: "docs",
+          },
+        },
       };
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
       resolver = new ContextResolver(configPath);
     });
 
-    it('should resolve root context reference', async () => {
-      const result = await resolver.resolve('{context.root}/core/standards/code-quality.md');
-      expect(result).toBe('.opencode/context/core/standards/code-quality.md');
+    it("should resolve root context reference", async () => {
+      const result = await resolver.resolve("{context.root}/core/standards/code-quality.md");
+      expect(result).toBe(".opencode/context/core/standards/code-quality.md");
     });
 
-    it('should resolve tasks context reference', async () => {
-      const result = await resolver.resolve('{context.tasks}/feature-name/01-task.md');
-      expect(result).toBe('tasks/subtasks/feature-name/01-task.md');
+    it("should resolve tasks context reference", async () => {
+      const result = await resolver.resolve("{context.tasks}/feature-name/01-task.md");
+      expect(result).toBe("tasks/subtasks/feature-name/01-task.md");
     });
 
-    it('should return original path if no context reference', async () => {
-      const result = await resolver.resolve('regular/path/to/file.md');
-      expect(result).toBe('regular/path/to/file.md');
+    it("should return original path if no context reference", async () => {
+      const result = await resolver.resolve("regular/path/to/file.md");
+      expect(result).toBe("regular/path/to/file.md");
     });
   });
 });
@@ -586,53 +596,53 @@ describe('ContextResolver', () => {
 
 ```typescript
 // ✅ GOOD - Comprehensive test coverage
-describe('ContextResolver', () => {
-  describe('constructor', () => {
-    it('should create resolver with default config path', () => {
+describe("ContextResolver", () => {
+  describe("constructor", () => {
+    it("should create resolver with default config path", () => {
       // Happy path
     });
 
-    it('should create resolver with custom config path', () => {
+    it("should create resolver with custom config path", () => {
       // Happy path variant
     });
 
-    it('should throw error if config file does not exist', () => {
+    it("should throw error if config file does not exist", () => {
       // Error case
     });
 
-    it('should throw error if config file is invalid JSON', () => {
+    it("should throw error if config file is invalid JSON", () => {
       // Error case
     });
   });
 
-  describe('resolve', () => {
-    it('should resolve root context reference', async () => {
+  describe("resolve", () => {
+    it("should resolve root context reference", async () => {
       // Happy path
     });
 
-    it('should resolve custom location reference', async () => {
+    it("should resolve custom location reference", async () => {
       // Happy path variant
     });
 
-    it('should return original path if no context reference', async () => {
+    it("should return original path if no context reference", async () => {
       // Edge case
     });
 
-    it('should handle nested paths', async () => {
+    it("should handle nested paths", async () => {
       // Edge case
     });
 
-    it('should handle paths with special characters', async () => {
+    it("should handle paths with special characters", async () => {
       // Edge case
     });
   });
 
-  describe('edge cases', () => {
-    it('should handle empty locations', () => {
+  describe("edge cases", () => {
+    it("should handle empty locations", () => {
       // Edge case
     });
 
-    it('should handle paths with spaces', async () => {
+    it("should handle paths with spaces", async () => {
       // Edge case
     });
   });
@@ -651,20 +661,17 @@ describe('ContextResolver', () => {
 
 ```typescript
 // ✅ GOOD - Typed CLI commands
-import { Command } from 'commander';
-import { ContextResolver } from '@openagents/core';
+import { Command } from "commander";
+import { ContextResolver } from "@openagents/core";
 
 const program = new Command();
 
-program
-  .name('oac')
-  .description('OpenAgents Context CLI')
-  .version('1.0.0');
+program.name("oac").description("OpenAgents Context CLI").version("1.0.0");
 
 program
-  .command('resolve <reference>')
-  .description('Resolve a context reference to a file path')
-  .option('-c, --config <path>', 'Config file path', '.oac')
+  .command("resolve <reference>")
+  .description("Resolve a context reference to a file path")
+  .option("-c, --config <path>", "Config file path", ".oac")
   .action(async (reference: string, options: { config: string }) => {
     try {
       const resolver = new ContextResolver(options.config);
@@ -677,13 +684,13 @@ program
   });
 
 program
-  .command('update [category]')
-  .description('Update remote context (all or specific category)')
-  .option('-c, --config <path>', 'Config file path', '.oac')
+  .command("update [category]")
+  .description("Update remote context (all or specific category)")
+  .option("-c, --config <path>", "Config file path", ".oac")
   .action(async (category: string | undefined, options: { config: string }) => {
     try {
       const resolver = new ContextResolver(options.config);
-      
+
       if (category) {
         await resolver.update(category);
       } else {
@@ -706,7 +713,7 @@ program.parse();
 
 ```typescript
 // ✅ GOOD - Consistent output formatting
-import chalk from 'chalk';
+import chalk from "chalk";
 
 function logSuccess(message: string): void {
   console.log(chalk.green(`✅ ${message}`));
@@ -727,9 +734,9 @@ function logInfo(message: string): void {
 // Usage
 async function cloneRemote(url: string, category: string): Promise<void> {
   logInfo(`Cloning ${category} context from ${url}...`);
-  
+
   try {
-    execSync(`git clone ${url} ${localPath}`, { stdio: 'inherit' });
+    execSync(`git clone ${url} ${localPath}`, { stdio: "inherit" });
     logSuccess(`Cloned ${category} successfully`);
   } catch (error) {
     logError(`Failed to clone ${category}: ${error.message}`);
@@ -738,9 +745,9 @@ async function cloneRemote(url: string, category: string): Promise<void> {
 }
 
 // ❌ BAD - Inconsistent output
-console.log('Cloning...');
-console.log('Success!');
-console.log('ERROR: Failed');
+console.log("Cloning...");
+console.log("Success!");
+console.log("ERROR: Failed");
 ```
 
 **File Reference**: `packages/core/src/context/resolver.ts:183-210`
@@ -759,7 +766,7 @@ export class ContextResolver {
   private config: OACConfig;
   private configPath: string;
 
-  constructor(configPath: string = '.oac') {
+  constructor(configPath: string = ".oac") {
     this.configPath = configPath;
     this.config = this.loadConfig(); // Load once
     this.ensureCacheDir();
@@ -771,7 +778,7 @@ export class ContextResolver {
     }
 
     try {
-      const content = fs.readFileSync(this.configPath, 'utf-8');
+      const content = fs.readFileSync(this.configPath, "utf-8");
       const parsed = JSON.parse(content);
       return OACConfigSchema.parse(parsed);
     } catch (error) {
@@ -804,51 +811,56 @@ export class ContextResolver {
 ```typescript
 // ✅ GOOD - Defaults with optional overrides
 export const OACConfigSchema = z.object({
-  version: z.string().default('1.0.0'),
-  project: z.object({
-    name: z.string(),
-    type: z.string(),
-    version: z.string(),
-  }).optional(),
+  version: z.string().default("1.0.0"),
+  project: z
+    .object({
+      name: z.string(),
+      type: z.string(),
+      version: z.string(),
+    })
+    .optional(),
   context: z.object({
-    root: z.string().default('.opencode/context'),
+    root: z.string().default(".opencode/context"),
     locations: z.record(z.string()).optional().default({}),
-    update: z.object({
-      check_on_start: z.boolean().default(false),
-      auto_update: z.boolean().default(false),
-      interval: z.string().default('1h'),
-      strategy: z.enum(['auto', 'manual', 'notify']).default('manual'),
-    }).optional().default({}),
+    update: z
+      .object({
+        check_on_start: z.boolean().default(false),
+        auto_update: z.boolean().default(false),
+        interval: z.string().default("1h"),
+        strategy: z.enum(["auto", "manual", "notify"]).default("manual"),
+      })
+      .optional()
+      .default({}),
   }),
 });
 
 // Minimal valid config
 const minimalConfig = {
   context: {
-    root: '.opencode/context'
-  }
+    root: ".opencode/context",
+  },
 };
 
 // Full config with overrides
 const fullConfig = {
-  version: '2.0.0',
+  version: "2.0.0",
   project: {
-    name: 'my-project',
-    type: 'agent-framework',
-    version: '1.0.0'
+    name: "my-project",
+    type: "agent-framework",
+    version: "1.0.0",
   },
   context: {
-    root: '.context',
+    root: ".context",
     locations: {
-      tasks: 'tasks',
-      team: 'https://github.com/org/team-context.git'
+      tasks: "tasks",
+      team: "https://github.com/org/team-context.git",
     },
     update: {
       auto_update: true,
-      interval: '30m',
-      strategy: 'auto'
-    }
-  }
+      interval: "30m",
+      strategy: "auto",
+    },
+  },
 };
 ```
 
@@ -862,7 +874,7 @@ const fullConfig = {
 
 ```typescript
 // ✅ GOOD - Cross-platform path handling
-import * as path from 'path';
+import * as path from "path";
 
 function resolveContextPath(category: string, filePath: string): string {
   const location = this.getLocation(category);
@@ -888,17 +900,17 @@ function resolveContextPath(category: string, filePath: string): string {
 
 ```typescript
 // ✅ GOOD - Path validation
-import * as path from 'path';
+import * as path from "path";
 
 function validatePath(filePath: string, baseDir: string): string {
   const normalized = path.normalize(filePath);
   const absolute = path.resolve(baseDir, normalized);
-  
+
   // Ensure path is within baseDir
   if (!absolute.startsWith(path.resolve(baseDir))) {
     throw new Error(`Path traversal detected: ${filePath}`);
   }
-  
+
   return absolute;
 }
 
@@ -922,8 +934,8 @@ function resolvePath(filePath: string): string {
 ```typescript
 // ✅ GOOD - Structured cache management
 export class ContextResolver {
-  private cacheDir = '.oac-cache/remote';
-  private lastUpdateFile = '.oac-cache/.last-update.json';
+  private cacheDir = ".oac-cache/remote";
+  private lastUpdateFile = ".oac-cache/.last-update.json";
 
   private ensureCacheDir(): void {
     if (!fs.existsSync(this.cacheDir)) {
@@ -936,7 +948,7 @@ export class ContextResolver {
 
     if (fs.existsSync(this.lastUpdateFile)) {
       try {
-        updates = JSON.parse(fs.readFileSync(this.lastUpdateFile, 'utf-8'));
+        updates = JSON.parse(fs.readFileSync(this.lastUpdateFile, "utf-8"));
       } catch {
         // Ignore parse errors
       }
@@ -954,7 +966,7 @@ export class ContextResolver {
     }
 
     try {
-      const updates = JSON.parse(fs.readFileSync(this.lastUpdateFile, 'utf-8'));
+      const updates = JSON.parse(fs.readFileSync(this.lastUpdateFile, "utf-8"));
       return updates[category] || null;
     } catch {
       return null;
@@ -992,6 +1004,7 @@ export class ContextResolver {
 ---
 
 **Related Documents**:
+
 - Universal TypeScript standards: `core/standards/typescript.md`
 - OpenCode TypeScript standards: `openagents-repo/standards/opencode-typescript.md`
 - Context system guide: `.opencode/context/core/context-system/guides/creation.md`

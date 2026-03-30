@@ -9,6 +9,7 @@ Framework for organizing and planning content across topics, formats, and stages
 ## What is a Content Matrix?
 
 A **content matrix** is a strategic planning tool that helps you:
+
 - Organize content by topic and format
 - Identify content gaps
 - Plan balanced content distribution
@@ -22,11 +23,13 @@ A **content matrix** is a strategic planning tool that helps you:
 ### Two-Dimensional Matrix
 
 **Axis 1: Topics/Themes**
+
 - Core topics you cover
 - Pillar content areas
 - Audience interests
 
 **Axis 2: Content Formats**
+
 - Blog posts
 - Videos
 - Social media
@@ -35,11 +38,11 @@ A **content matrix** is a strategic planning tool that helps you:
 
 **Example**:
 
-| Topic | Blog Post | Video | Social Post | Newsletter | Podcast |
-|-------|-----------|-------|-------------|------------|---------|
-| Topic A | ✅ | ✅ | ✅ | ⬜ | ⬜ |
-| Topic B | ✅ | ⬜ | ✅ | ✅ | ⬜ |
-| Topic C | ⬜ | ✅ | ✅ | ⬜ | ✅ |
+| Topic   | Blog Post | Video | Social Post | Newsletter | Podcast |
+| ------- | --------- | ----- | ----------- | ---------- | ------- |
+| Topic A | ✅        | ✅    | ✅          | ⬜         | ⬜      |
+| Topic B | ✅        | ⬜    | ✅          | ✅         | ⬜      |
+| Topic C | ⬜        | ✅    | ✅          | ⬜         | ✅      |
 
 ---
 
@@ -52,6 +55,7 @@ A **content matrix** is a strategic planning tool that helps you:
 **Axis 3: Funnel Stage**
 
 **Funnel Stages**:
+
 - Awareness (top of funnel)
 - Consideration (middle of funnel)
 - Decision (bottom of funnel)
@@ -63,12 +67,12 @@ A **content matrix** is a strategic planning tool that helps you:
 
 **Topic: Content Creation**
 
-| Format | Awareness | Consideration | Decision | Retention |
-|--------|-----------|---------------|----------|-----------|
-| **Blog** | "What is content marketing?" | "5 content strategies that work" | "Our content service vs. DIY" | "Advanced content techniques" |
-| **Video** | "Content creation 101" | "How we create content" | "Client success stories" | "Exclusive tips for clients" |
-| **Social** | Quick tips | Framework breakdowns | Testimonials | Community highlights |
-| **Email** | Welcome series | Educational series | Case studies | Product updates |
+| Format     | Awareness                    | Consideration                    | Decision                      | Retention                     |
+| ---------- | ---------------------------- | -------------------------------- | ----------------------------- | ----------------------------- |
+| **Blog**   | "What is content marketing?" | "5 content strategies that work" | "Our content service vs. DIY" | "Advanced content techniques" |
+| **Video**  | "Content creation 101"       | "How we create content"          | "Client success stories"      | "Exclusive tips for clients"  |
+| **Social** | Quick tips                   | Framework breakdowns             | Testimonials                  | Community highlights          |
+| **Email**  | Welcome series               | Educational series               | Case studies                  | Product updates               |
 
 ---
 
@@ -77,12 +81,14 @@ A **content matrix** is a strategic planning tool that helps you:
 ### Pillar Content Strategy
 
 **Pillar Content** (Comprehensive, SEO-focused):
+
 - Long-form guide (2000+ words)
 - Covers topic comprehensively
 - Target high-volume keywords
 - Hub for related content
 
 **Cluster Content** (Supporting, specific):
+
 - Shorter, focused pieces
 - Target long-tail keywords
 - Link back to pillar
@@ -95,6 +101,7 @@ A **content matrix** is a strategic planning tool that helps you:
 **Pillar**: "The Complete Guide to Content Marketing"
 
 **Clusters**:
+
 - "How to Write Blog Posts That Rank"
 - "Video Content Strategy for Beginners"
 - "Social Media Content Calendar Template"
@@ -110,24 +117,28 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Balanced Content Mix
 
 **Educational (40%)**:
+
 - How-to guides
 - Tutorials
 - Frameworks
 - Best practices
 
 **Inspirational (30%)**:
+
 - Success stories
 - Case studies
 - Behind-the-scenes
 - Personal stories
 
 **Promotional (20%)**:
+
 - Product/service features
 - Testimonials
 - Offers and announcements
 - Comparisons
 
 **Entertaining (10%)**:
+
 - Humor
 - Trends and memes
 - Personality-driven
@@ -138,28 +149,33 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Platform-Specific Distribution
 
 **Blog**:
+
 - Educational deep-dives
 - SEO-focused content
 - Comprehensive guides
 
 **Video**:
+
 - Tutorials and demos
 - Behind-the-scenes
 - Personality-driven content
 
 **Social Media**:
+
 - Quick tips
 - Engagement content
 - Trending topics
 - Community building
 
 **Email**:
+
 - Curated content
 - Exclusive insights
 - Personal stories
 - Direct offers
 
 **Podcast**:
+
 - Long-form discussions
 - Interviews
 - Deep-dive topics
@@ -172,24 +188,28 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Monthly Planning Template
 
 **Week 1: Educational**
+
 - Blog: How-to guide
 - Video: Tutorial
 - Social: Tips series
 - Email: Educational newsletter
 
 **Week 2: Inspirational**
+
 - Blog: Case study
 - Video: Success story
 - Social: Behind-the-scenes
 - Email: Personal story
 
 **Week 3: Promotional**
+
 - Blog: Product feature breakdown
 - Video: Demo or testimonial
 - Social: Offer announcement
 - Email: Product spotlight
 
 **Week 4: Community**
+
 - Blog: Q&A or roundup
 - Video: Community highlights
 - Social: User-generated content
@@ -200,12 +220,14 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Content Batching
 
 **Batch by Type**:
+
 - Film all videos in one day
 - Write multiple blog posts in one session
 - Create social graphics in batches
 - Record podcast episodes in bulk
 
 **Benefits**:
+
 - Efficiency (setup once)
 - Consistency (same style/quality)
 - Reduced decision fatigue
@@ -218,17 +240,20 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Identifying Gaps
 
 **Topic Gaps**:
+
 - What topics haven't you covered?
 - What questions do you get repeatedly?
 - What are competitors covering that you're not?
 - What's trending in your industry?
 
 **Format Gaps**:
+
 - Are you only creating one format?
 - Which formats does your audience prefer?
 - Where are you underutilizing platforms?
 
 **Funnel Gaps**:
+
 - Too much awareness content, not enough decision content?
 - Missing retention content for existing customers?
 - No consideration content to nurture leads?
@@ -264,6 +289,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Creating Pillar Content
 
 **Characteristics**:
+
 - Comprehensive (2000+ words)
 - Evergreen (stays relevant)
 - SEO-optimized
@@ -271,6 +297,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 - Hub for related content
 
 **Structure**:
+
 - Table of contents
 - Multiple sections
 - Examples and case studies
@@ -282,6 +309,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Cluster Content Strategy
 
 **Characteristics**:
+
 - Focused on specific subtopic
 - 800-1500 words
 - Long-tail keyword targeting
@@ -289,6 +317,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 - Easier to rank
 
 **Benefits**:
+
 - Builds topical authority
 - Captures long-tail traffic
 - Supports pillar content
@@ -303,6 +332,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 **Start with**: Long-form blog post or video
 
 **Repurpose into**:
+
 - Social media posts (pull quotes, tips)
 - Email newsletter (summary + link)
 - Infographic (key points visualized)
@@ -316,6 +346,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ### Repurposing Strategy
 
 **Pillar Content** → Multiple Formats:
+
 1. Write comprehensive blog post
 2. Record video covering same topic
 3. Extract quotes for social media
@@ -357,6 +388,7 @@ Each cluster links to the pillar, and pillar links to all clusters.
 ## Usage
 
 Use the content matrix for:
+
 - Strategic content planning
 - Identifying content gaps
 - Balancing content types

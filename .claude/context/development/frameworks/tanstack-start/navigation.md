@@ -21,10 +21,10 @@ tanstack-start/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
+| Task              | Path                       |
+| ----------------- | -------------------------- |
 | **Project Setup** | `guides/setup.md` [future] |
-| **SSR Patterns** | `concepts/ssr.md` [future] |
+| **SSR Patterns**  | `concepts/ssr.md` [future] |
 
 ---
 

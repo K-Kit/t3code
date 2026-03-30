@@ -6,7 +6,7 @@ This directory contains context files for data analysis, visualization, and stat
 
 ## Available Context Files
 
-*No context files yet. This category is ready for data-related context.*
+_No context files yet. This category is ready for data-related context._
 
 ## Planned Context Files
 

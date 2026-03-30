@@ -15,6 +15,7 @@
 ## Overview
 
 This schema extends the base task.json and subtask_NN.json schemas with:
+
 - **Line-number precision** for context and reference files
 - **Domain modeling** fields (bounded_context, module, vertical_slice)
 - **Contract tracking** for API/interface dependencies
@@ -31,21 +32,22 @@ All enhancements are **optional** and backward compatible with existing task fil
 
 ### New Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `bounded_context` | string | No | DDD bounded context (e.g., "authentication", "billing") |
-| `module` | string | No | Module/package name (e.g., "@app/auth", "payment-service") |
-| `vertical_slice` | string | No | Feature slice identifier (e.g., "user-registration", "checkout-flow") |
-| `contracts` | array | No | API/interface contracts this feature depends on or provides |
-| `design_components` | array | No | Design artifacts (Figma URLs, wireframes, mockups) |
-| `related_adrs` | array | No | Architecture Decision Records (ADR file paths or IDs) |
-| `rice_score` | object | No | RICE prioritization (Reach, Impact, Confidence, Effort) |
-| `wsjf_score` | object | No | WSJF prioritization (Business Value, Time Criticality, Risk Reduction, Job Size) |
-| `release_slice` | string | No | Release identifier (e.g., "v1.2.0", "Q1-2026", "MVP") |
+| Field               | Type   | Required | Description                                                                      |
+| ------------------- | ------ | -------- | -------------------------------------------------------------------------------- |
+| `bounded_context`   | string | No       | DDD bounded context (e.g., "authentication", "billing")                          |
+| `module`            | string | No       | Module/package name (e.g., "@app/auth", "payment-service")                       |
+| `vertical_slice`    | string | No       | Feature slice identifier (e.g., "user-registration", "checkout-flow")            |
+| `contracts`         | array  | No       | API/interface contracts this feature depends on or provides                      |
+| `design_components` | array  | No       | Design artifacts (Figma URLs, wireframes, mockups)                               |
+| `related_adrs`      | array  | No       | Architecture Decision Records (ADR file paths or IDs)                            |
+| `rice_score`        | object | No       | RICE prioritization (Reach, Impact, Confidence, Effort)                          |
+| `wsjf_score`        | object | No       | WSJF prioritization (Business Value, Time Criticality, Risk Reduction, Job Size) |
+| `release_slice`     | string | No       | Release identifier (e.g., "v1.2.0", "Q1-2026", "MVP")                            |
 
 ### Enhanced context_files and reference_files Format
 
 **Old format** (still supported):
+
 ```json
 "context_files": [
   ".opencode/context/core/standards/code-quality.md"
@@ -53,6 +55,7 @@ All enhancements are **optional** and backward compatible with existing task fil
 ```
 
 **New format** (line-number precision):
+
 ```json
 "context_files": [
   {
@@ -69,6 +72,7 @@ All enhancements are **optional** and backward compatible with existing task fil
 ```
 
 **Backward Compatibility**: Both formats are valid. Agents should handle both:
+
 - String format → read entire file
 - Object format → read specified lines only
 
@@ -78,14 +82,14 @@ All enhancements are **optional** and backward compatible with existing task fil
 
 ### New Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `bounded_context` | string | No | Inherited from task.json or subtask-specific override |
-| `module` | string | No | Module this subtask modifies |
-| `vertical_slice` | string | No | Feature slice this subtask belongs to |
-| `contracts` | array | No | Contracts this subtask implements or depends on |
-| `design_components` | array | No | Design artifacts relevant to this subtask |
-| `related_adrs` | array | No | ADRs relevant to this subtask |
+| Field               | Type   | Required | Description                                           |
+| ------------------- | ------ | -------- | ----------------------------------------------------- |
+| `bounded_context`   | string | No       | Inherited from task.json or subtask-specific override |
+| `module`            | string | No       | Module this subtask modifies                          |
+| `vertical_slice`    | string | No       | Feature slice this subtask belongs to                 |
+| `contracts`         | array  | No       | Contracts this subtask implements or depends on       |
+| `design_components` | array  | No       | Design artifacts relevant to this subtask             |
+| `related_adrs`      | array  | No       | ADRs relevant to this subtask                         |
 
 ---
 
@@ -94,52 +98,52 @@ All enhancements are **optional** and backward compatible with existing task fil
 ```typescript
 // Line-number precision for context files
 interface ContextFileReference {
-  path: string;           // File path (absolute or relative to project root)
-  lines?: string;         // Line range: "10-50", "1-20,45-60", or omit for entire file
-  reason?: string;        // Why this file/section is relevant (max 200 chars)
+  path: string; // File path (absolute or relative to project root)
+  lines?: string; // Line range: "10-50", "1-20,45-60", or omit for entire file
+  reason?: string; // Why this file/section is relevant (max 200 chars)
 }
 
 // Contract definition
 interface Contract {
-  type: 'api' | 'interface' | 'event' | 'schema';
-  name: string;           // Contract identifier (e.g., "UserAPI", "AuthEvent")
-  path?: string;          // File path where contract is defined
-  status: 'draft' | 'defined' | 'implemented' | 'verified';
-  description?: string;   // Brief description (max 200 chars)
+  type: "api" | "interface" | "event" | "schema";
+  name: string; // Contract identifier (e.g., "UserAPI", "AuthEvent")
+  path?: string; // File path where contract is defined
+  status: "draft" | "defined" | "implemented" | "verified";
+  description?: string; // Brief description (max 200 chars)
 }
 
 // Design component reference
 interface DesignComponent {
-  type: 'figma' | 'wireframe' | 'mockup' | 'prototype' | 'sketch';
-  url?: string;           // External URL (Figma, etc.)
-  path?: string;          // Local file path
-  description?: string;   // What this design covers (max 200 chars)
+  type: "figma" | "wireframe" | "mockup" | "prototype" | "sketch";
+  url?: string; // External URL (Figma, etc.)
+  path?: string; // Local file path
+  description?: string; // What this design covers (max 200 chars)
 }
 
 // ADR reference
 interface ADRReference {
-  id: string;             // ADR identifier (e.g., "ADR-001", "auth-strategy")
-  path?: string;          // File path to ADR document
-  title?: string;         // ADR title
-  decision?: string;      // Brief summary of decision (max 200 chars)
+  id: string; // ADR identifier (e.g., "ADR-001", "auth-strategy")
+  path?: string; // File path to ADR document
+  title?: string; // ADR title
+  decision?: string; // Brief summary of decision (max 200 chars)
 }
 
 // RICE prioritization
 interface RICEScore {
-  reach: number;          // How many users affected (per time period)
-  impact: number;         // Impact score (0.25 = minimal, 0.5 = low, 1 = medium, 2 = high, 3 = massive)
-  confidence: number;     // Confidence % (0-100)
-  effort: number;         // Person-months of work
-  score?: number;         // Calculated: (reach * impact * confidence) / effort
+  reach: number; // How many users affected (per time period)
+  impact: number; // Impact score (0.25 = minimal, 0.5 = low, 1 = medium, 2 = high, 3 = massive)
+  confidence: number; // Confidence % (0-100)
+  effort: number; // Person-months of work
+  score?: number; // Calculated: (reach * impact * confidence) / effort
 }
 
 // WSJF prioritization
 interface WSJFScore {
-  business_value: number;     // 1-10 scale
-  time_criticality: number;   // 1-10 scale
-  risk_reduction: number;     // 1-10 scale
-  job_size: number;           // 1-10 scale (effort estimate)
-  score?: number;             // Calculated: (business_value + time_criticality + risk_reduction) / job_size
+  business_value: number; // 1-10 scale
+  time_criticality: number; // 1-10 scale
+  risk_reduction: number; // 1-10 scale
+  job_size: number; // 1-10 scale (effort estimate)
+  score?: number; // Calculated: (business_value + time_criticality + risk_reduction) / job_size
 }
 
 // Enhanced task.json
@@ -147,7 +151,7 @@ interface EnhancedTask {
   // Base fields (from task-schema.md)
   id: string;
   name: string;
-  status: 'active' | 'completed' | 'blocked' | 'archived';
+  status: "active" | "completed" | "blocked" | "archived";
   objective: string;
   context_files?: (string | ContextFileReference)[];
   reference_files?: (string | ContextFileReference)[];
@@ -175,7 +179,7 @@ interface EnhancedSubtask {
   id: string;
   seq: string;
   title: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'blocked';
+  status: "pending" | "in_progress" | "completed" | "blocked";
   depends_on?: string[];
   parallel?: boolean;
   context_files?: (string | ContextFileReference)[];
@@ -213,6 +217,7 @@ interface EnhancedSubtask {
 ```
 
 Common values:
+
 - `"authentication"` - User identity and access
 - `"billing"` - Payment and invoicing
 - `"inventory"` - Product and stock management
@@ -232,6 +237,7 @@ Common values:
 ```
 
 Examples:
+
 - `"@app/auth"` - Authentication module
 - `"payment-service"` - Payment microservice
 - `"ui-components"` - Shared UI library
@@ -250,6 +256,7 @@ Examples:
 ```
 
 Examples:
+
 - `"user-registration"` - Complete user signup flow
 - `"checkout-flow"` - End-to-end checkout
 - `"dashboard-overview"` - Dashboard feature
@@ -282,12 +289,14 @@ Examples:
 ```
 
 Contract types:
+
 - `"api"` - REST/GraphQL API endpoints
 - `"interface"` - TypeScript/language interfaces
 - `"event"` - Event bus messages
 - `"schema"` - Database schemas, validation schemas
 
 Contract statuses:
+
 - `"draft"` - Being designed
 - `"defined"` - Specification complete
 - `"implemented"` - Code written
@@ -317,6 +326,7 @@ Contract statuses:
 ```
 
 Component types:
+
 - `"figma"` - Figma designs
 - `"wireframe"` - Low-fidelity wireframes
 - `"mockup"` - High-fidelity mockups
@@ -368,6 +378,7 @@ Component types:
 **Calculation**: `(5000 × 2 × 0.80) / 3 = 2666.67`
 
 Field definitions:
+
 - `reach`: Number of users/customers affected per time period (e.g., per quarter)
 - `impact`: 0.25 (minimal), 0.5 (low), 1 (medium), 2 (high), 3 (massive)
 - `confidence`: Percentage (0-100) - how confident are you in reach/impact estimates?
@@ -395,6 +406,7 @@ Field definitions:
 **Calculation**: `(8 + 6 + 5) / 3 = 6.33`
 
 Field definitions (all on 1-10 scale):
+
 - `business_value`: Direct business impact
 - `time_criticality`: How time-sensitive is this?
 - `risk_reduction`: Does this reduce risk/enable other work?
@@ -414,6 +426,7 @@ Field definitions (all on 1-10 scale):
 ```
 
 Examples:
+
 - `"v1.2.0"` - Semantic version
 - `"Q1-2026"` - Quarterly release
 - `"MVP"` - Minimum viable product
@@ -447,6 +460,7 @@ Reduce cognitive load by pointing agents to **exact sections** of large files in
 ### Examples
 
 **Single range**:
+
 ```json
 {
   "path": ".opencode/context/core/standards/code-quality.md",
@@ -456,6 +470,7 @@ Reduce cognitive load by pointing agents to **exact sections** of large files in
 ```
 
 **Multiple ranges**:
+
 ```json
 {
   "path": ".opencode/context/core/standards/security-patterns.md",
@@ -465,6 +480,7 @@ Reduce cognitive load by pointing agents to **exact sections** of large files in
 ```
 
 **Entire file** (backward compatible):
+
 ```json
 {
   "path": ".opencode/context/core/standards/code-quality.md",
@@ -473,6 +489,7 @@ Reduce cognitive load by pointing agents to **exact sections** of large files in
 ```
 
 **Legacy string format** (still supported):
+
 ```json
 ".opencode/context/core/standards/code-quality.md"
 ```
@@ -508,7 +525,7 @@ Agents MUST support both formats:
 
 ```typescript
 function loadContextFile(ref: string | ContextFileReference): string {
-  if (typeof ref === 'string') {
+  if (typeof ref === "string") {
     // Legacy format: read entire file
     return readFile(ref);
   } else {
@@ -525,6 +542,7 @@ function loadContextFile(ref: string | ContextFileReference): string {
 ### Rule 4: Gradual migration
 
 Projects can adopt enhanced fields incrementally:
+
 1. Start with line-number precision for large files
 2. Add domain modeling fields (bounded_context, module) when needed
 3. Add prioritization scores when planning releases
@@ -659,10 +677,7 @@ Projects can adopt enhanced fields incrementally:
     "Unit tests cover all token operations",
     "No secrets hardcoded in code"
   ],
-  "deliverables": [
-    "src/auth/jwt.service.ts",
-    "src/auth/jwt.service.test.ts"
-  ],
+  "deliverables": ["src/auth/jwt.service.ts", "src/auth/jwt.service.test.ts"],
   "bounded_context": "authentication",
   "module": "@app/auth",
   "contracts": [
@@ -692,6 +707,7 @@ Projects can adopt enhanced fields incrementally:
 When creating new tasks:
 
 1. **Use line-number precision for large files** (>100 lines):
+
    ```json
    {
      "path": ".opencode/context/core/standards/code-quality.md",
@@ -701,6 +717,7 @@ When creating new tasks:
    ```
 
 2. **Add domain modeling fields** when known:
+
    ```json
    {
      "bounded_context": "authentication",
@@ -710,6 +727,7 @@ When creating new tasks:
    ```
 
 3. **Link design artifacts** for UI tasks:
+
    ```json
    {
      "design_components": [
@@ -739,10 +757,11 @@ When creating new tasks:
 When reading tasks:
 
 1. **Handle both context file formats**:
+
    ```typescript
    const contextFiles = task.context_files || [];
    for (const ref of contextFiles) {
-     if (typeof ref === 'string') {
+     if (typeof ref === "string") {
        // Read entire file
        const content = await readFile(ref);
      } else {
@@ -754,9 +773,10 @@ When reading tasks:
    ```
 
 2. **Use contract information** to understand dependencies:
+
    ```typescript
    const contracts = task.contracts || [];
-   const apiContracts = contracts.filter(c => c.type === 'api');
+   const apiContracts = contracts.filter((c) => c.type === "api");
    // Load API contract definitions before implementing
    ```
 

@@ -9,11 +9,13 @@
 ## Migration Steps
 
 1. **Create plugin structure**:
+
    ```bash
    mkdir -p my-plugin/.claude-plugin
    ```
 
 2. **Create manifest** (`my-plugin/.claude-plugin/plugin.json`):
+
    ```json
    {
      "name": "my-plugin",
@@ -23,6 +25,7 @@
    ```
 
 3. **Copy components**:
+
    ```bash
    cp -r .claude/commands my-plugin/
    cp -r .claude/agents my-plugin/
@@ -30,6 +33,7 @@
    ```
 
 4. **Migrate hooks** (from `settings.json` to `hooks/hooks.json`):
+
    ```bash
    mkdir my-plugin/hooks
    # Copy hooks object from settings.json
@@ -41,12 +45,12 @@
 
 ## What Changes
 
-| Standalone | Plugin |
-|------------|--------|
-| One project only | Shareable via marketplaces |
-| Files in `.claude/` | Files in `plugin-name/` |
-| Hooks in `settings.json` | Hooks in `hooks/hooks.json` |
-| Manual copy to share | Install with `/plugin install` |
+| Standalone               | Plugin                         |
+| ------------------------ | ------------------------------ |
+| One project only         | Shareable via marketplaces     |
+| Files in `.claude/`      | Files in `plugin-name/`        |
+| Hooks in `settings.json` | Hooks in `hooks/hooks.json`    |
+| Manual copy to share     | Install with `/plugin install` |
 
 ---
 

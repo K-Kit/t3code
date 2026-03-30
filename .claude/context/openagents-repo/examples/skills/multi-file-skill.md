@@ -22,7 +22,7 @@ pdf-processing/
 
 ## SKILL.md
 
-```yaml
+````yaml
 ---
 name: pdf-processing
 description: Extract text, fill forms, merge PDFs. Use when working with PDF files.
@@ -38,7 +38,7 @@ Extract text:
 import pdfplumber
 with pdfplumber.open("doc.pdf") as pdf:
     text = pdf.pages[0].extract_text()
-```
+````
 
 For form filling, see FORMS.md (example file).
 For detailed API reference, see REFERENCE.md (example file).
@@ -48,7 +48,8 @@ For detailed API reference, see REFERENCE.md (example file).
 ```bash
 pip install pypdf pdfplumber
 ```
-```
+
+````
 
 ---
 
@@ -67,7 +68,7 @@ In SKILL.md, tell Claude to run (not read):
 ```markdown
 Run the validation script:
 python scripts/validate.py input.pdf
-```
+````
 
 Output goes to Claude, script content stays out of context.
 

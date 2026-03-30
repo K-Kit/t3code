@@ -31,7 +31,7 @@ tools: Read, Glob, Grep
 model: sonnet
 ---
 
-You are a code reviewer. Analyze code and provide specific, 
+You are a code reviewer. Analyze code and provide specific,
 actionable feedback on quality, security, and best practices.
 ```
 

@@ -19,21 +19,21 @@
 ```typescript
 // BEFORE: .d.ts interface
 interface AgentFrontmatter {
-  name: string
-  mode: 'primary' | 'subagent' | 'all'
-  temperature?: number
+  name: string;
+  mode: "primary" | "subagent" | "all";
+  temperature?: number;
 }
 
 // AFTER: Zod schema
-import { z } from 'zod'
+import { z } from "zod";
 
 export const AgentFrontmatterSchema = z.object({
   name: z.string(),
-  mode: z.enum(['primary', 'subagent', 'all']),
-  temperature: z.number().min(0).max(2).optional()
-})
+  mode: z.enum(["primary", "subagent", "all"]),
+  temperature: z.number().min(0).max(2).optional(),
+});
 
-export type AgentFrontmatter = z.infer<typeof AgentFrontmatterSchema>
+export type AgentFrontmatter = z.infer<typeof AgentFrontmatterSchema>;
 ```
 
 ---
@@ -45,23 +45,23 @@ export type AgentFrontmatter = z.infer<typeof AgentFrontmatterSchema>
 export const GranularPermissionSchema = z.object({
   allow: z.array(z.string()).optional(),
   deny: z.array(z.string()).optional(),
-  ask: z.array(z.string()).optional()
-})
+  ask: z.array(z.string()).optional(),
+});
 
 export const PermissionRuleSchema = z.union([
-  z.literal('allow'),
-  z.literal('deny'),
+  z.literal("allow"),
+  z.literal("deny"),
   z.boolean(),
-  GranularPermissionSchema
-])
+  GranularPermissionSchema,
+]);
 
 export const ToolAccessSchema = z.object({
   read: PermissionRuleSchema.optional(),
   write: PermissionRuleSchema.optional(),
-  bash: PermissionRuleSchema.optional()
-})
+  bash: PermissionRuleSchema.optional(),
+});
 
-export type ToolAccess = z.infer<typeof ToolAccessSchema>
+export type ToolAccess = z.infer<typeof ToolAccessSchema>;
 ```
 
 ---
@@ -70,15 +70,15 @@ export type ToolAccess = z.infer<typeof ToolAccessSchema>
 
 ```typescript
 // Strict parsing (throws on invalid)
-const frontmatter = AgentFrontmatterSchema.parse(data)
+const frontmatter = AgentFrontmatterSchema.parse(data);
 
 // Safe parsing (returns result object)
-const result = AgentFrontmatterSchema.safeParse(data)
+const result = AgentFrontmatterSchema.safeParse(data);
 
 if (result.success) {
-  console.log(result.data)  // Typed correctly
+  console.log(result.data); // Typed correctly
 } else {
-  console.error(result.error.errors)  // Detailed errors
+  console.error(result.error.errors); // Detailed errors
 }
 ```
 
@@ -87,28 +87,32 @@ if (result.success) {
 ## Common Patterns
 
 ### Enums
+
 ```typescript
-export const ModeSchema = z.enum(['primary', 'subagent']).default('primary')
+export const ModeSchema = z.enum(["primary", "subagent"]).default("primary");
 ```
 
 ### Arrays
+
 ```typescript
 export const SkillSchema = z.union([
-  z.string(),                    // "skill-name"
-  z.object({ name: z.string() }) // { name, config }
-])
-export const SkillsSchema = z.array(SkillSchema).optional()
+  z.string(), // "skill-name"
+  z.object({ name: z.string() }), // { name, config }
+]);
+export const SkillsSchema = z.array(SkillSchema).optional();
 ```
 
 ### Records
+
 ```typescript
-export const MetadataSchema = z.record(z.unknown())  // { [key: string]: any }
+export const MetadataSchema = z.record(z.unknown()); // { [key: string]: any }
 ```
 
 ### Optionals
+
 ```typescript
-z.string().optional()        // string | undefined
-z.number().default(0.7)      // number with default
+z.string().optional(); // string | undefined
+z.number().default(0.7); // number with default
 ```
 
 ---
@@ -120,10 +124,10 @@ export const OpenAgentSchema = z.object({
   frontmatter: AgentFrontmatterSchema,
   metadata: AgentMetadataSchema.optional(),
   systemPrompt: z.string(),
-  contexts: z.array(ContextReferenceSchema).optional()
-})
+  contexts: z.array(ContextReferenceSchema).optional(),
+});
 
-export type OpenAgent = z.infer<typeof OpenAgentSchema>
+export type OpenAgent = z.infer<typeof OpenAgentSchema>;
 ```
 
 ---
@@ -142,28 +146,34 @@ export type OpenAgent = z.infer<typeof OpenAgentSchema>
 ## Testing
 
 ```typescript
-describe('AgentFrontmatterSchema', () => {
-  it('validates correct data', () => {
-    expect(() => AgentFrontmatterSchema.parse({
-      name: 'TestAgent',
-      mode: 'primary'
-    })).not.toThrow()
-  })
-  
-  it('rejects invalid mode', () => {
-    expect(() => AgentFrontmatterSchema.parse({
-      name: 'Test',
-      mode: 'invalid'
-    })).toThrow()
-  })
-  
-  it('rejects out-of-range temperature', () => {
-    expect(() => AgentFrontmatterSchema.parse({
-      name: 'Test',
-      temperature: 5.0  // Max 2.0
-    })).toThrow()
-  })
-})
+describe("AgentFrontmatterSchema", () => {
+  it("validates correct data", () => {
+    expect(() =>
+      AgentFrontmatterSchema.parse({
+        name: "TestAgent",
+        mode: "primary",
+      }),
+    ).not.toThrow();
+  });
+
+  it("rejects invalid mode", () => {
+    expect(() =>
+      AgentFrontmatterSchema.parse({
+        name: "Test",
+        mode: "invalid",
+      }),
+    ).toThrow();
+  });
+
+  it("rejects out-of-range temperature", () => {
+    expect(() =>
+      AgentFrontmatterSchema.parse({
+        name: "Test",
+        temperature: 5.0, // Max 2.0
+      }),
+    ).toThrow();
+  });
+});
 ```
 
 ---
@@ -171,6 +181,7 @@ describe('AgentFrontmatterSchema', () => {
 ## Key Schemas (Compatibility Layer)
 
 **20+ schemas migrated**:
+
 - `OpenAgentSchema` - Complete agent
 - `AgentFrontmatterSchema` - YAML frontmatter
 - `ToolAccessSchema` - Tool permissions

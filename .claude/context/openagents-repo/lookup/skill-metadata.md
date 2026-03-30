@@ -8,24 +8,24 @@
 
 ## Required Fields
 
-| Field | Description |
-|-------|-------------|
-| `name` | Unique identifier (lowercase, hyphens, max 64 chars) |
-| `description` | What skill does and when to use (max 1024 chars) |
+| Field         | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| `name`        | Unique identifier (lowercase, hyphens, max 64 chars) |
+| `description` | What skill does and when to use (max 1024 chars)     |
 
 ---
 
 ## Optional Fields
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `allowed-tools` | All | Tools Claude can use without permission |
-| `model` | Conversation | Model to use (e.g., `claude-sonnet-4-20250514`) |
-| `context` | - | Set to `fork` for isolated sub-agent context |
-| `agent` | `general-purpose` | Agent type when `context: fork` |
-| `hooks` | - | Lifecycle hooks (`PreToolUse`, `PostToolUse`, `Stop`) |
-| `user-invocable` | `true` | Show in slash command menu |
-| `disable-model-invocation` | `false` | Block programmatic invocation |
+| Field                      | Default           | Description                                           |
+| -------------------------- | ----------------- | ----------------------------------------------------- |
+| `allowed-tools`            | All               | Tools Claude can use without permission               |
+| `model`                    | Conversation      | Model to use (e.g., `claude-sonnet-4-20250514`)       |
+| `context`                  | -                 | Set to `fork` for isolated sub-agent context          |
+| `agent`                    | `general-purpose` | Agent type when `context: fork`                       |
+| `hooks`                    | -                 | Lifecycle hooks (`PreToolUse`, `PostToolUse`, `Stop`) |
+| `user-invocable`           | `true`            | Show in slash command menu                            |
+| `disable-model-invocation` | `false`           | Block programmatic invocation                         |
 
 ---
 
@@ -53,18 +53,18 @@ hooks:
       hooks:
         - type: command
           command: "./scripts/validate.sh"
-          once: true  # Run only once per session
+          once: true # Run only once per session
 ```
 
 ---
 
 ## Visibility Control
 
-| Setting | Slash Menu | Skill Tool | Auto-discovery |
-|---------|------------|------------|----------------|
-| Default | ✓ | ✓ | ✓ |
-| `user-invocable: false` | ✗ | ✓ | ✓ |
-| `disable-model-invocation: true` | ✓ | ✗ | ✓ |
+| Setting                          | Slash Menu | Skill Tool | Auto-discovery |
+| -------------------------------- | ---------- | ---------- | -------------- |
+| Default                          | ✓          | ✓          | ✓              |
+| `user-invocable: false`          | ✗          | ✓          | ✓              |
+| `disable-model-invocation: true` | ✓          | ✗          | ✓              |
 
 ---
 

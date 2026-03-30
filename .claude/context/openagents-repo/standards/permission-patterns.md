@@ -1,4 +1,5 @@
 <!-- Context: openagents-repo/standards/permission-patterns | Priority: critical | Version: 1.0 | Updated: 2026-02-01 -->
+
 # Standard: Permission Patterns for OpenCode v1.1.1+
 
 **Purpose**: Comprehensive permission configuration patterns for different agent types  
@@ -17,40 +18,42 @@ OpenCode v1.1.1+ uses `permission:` (singular) with granular control over tool a
 ## Permission Evaluation Order
 
 **Last matching rule wins** - Common pattern:
+
 1. Catch-all `"*"` first (default behavior)
 2. Specific overrides after (take precedence)
 
 Example:
+
 ```yaml
 permission:
   bash:
-    "*": "deny"              # Catch-all: deny all bash
-    "git status*": "allow"   # Override: allow git status
-    "git diff*": "allow"     # Override: allow git diff
+    "*": "deny" # Catch-all: deny all bash
+    "git status*": "allow" # Override: allow git status
+    "git diff*": "allow" # Override: allow git diff
 ```
 
 ---
 
 ## Valid Permission Keys
 
-| Key | Description | Granular? | Default |
-|-----|-------------|-----------|---------|
-| `read` | File reading | Yes (path globs) | `"allow"` |
-| `edit` | File modifications | Yes (path globs) | `"allow"` |
-| `glob` | File globbing/searches | Yes | `"allow"` |
-| `grep` | Content/regex search | Yes | `"allow"` |
-| `list` | Directory listing | Yes | `"allow"` |
-| `bash` | Shell commands | Yes (command globs) | `"allow"` |
-| `task` | Subagent launches | Yes (subagent type) | `"allow"` |
-| `skill` | Skill loading | Yes | `"allow"` |
-| `lsp` | LSP queries | No | `"allow"` |
-| `todoread` | Todo list read | No | `"allow"` |
-| `todowrite` | Todo list update | No | `"allow"` |
-| `webfetch` | URL fetching | Yes | `"allow"` |
-| `websearch` | Web search | Yes | `"allow"` |
-| `codesearch` | Code search | Yes | `"allow"` |
-| `external_directory` | Out-of-project paths | Yes | `"ask"` |
-| `doom_loop` | Repeated identical calls | Yes | `"ask"` |
+| Key                  | Description              | Granular?           | Default   |
+| -------------------- | ------------------------ | ------------------- | --------- |
+| `read`               | File reading             | Yes (path globs)    | `"allow"` |
+| `edit`               | File modifications       | Yes (path globs)    | `"allow"` |
+| `glob`               | File globbing/searches   | Yes                 | `"allow"` |
+| `grep`               | Content/regex search     | Yes                 | `"allow"` |
+| `list`               | Directory listing        | Yes                 | `"allow"` |
+| `bash`               | Shell commands           | Yes (command globs) | `"allow"` |
+| `task`               | Subagent launches        | Yes (subagent type) | `"allow"` |
+| `skill`              | Skill loading            | Yes                 | `"allow"` |
+| `lsp`                | LSP queries              | No                  | `"allow"` |
+| `todoread`           | Todo list read           | No                  | `"allow"` |
+| `todowrite`          | Todo list update         | No                  | `"allow"` |
+| `webfetch`           | URL fetching             | Yes                 | `"allow"` |
+| `websearch`          | Web search               | Yes                 | `"allow"` |
+| `codesearch`         | Code search              | Yes                 | `"allow"` |
+| `external_directory` | Out-of-project paths     | Yes                 | `"ask"`   |
+| `doom_loop`          | Repeated identical calls | Yes                 | `"ask"`   |
 
 ---
 
@@ -134,7 +137,7 @@ permission:
     "rm -rf *": "ask"
     "sudo *": "deny"
     "chmod *": "ask"
-    "*": "ask"  # More permissive for orchestration
+    "*": "ask" # More permissive for orchestration
   edit:
     "**/*.env*": "deny"
     "**/*.key": "deny"
@@ -142,7 +145,7 @@ permission:
     "node_modules/**": "deny"
     ".git/**": "deny"
   task:
-    "*": "allow"  # Can delegate to any subagent
+    "*": "allow" # Can delegate to any subagent
 ```
 
 **Examples**: OpenCoder, OpenAgent, TaskManager
@@ -239,9 +242,9 @@ permission:
 ```yaml
 permission:
   task:
-    contextscout: "allow"      # Always allow context discovery
-    "coder-agent": "ask"        # Ask before code generation
-    "build-agent": "ask"        # Ask before builds
+    contextscout: "allow" # Always allow context discovery
+    "coder-agent": "ask" # Ask before code generation
+    "build-agent": "ask" # Ask before builds
     "*": "deny"
 ```
 

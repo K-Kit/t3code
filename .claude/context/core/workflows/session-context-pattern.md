@@ -153,11 +153,7 @@ import { createSession } from ".opencode/skill/task-management/scripts/session-c
 const result = createSession(feature, request, {
   contextFiles: [], // Will be populated by ContextScout
   referenceFiles: [],
-  exitCriteria: [
-    "All subtasks completed",
-    "Tests passing",
-    "Documentation updated",
-  ],
+  exitCriteria: ["All subtasks completed", "Tests passing", "Documentation updated"],
 });
 
 const sessionId = result.sessionId;
@@ -294,10 +290,7 @@ updateSession(sessionId, {
     ".opencode/context/core/standards/security-patterns.md",
     "(example: .opencode/context/core/standards/naming-conventions.md)",
   ],
-  referenceFiles: [
-    "src/middleware/auth.middleware.ts",
-    "src/config/jwt.config.ts",
-  ],
+  referenceFiles: ["src/middleware/auth.middleware.ts", "src/config/jwt.config.ts"],
 });
 ```
 
@@ -318,8 +311,7 @@ updateSession(sessionId, {
 
 addDecision(sessionId, {
   decision: "Place authentication in separate bounded context",
-  rationale:
-    "Auth is a core domain with clear boundaries, used by multiple features",
+  rationale: "Auth is a core domain with clear boundaries, used by multiple features",
 });
 ```
 
@@ -558,9 +550,7 @@ Get current session state summary.
 const result = getSessionSummary(sessionId);
 console.log(`Progress: ${result.summary.completedStages} stages complete`);
 console.log(`Files: ${result.summary.filesCreated} created`);
-console.log(
-  `Exit Criteria: ${result.summary.exitCriteriaMet}/${result.summary.exitCriteriaTotal}`,
-);
+console.log(`Exit Criteria: ${result.summary.exitCriteriaMet}/${result.summary.exitCriteriaTotal}`);
 ```
 
 ## CLI Usage
@@ -615,13 +605,9 @@ Define clear, binary exit criteria at session creation.
 
 ```typescript
 // Orchestrator: Initialize
-const { sessionId } = createSession(
-  "auth-system",
-  "Implement JWT authentication",
-  {
-    exitCriteria: ["All tests passing", "JWT tokens signed with RS256"],
-  },
-);
+const { sessionId } = createSession("auth-system", "Implement JWT authentication", {
+  exitCriteria: ["All tests passing", "JWT tokens signed with RS256"],
+});
 
 // Stage 0: ContextScout discovers context
 updateSession(sessionId, {
@@ -643,17 +629,13 @@ markStageComplete(sessionId, "Stage 1: Architecture Analysis", []);
 // Stage 2: TaskManager creates tasks
 const { session } = loadSession(sessionId);
 // Use session.contextFiles, session.architecture in task.json
-markStageComplete(sessionId, "Stage 2: Task Planning", [
-  ".tmp/tasks/auth-system/task.json",
-]);
+markStageComplete(sessionId, "Stage 2: Task Planning", [".tmp/tasks/auth-system/task.json"]);
 
 // Stage 3: CoderAgent implements
 const { session } = loadSession(sessionId);
 // Read session.contextFiles, session.contracts
 addFile(sessionId, "src/auth/jwt.service.ts");
-markStageComplete(sessionId, "Stage 3: Implementation", [
-  "src/auth/jwt.service.ts",
-]);
+markStageComplete(sessionId, "Stage 3: Implementation", ["src/auth/jwt.service.ts"]);
 
 // Stage 4: Complete
 updateSession(sessionId, { status: "completed" });

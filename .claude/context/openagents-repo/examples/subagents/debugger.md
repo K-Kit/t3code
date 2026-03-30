@@ -45,21 +45,21 @@ Focus on fixing the underlying issue, not the symptoms.
 
 ## Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Edit included | Debugger needs to fix code |
-| Model not specified | Defaults to Sonnet |
-| Proactive description | Auto-triggers on errors |
+| Decision              | Rationale                  |
+| --------------------- | -------------------------- |
+| Edit included         | Debugger needs to fix code |
+| Model not specified   | Defaults to Sonnet         |
+| Proactive description | Auto-triggers on errors    |
 
 ---
 
 ## Comparison with Code Reviewer
 
-| Aspect | Code Reviewer | Debugger |
-|--------|---------------|----------|
-| Edit access | ❌ No | ✓ Yes |
-| Purpose | Review quality | Fix issues |
-| Output | Feedback | Fixes |
+| Aspect      | Code Reviewer  | Debugger   |
+| ----------- | -------------- | ---------- |
+| Edit access | ❌ No          | ✓ Yes      |
+| Purpose     | Review quality | Fix issues |
+| Output      | Feedback       | Fixes      |
 
 ---
 

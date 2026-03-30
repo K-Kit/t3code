@@ -20,18 +20,18 @@ content-creation/
 
 ## Quick Routes
 
-| Need | Path |
-|------|------|
+| Need                       | Path                                   |
+| -------------------------- | -------------------------------------- |
 | **Copywriting frameworks** | `principles/copywriting-frameworks.md` |
-| **Brand voice & tone** | `principles/tone-voice.md` |
-| **Write hooks** | `principles/hooks.md` |
-| **Audience targeting** | `principles/audience-targeting.md` |
-| **Written content** | `formats/written-content.md` |
-| **Video content** | `formats/video-content.md` |
-| **Image content** | `formats/image-content.md` |
-| **Content planning** | `workflows/content-matrix.md` |
-| **Content ideas** | `workflows/content-ideas.md` |
-| **Remix content** | `workflows/remix-repurpose.md` |
+| **Brand voice & tone**     | `principles/tone-voice.md`             |
+| **Write hooks**            | `principles/hooks.md`                  |
+| **Audience targeting**     | `principles/audience-targeting.md`     |
+| **Written content**        | `formats/written-content.md`           |
+| **Video content**          | `formats/video-content.md`             |
+| **Image content**          | `formats/image-content.md`             |
+| **Content planning**       | `workflows/content-matrix.md`          |
+| **Content ideas**          | `workflows/content-ideas.md`           |
+| **Remix content**          | `workflows/remix-repurpose.md`         |
 
 ---
 
@@ -47,6 +47,7 @@ content-creation/
 ## Usage
 
 Content creation agents load these files to:
+
 - Apply proven copywriting frameworks
 - Maintain consistent brand voice
 - Create format-appropriate content

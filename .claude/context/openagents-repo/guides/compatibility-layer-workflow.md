@@ -123,12 +123,7 @@
 
 **Objective**: Create migration guides and API docs
 
-26-30. **Migration Guides** (4h total)
-    - `docs/migration-guides/cursor-to-oac.md`
-    - `docs/migration-guides/claude-to-oac.md`
-    - `docs/migration-guides/oac-to-cursor.md`
-    - `docs/migration-guides/oac-to-claude.md`
-    - `docs/migration-guides/oac-to-windsurf.md`
+26-30. **Migration Guides** (4h total) - `docs/migration-guides/cursor-to-oac.md` - `docs/migration-guides/claude-to-oac.md` - `docs/migration-guides/oac-to-cursor.md` - `docs/migration-guides/oac-to-claude.md` - `docs/migration-guides/oac-to-windsurf.md`
 
 31. **Feature Matrices** (1h)
     - Generate comparison tables
@@ -150,16 +145,27 @@
    - Note limitations vs OAC
 
 2. **Create Adapter Class**
+
    ```typescript
    export class NewToolAdapter extends BaseAdapter {
-     name = 'newtool'
-     displayName = 'New Tool'
-     
-     async toOAC(source: string): Promise<OpenAgent> { /* ... */ }
-     async fromOAC(agent: OpenAgent): Promise<ConversionResult> { /* ... */ }
-     getConfigPath(): string { /* ... */ }
-     getCapabilities(): ToolCapabilities { /* ... */ }
-     validateConversion(agent: OpenAgent): string[] { /* ... */ }
+     name = "newtool";
+     displayName = "New Tool";
+
+     async toOAC(source: string): Promise<OpenAgent> {
+       /* ... */
+     }
+     async fromOAC(agent: OpenAgent): Promise<ConversionResult> {
+       /* ... */
+     }
+     getConfigPath(): string {
+       /* ... */
+     }
+     getCapabilities(): ToolCapabilities {
+       /* ... */
+     }
+     validateConversion(agent: OpenAgent): string[] {
+       /* ... */
+     }
    }
    ```
 
@@ -170,8 +176,9 @@
    - ContextMapper for context path translation
 
 4. **Register Adapter**
+
    ```typescript
-   AdapterRegistry.register(new NewToolAdapter())
+   AdapterRegistry.register(new NewToolAdapter());
    ```
 
 5. **Write Tests** (Target: 80%+ coverage)
@@ -183,6 +190,7 @@
 ## Success Criteria
 
 **Phase 1-3** ✅ ACHIEVED:
+
 - [x] All files compile without errors
 - [x] Zod schemas validate correctly
 - [x] All 3 adapters migrated to TypeScript
@@ -191,11 +199,13 @@
 - [x] Graceful degradation works
 
 **Phase 4** (upcoming):
+
 - [ ] CLI commands work end-to-end
 - [ ] Error handling is comprehensive
 - [ ] Output is user-friendly
 
 **Phase 5** (upcoming):
+
 - [ ] Migration guides cover all tools
 - [ ] API docs are complete
 - [ ] Examples demonstrate usage
@@ -209,6 +219,7 @@
 - **Location**: `packages/compatibility-layer/`
 
 **Related**:
+
 - lookup/compatibility-layer-progress.md
 - lookup/compatibility-layer-adapters.md
 - lookup/compatibility-layer-structure.md

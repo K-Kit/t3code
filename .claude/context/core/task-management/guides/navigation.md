@@ -19,12 +19,12 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Split features into tasks** | `splitting-tasks.md` |
-| **Manage task lifecycle** | `managing-tasks.md` |
-| **Task schema** | `../standards/task-schema.md` |
-| **CLI commands** | `../lookup/task-commands.md` |
+| Task                          | Path                          |
+| ----------------------------- | ----------------------------- |
+| **Split features into tasks** | `splitting-tasks.md`          |
+| **Manage task lifecycle**     | `managing-tasks.md`           |
+| **Task schema**               | `../standards/task-schema.md` |
+| **CLI commands**              | `../lookup/task-commands.md`  |
 
 ---
 

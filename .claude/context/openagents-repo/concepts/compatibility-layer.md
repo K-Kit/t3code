@@ -17,17 +17,20 @@ Adapter pattern that translates agent configurations between OAC format and tool
 ## Key Components
 
 **Adapters**: Tool-specific translation classes inheriting from BaseAdapter
+
 - ClaudeAdapter - Claude Code format (.claude/config.json + skills)
 - CursorAdapter - Cursor IDE format (.cursorrules single file)
 - WindsurfAdapter - Windsurf format (.windsurf/agents/)
 
 **Mappers**: Pure functions for feature translation
+
 - ToolMapper - Tool name mapping (bash → terminal, task → delegate)
 - PermissionMapper - Permission translation with degradation
 - ModelMapper - Model ID mapping with fallbacks
 - ContextMapper - Context file path translation
 
 **Core Services**:
+
 - AgentLoader - Parse OAC markdown files with YAML frontmatter
 - AdapterRegistry - Register and retrieve adapters
 - TranslationEngine - Orchestrate bidirectional conversion
@@ -65,14 +68,14 @@ Tool-specific config files
 
 ## Feature Parity
 
-| Feature | OAC | Claude | Cursor | Windsurf |
-|---------|-----|--------|--------|----------|
-| Multiple agents | ✅ | ✅ | ❌ Single | ✅ |
-| Granular permissions | ✅ | ⚠️ Simplified | ❌ | ⚠️ Partial |
-| Temperature | ✅ | ❌ | ⚠️ Partial | ⚠️ Partial |
-| Skills | ✅ | ✅ | ❌ | ⚠️ Partial |
-| Hooks | ✅ | ✅ | ❌ | ❌ |
-| Context files | ✅ | ✅ Skills | ✅ .cursorrules | ✅ |
+| Feature              | OAC | Claude        | Cursor          | Windsurf   |
+| -------------------- | --- | ------------- | --------------- | ---------- |
+| Multiple agents      | ✅  | ✅            | ❌ Single       | ✅         |
+| Granular permissions | ✅  | ⚠️ Simplified | ❌              | ⚠️ Partial |
+| Temperature          | ✅  | ❌            | ⚠️ Partial      | ⚠️ Partial |
+| Skills               | ✅  | ✅            | ❌              | ⚠️ Partial |
+| Hooks                | ✅  | ✅            | ❌              | ❌         |
+| Context files        | ✅  | ✅ Skills     | ✅ .cursorrules | ✅         |
 
 ---
 
@@ -80,17 +83,17 @@ Tool-specific config files
 
 ```typescript
 // Load OAC agent
-const agent = await AgentLoader.loadAgent('.opencode/agent/core/openagent.md')
+const agent = await AgentLoader.loadAgent(".opencode/agent/core/openagent.md");
 
 // Get Claude adapter
-const adapter = AdapterRegistry.get('claude')
+const adapter = AdapterRegistry.get("claude");
 
 // Convert to Claude format
-const result = await adapter.fromOAC(agent)
+const result = await adapter.fromOAC(agent);
 
 // Outputs: .claude/config.json, .claude/skills/[...]
-console.log(result.configs) // Array of files to write
-console.log(result.warnings) // Feature degradation warnings
+console.log(result.configs); // Array of files to write
+console.log(result.warnings); // Feature degradation warnings
 ```
 
 ---
@@ -109,6 +112,7 @@ console.log(result.warnings) // Feature degradation warnings
 **Issue #141**: https://github.com/darrenhinde/OpenAgentsControl/issues/141
 
 **Progress**: 28.13% (9/32 subtasks)
+
 - ✅ Phase 1 (Foundation): 100% complete - 1,475 lines
 - ⬅️ Phase 2 (Adapters): 50% complete - 1,858 lines (implementations done, tests pending)
 - 📝 Phase 3 (Mappers): 0% - Pending
@@ -121,7 +125,7 @@ console.log(result.warnings) // Feature degradation warnings
 
 ## Reference
 
-- **Related**: 
+- **Related**:
   - examples/baseadapter-implementation.md
   - guides/compatibility-layer-development.md
   - lookup/compatibility-layer-adapters.md

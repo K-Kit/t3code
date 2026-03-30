@@ -6,7 +6,7 @@ This directory contains context files for product management, strategy, and user
 
 ## Available Context Files
 
-*No context files yet. This category is ready for product-related context.*
+_No context files yet. This category is ready for product-related context._
 
 ## Planned Context Files
 

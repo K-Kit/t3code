@@ -13,11 +13,12 @@
 **Cause**: Description doesn't match user requests
 
 **Solution**: Write specific descriptions with trigger terms:
+
 ```yaml
 # Bad
 description: Helps with documents
 
-# Good  
+# Good
 description: Extract text from PDF files, fill forms, merge documents. Use when working with PDFs, forms, or document extraction.
 ```
 
@@ -35,6 +36,7 @@ description: Extract text from PDF files, fill forms, merge documents. Use when 
 | Plugin | `skills/my-skill/SKILL.md` |
 
 **Check YAML syntax**:
+
 - First line must be `---` (no blank lines before)
 - End frontmatter with `---`
 - Use spaces, not tabs
@@ -45,11 +47,13 @@ description: Extract text from PDF files, fill forms, merge documents. Use when 
 
 ## Skill Has Errors
 
-**Dependencies not installed**: 
+**Dependencies not installed**:
+
 - List required packages in description
 - User must install before skill works
 
 **Script permissions**:
+
 ```bash
 chmod +x scripts/*.py
 ```
@@ -65,11 +69,12 @@ chmod +x scripts/*.py
 **Cause**: Similar descriptions
 
 **Solution**: Make descriptions distinct:
+
 ```yaml
 # Skill 1
 description: Analyze sales data in Excel files and CRM exports
 
-# Skill 2  
+# Skill 2
 description: Analyze log files and system metrics
 ```
 
@@ -78,6 +83,7 @@ description: Analyze log files and system metrics
 ## Plugin Skills Not Appearing
 
 **Solution**: Clear cache and reinstall
+
 ```bash
 rm -rf ~/.claude/plugins/cache
 # Restart Claude Code
@@ -85,6 +91,7 @@ rm -rf ~/.claude/plugins/cache
 ```
 
 **Verify structure**:
+
 ```
 my-plugin/
 ├── .claude-plugin/

@@ -35,25 +35,25 @@ The Multi-Stage Orchestration Workflow is a comprehensive framework for managing
 
 Stage 1: Architecture Decomposition
          ↓ (System boundaries defined)
-         
+
 Stage 2: Story Mapping
          ↓ (User journeys mapped)
-         
+
 Stage 3: Prioritization
          ↓ (Work sequenced)
-         
+
 Stage 4: Enhanced Task Breakdown
          ↓ (Atomic tasks with dependencies)
-         
+
 Stage 5: Contract Definition
          ↓ (Interfaces and integration points)
-         
+
 Stage 6: Parallel Execution
          ↓ (Simultaneous implementation)
-         
+
 Stage 7: Integration & Validation
          ↓ (Components verified together)
-         
+
 Stage 8: Release & Learning
          ↓ (Deployed and insights captured)
 ```
@@ -346,7 +346,7 @@ export interface User {
   updatedAt: Date;
 }
 
-export type UserRole = 'admin' | 'user' | 'guest';
+export type UserRole = "admin" | "user" | "guest";
 ```
 
 ### Transition Criteria
@@ -544,6 +544,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: All (primary orchestrator)
 
 **Responsibilities**:
+
 - Overall workflow coordination
 - Stage transitions
 - Decision making
@@ -555,6 +556,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: Stage 4 (Enhanced Task Breakdown)
 
 **Responsibilities**:
+
 - Feature decomposition
 - Task JSON generation
 - Dependency mapping
@@ -566,6 +568,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: Stage 6 (Parallel Execution)
 
 **Responsibilities**:
+
 - Parallel batch coordination
 - Simultaneous task delegation
 - Completion monitoring
@@ -576,6 +579,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: Stage 5 (Contract Definition), Stage 6 (Parallel Execution), Stage 7 (Integration)
 
 **Responsibilities**:
+
 - Code implementation
 - Self-review execution
 - Deliverable creation
@@ -586,6 +590,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: All (supporting)
 
 **Responsibilities**:
+
 - Context discovery
 - Standards retrieval
 - Pattern identification
@@ -596,6 +601,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Stages**: Stage 4, Stage 6 (supporting)
 
 **Responsibilities**:
+
 - External library documentation
 - API reference retrieval
 - Integration pattern discovery
@@ -609,12 +615,14 @@ CoderAgent   CoderAgent   CoderAgent
 **Location**: `.tmp/tasks/{feature}/`
 
 **Files**:
+
 - `task.json` — Feature metadata
 - `subtask_NN.json` — Individual task definitions
 
 **CLI**: `.opencode/skill/task-management/scripts/task-cli.ts`
 
 **Commands**:
+
 - `status [feature]` — Check task status
 - `next [feature]` — Get next eligible task
 - `parallel [feature]` — Show parallel-ready tasks
@@ -626,6 +634,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Location**: `.tmp/sessions/{timestamp}-{feature}/`
 
 **Files**:
+
 - `context.md` — Session context bundle
 - `progress.md` — Progress tracking
 
@@ -644,6 +653,7 @@ CoderAgent   CoderAgent   CoderAgent
 **Location**: `.opencode/agent/subagents/core/`
 
 **Files**:
+
 - `task-manager.md` — TaskManager configuration
 - `batch-executor.md` — BatchExecutor configuration
 - `coder-agent.md` — CoderAgent configuration
@@ -720,6 +730,7 @@ CoderAgent   CoderAgent   CoderAgent
 ### Stage 1: Architecture Decomposition
 
 **Components Identified**:
+
 - User Service (user management)
 - Auth Service (authentication logic)
 - Token Service (JWT handling)
@@ -727,6 +738,7 @@ CoderAgent   CoderAgent   CoderAgent
 - Database Layer (user storage)
 
 **Integration Points**:
+
 - Auth Service ↔ User Service (user lookup)
 - Auth Service ↔ Token Service (token generation)
 - Middleware ↔ Token Service (token validation)
@@ -734,6 +746,7 @@ CoderAgent   CoderAgent   CoderAgent
 ### Stage 2: Story Mapping
 
 **User Stories**:
+
 1. As a user, I want to register an account
 2. As a user, I want to log in with email/password
 3. As a user, I want to reset my password
@@ -743,35 +756,43 @@ CoderAgent   CoderAgent   CoderAgent
 ### Stage 3: Prioritization
 
 **Phase 1** (Must-have):
+
 - Story 1: Registration
 - Story 2: Login
 
 **Phase 2** (Should-have):
+
 - Story 4: Refresh tokens
 - Story 3: Password reset
 
 **Phase 3** (Nice-to-have):
+
 - Story 5: Role management
 
 ### Stage 4: Enhanced Task Breakdown
 
 **Batch 1** (Parallel):
+
 - Task 01: Setup project structure
 - Task 02: Configure database schema
 - Task 03: Install dependencies
 
 **Batch 2** (Parallel):
+
 - Task 04: Implement User Service
 - Task 05: Implement Token Service
 
 **Batch 3** (Sequential):
+
 - Task 06: Implement Auth Service (depends on 04, 05)
 
 **Batch 4** (Parallel):
+
 - Task 07: Create registration endpoint
 - Task 08: Create login endpoint
 
 **Batch 5** (Sequential):
+
 - Task 09: Integration tests (depends on all)
 
 ### Stage 5: Contract Definition
@@ -796,12 +817,14 @@ export interface AuthResult {
 ### Stage 6: Parallel Execution
 
 **Batch 1 Execution**:
+
 - BatchExecutor delegates tasks 01, 02, 03 to three CoderAgents
 - All execute simultaneously
 - All complete and mark status
 - BatchExecutor verifies and reports
 
 **Batch 2 Execution**:
+
 - BatchExecutor delegates tasks 04, 05 to two CoderAgents
 - Both execute simultaneously
 - Both complete and mark status
@@ -912,12 +935,14 @@ The Multi-Stage Orchestration Workflow provides a systematic approach to complex
 8. **Release** and capture learnings
 
 By following this workflow, teams can:
+
 - Reduce complexity through systematic decomposition
 - Maximize throughput via parallel execution
 - Minimize integration issues through contract-first development
 - Improve continuously through structured learning
 
 **Key Success Factors**:
+
 - Thorough planning before execution
 - Clear contracts and interfaces
 - Effective parallel coordination

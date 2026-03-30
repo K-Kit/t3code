@@ -20,11 +20,11 @@ subagents/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Code reviewer** | `code-reviewer.md` |
-| **DB validator** | `db-validator.md` |
-| **Debugger** | `debugger.md` |
+| Task                  | Path                          |
+| --------------------- | ----------------------------- |
+| **Code reviewer**     | `code-reviewer.md`            |
+| **DB validator**      | `db-validator.md`             |
+| **Debugger**          | `debugger.md`                 |
 | **Subagent concepts** | `../../concepts/subagents.md` |
 
 ---

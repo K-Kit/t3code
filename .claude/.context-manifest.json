@@ -7,6 +7,28 @@
     "commit": "ef3836efd659e451b6dbb8eee7d3213ba39f5aec",
     "downloaded_at": "2026-03-26T09:27:32Z"
   },
-  "categories": ["core","openagents-repo","development","ui","content-creation","data","product","learning","project","project-intelligence"],
-  "files": {"core": 88,"openagents-repo": 107,"development": 34,"ui": 30,"content-creation": 17,"data": 2,"product": 2,"learning": 2,"project": 2,"project-intelligence": 6}
+  "categories": [
+    "core",
+    "openagents-repo",
+    "development",
+    "ui",
+    "content-creation",
+    "data",
+    "product",
+    "learning",
+    "project",
+    "project-intelligence"
+  ],
+  "files": {
+    "core": 88,
+    "openagents-repo": 107,
+    "development": 34,
+    "ui": 30,
+    "content-creation": 17,
+    "data": 2,
+    "product": 2,
+    "learning": 2,
+    "project": 2,
+    "project-intelligence": 6
+  }
 }

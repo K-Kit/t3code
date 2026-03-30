@@ -84,36 +84,36 @@ compatibility-layer/
 
 ### ✅ Complete (Phases 1-3)
 
-| File | Lines | Tests | Coverage |
-|------|-------|-------|----------|
-| types.ts | 315 | - | - |
-| index.ts | 335 | - | - |
-| BaseAdapter.ts | 190 | - | 92% |
-| ClaudeAdapter.ts | 600 | 80 | 96% |
-| CursorAdapter.ts | 554 | 78 | 99% |
-| WindsurfAdapter.ts | 514 | 78 | 99% |
-| AgentLoader.ts | 386 | - | 0%* |
-| AdapterRegistry.ts | 416 | - | 0%* |
-| CapabilityMatrix.ts | 559 | 43 | 99% |
-| TranslationEngine.ts | 453 | 47 | 99% |
-| ToolMapper.ts | 308 | 34 | 100% |
-| PermissionMapper.ts | 354 | 37 | 98% |
-| ModelMapper.ts | 413 | 37 | 99% |
-| ContextMapper.ts | 384 | 51 | 97% |
+| File                 | Lines | Tests | Coverage |
+| -------------------- | ----- | ----- | -------- |
+| types.ts             | 315   | -     | -        |
+| index.ts             | 335   | -     | -        |
+| BaseAdapter.ts       | 190   | -     | 92%      |
+| ClaudeAdapter.ts     | 600   | 80    | 96%      |
+| CursorAdapter.ts     | 554   | 78    | 99%      |
+| WindsurfAdapter.ts   | 514   | 78    | 99%      |
+| AgentLoader.ts       | 386   | -     | 0%\*     |
+| AdapterRegistry.ts   | 416   | -     | 0%\*     |
+| CapabilityMatrix.ts  | 559   | 43    | 99%      |
+| TranslationEngine.ts | 453   | 47    | 99%      |
+| ToolMapper.ts        | 308   | 34    | 100%     |
+| PermissionMapper.ts  | 354   | 37    | 98%      |
+| ModelMapper.ts       | 413   | 37    | 99%      |
+| ContextMapper.ts     | 384   | 51    | 97%      |
 
-*AgentLoader and AdapterRegistry are tested indirectly via adapters
+\*AgentLoader and AdapterRegistry are tested indirectly via adapters
 
 ### 📝 Pending (Phase 4-5)
 
-| File | Purpose | Phase |
-|------|---------|-------|
-| cli/index.ts | CLI entry point | 4 |
-| cli/commands/convert.ts | Convert command | 4 |
-| cli/commands/validate.ts | Validate command | 4 |
-| cli/commands/migrate.ts | Migrate command | 4 |
-| cli/commands/info.ts | Info command | 4 |
-| docs/migration-guides/*.md | Migration guides | 5 |
-| docs/api/*.md | API documentation | 5 |
+| File                        | Purpose           | Phase |
+| --------------------------- | ----------------- | ----- |
+| cli/index.ts                | CLI entry point   | 4     |
+| cli/commands/convert.ts     | Convert command   | 4     |
+| cli/commands/validate.ts    | Validate command  | 4     |
+| cli/commands/migrate.ts     | Migrate command   | 4     |
+| cli/commands/info.ts        | Info command      | 4     |
+| docs/migration-guides/\*.md | Migration guides  | 5     |
+| docs/api/\*.md              | API documentation | 5     |
 
 ---
 
@@ -121,27 +121,27 @@ compatibility-layer/
 
 ### Production
 
-| Package | Purpose | Version |
-|---------|---------|---------|
-| zod | Schema validation | ^3.22.0 |
-| js-yaml | YAML parsing | ^4.1.0 |
-| gray-matter | Frontmatter extraction | ^4.0.3 |
+| Package     | Purpose                | Version |
+| ----------- | ---------------------- | ------- |
+| zod         | Schema validation      | ^3.22.0 |
+| js-yaml     | YAML parsing           | ^4.1.0  |
+| gray-matter | Frontmatter extraction | ^4.0.3  |
 
 ### Development
 
-| Package | Purpose | Version |
-|---------|---------|---------|
-| typescript | TypeScript compiler | ^5.4.0 |
-| vitest | Test framework | ^1.6.1 |
-| @vitest/coverage-v8 | Coverage reporting | ^1.6.1 |
+| Package             | Purpose             | Version |
+| ------------------- | ------------------- | ------- |
+| typescript          | TypeScript compiler | ^5.4.0  |
+| vitest              | Test framework      | ^1.6.1  |
+| @vitest/coverage-v8 | Coverage reporting  | ^1.6.1  |
 
 ### CLI (Phase 4 - to be added)
 
-| Package | Purpose | Version |
-|---------|---------|---------|
-| commander | CLI framework | ^11.1.0 |
-| chalk | Terminal colors | ^5.3.0 |
-| ora | Loading spinners | ^7.0.1 |
+| Package   | Purpose          | Version |
+| --------- | ---------------- | ------- |
+| commander | CLI framework    | ^11.1.0 |
+| chalk     | Terminal colors  | ^5.3.0  |
+| ora       | Loading spinners | ^7.0.1  |
 
 ---
 
@@ -165,6 +165,7 @@ compatibility-layer/
 - **Branch**: `devalexanderdaza/issue141`
 
 **Related**:
+
 - lookup/compatibility-layer-progress.md
 - lookup/compatibility-layer-adapters.md
 - guides/compatibility-layer-workflow.md

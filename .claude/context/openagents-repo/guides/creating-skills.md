@@ -9,17 +9,18 @@
 ## Quickstart
 
 1. **Create directory**:
+
    ```bash
    mkdir -p ~/.claude/skills/my-skill
    ```
 
 2. **Create SKILL.md** with frontmatter:
+
    ```yaml
    ---
    name: my-skill
    description: What it does and when to use it
    ---
-   
    Instructions for Claude...
    ```
 
@@ -32,6 +33,7 @@
 ## Writing Good Descriptions
 
 The description determines when Claude uses the skill. Include:
+
 - **What it does**: List specific capabilities
 - **When to use**: Include trigger terms users would say
 
@@ -59,6 +61,7 @@ my-skill/
 ```
 
 Reference in SKILL.md:
+
 ```markdown
 For complete API details, see reference.md (example file)
 ```

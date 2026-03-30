@@ -18,21 +18,21 @@ Template Method: BaseAdapter defines algorithm structure, subclasses implement t
 
 ```typescript
 export abstract class BaseAdapter {
-  abstract name: string
-  abstract displayName: string
-  
+  abstract name: string;
+  abstract displayName: string;
+
   // Must implement
-  abstract toOAC(source: string): Promise<OpenAgent>
-  abstract fromOAC(agent: OpenAgent): Promise<ConversionResult>
-  abstract getConfigPath(): string
-  abstract getCapabilities(): ToolCapabilities
-  abstract validateConversion(agent: OpenAgent): string[]
-  
+  abstract toOAC(source: string): Promise<OpenAgent>;
+  abstract fromOAC(agent: OpenAgent): Promise<ConversionResult>;
+  abstract getConfigPath(): string;
+  abstract getCapabilities(): ToolCapabilities;
+  abstract validateConversion(agent: OpenAgent): string[];
+
   // Shared utilities
-  supportsFeature(feature: keyof ToolCapabilities): boolean
-  warn(message: string): void
-  createSuccessResult(configs, warnings): ConversionResult
-  safeParseJSON(content, filename): unknown | null
+  supportsFeature(feature: keyof ToolCapabilities): boolean;
+  warn(message: string): void;
+  createSuccessResult(configs, warnings): ConversionResult;
+  safeParseJSON(content, filename): unknown | null;
 }
 ```
 
@@ -42,56 +42,59 @@ export abstract class BaseAdapter {
 
 ```typescript
 export class ClaudeAdapter extends BaseAdapter {
-  name = 'claude'
-  displayName = 'Claude Code'
-  
+  name = "claude";
+  displayName = "Claude Code";
+
   async toOAC(source: string): Promise<OpenAgent> {
-    const config = this.safeParseJSON(source, 'config.json')
+    const config = this.safeParseJSON(source, "config.json");
     return {
       frontmatter: {
         name: config.name,
-        mode: config.mode || 'primary',
+        mode: config.mode || "primary",
         model: this.mapModel(config.model),
         tools: config.tools,
-        skills: config.skills?.map(s => ({ name: s }))
+        skills: config.skills?.map((s) => ({ name: s })),
       },
-      systemPrompt: config.systemPrompt || ''
-    }
+      systemPrompt: config.systemPrompt || "",
+    };
   }
-  
+
   async fromOAC(agent: OpenAgent): Promise<ConversionResult> {
-    const warnings: string[] = []
-    
+    const warnings: string[] = [];
+
     // Warn on unsupported features
     if (agent.frontmatter.temperature) {
-      warnings.push(this.unsupportedFeatureWarning('temperature'))
+      warnings.push(this.unsupportedFeatureWarning("temperature"));
     }
-    
+
     const config = {
       name: agent.frontmatter.name,
       model: agent.frontmatter.model,
       systemPrompt: agent.systemPrompt,
-      tools: agent.frontmatter.tools
-    }
-    
-    return this.createSuccessResult([
-      { fileName: '.claude/config.json', content: JSON.stringify(config) }
-    ], warnings)
+      tools: agent.frontmatter.tools,
+    };
+
+    return this.createSuccessResult(
+      [{ fileName: ".claude/config.json", content: JSON.stringify(config) }],
+      warnings,
+    );
   }
-  
-  getConfigPath() { return '.claude/' }
-  
+
+  getConfigPath() {
+    return ".claude/";
+  }
+
   getCapabilities(): ToolCapabilities {
     return {
       supportsMultipleAgents: true,
       supportsSkills: true,
       supportsHooks: true,
-      supportsTemperature: false
-    }
+      supportsTemperature: false,
+    };
   }
-  
+
   validateConversion(agent: OpenAgent): string[] {
-    return agent.frontmatter.name ? [] : ['Agent name required']
+    return agent.frontmatter.name ? [] : ["Agent name required"];
   }
 }
 ```
@@ -101,6 +104,7 @@ export class ClaudeAdapter extends BaseAdapter {
 ## Key Methods
 
 ### toOAC()
+
 Parse tool format → OpenAgent object
 
 **Steps**: Parse source → Map fields → Validate with Zod → Return
@@ -108,6 +112,7 @@ Parse tool format → OpenAgent object
 ---
 
 ### fromOAC()
+
 Convert OpenAgent → tool format
 
 **Steps**: Validate → Map fields → Detect unsupported features → Generate warnings → Create files
@@ -115,15 +120,16 @@ Convert OpenAgent → tool format
 ---
 
 ### getCapabilities()
+
 Declare supported features
 
 ```typescript
 {
-  supportsMultipleAgents: boolean
-  supportsSkills: boolean
-  supportsHooks: boolean
-  supportsGranularPermissions: boolean
-  supportsTemperature: boolean
+  supportsMultipleAgents: boolean;
+  supportsSkills: boolean;
+  supportsHooks: boolean;
+  supportsGranularPermissions: boolean;
+  supportsTemperature: boolean;
 }
 ```
 
@@ -133,20 +139,20 @@ Declare supported features
 
 ```typescript
 // Safe parsing
-const config = this.safeParseJSON(content, 'config.json')
+const config = this.safeParseJSON(content, "config.json");
 
 // Feature checks
-if (this.supportsFeature('supportsTemperature')) {
-  config.temperature = agent.frontmatter.temperature
+if (this.supportsFeature("supportsTemperature")) {
+  config.temperature = agent.frontmatter.temperature;
 }
 
 // Warnings
-if (!this.supportsFeature('supportsHooks')) {
-  warnings.push(this.unsupportedFeatureWarning('hooks'))
+if (!this.supportsFeature("supportsHooks")) {
+  warnings.push(this.unsupportedFeatureWarning("hooks"));
 }
 
 // Results
-return this.createSuccessResult([{ fileName: 'config.json', content }], warnings)
+return this.createSuccessResult([{ fileName: "config.json", content }], warnings);
 ```
 
 ---
@@ -164,24 +170,24 @@ return this.createSuccessResult([{ fileName: 'config.json', content }], warnings
 ## Testing Pattern
 
 ```typescript
-describe('ClaudeAdapter', () => {
-  it('converts OAC to Claude', async () => {
-    const agent: OpenAgent = { /* ... */ }
-    const result = await adapter.fromOAC(agent)
-    
-    expect(result.success).toBe(true)
-    expect(result.configs[0].fileName).toBe('.claude/config.json')
-  })
-  
-  it('warns on unsupported temperature', async () => {
-    const agent: OpenAgent = { frontmatter: { temperature: 0.7 } }
-    const result = await adapter.fromOAC(agent)
-    
-    expect(result.warnings).toContainEqual(
-      expect.stringContaining('temperature')
-    )
-  })
-})
+describe("ClaudeAdapter", () => {
+  it("converts OAC to Claude", async () => {
+    const agent: OpenAgent = {
+      /* ... */
+    };
+    const result = await adapter.fromOAC(agent);
+
+    expect(result.success).toBe(true);
+    expect(result.configs[0].fileName).toBe(".claude/config.json");
+  });
+
+  it("warns on unsupported temperature", async () => {
+    const agent: OpenAgent = { frontmatter: { temperature: 0.7 } };
+    const result = await adapter.fromOAC(agent);
+
+    expect(result.warnings).toContainEqual(expect.stringContaining("temperature"));
+  });
+});
 ```
 
 ---

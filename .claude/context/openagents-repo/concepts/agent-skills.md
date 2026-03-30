@@ -29,7 +29,6 @@ A Skill is a `SKILL.md` file that teaches Claude specialized knowledge. Skills a
 name: explaining-code
 description: Explains code with diagrams and analogies. Use when explaining how code works.
 ---
-
 When explaining code, always include:
 1. **Start with an analogy**: Compare to everyday life
 2. **Draw a diagram**: ASCII art for flow/structure
@@ -41,12 +40,12 @@ When explaining code, always include:
 
 ## Where Skills Live
 
-| Location | Path | Scope |
-|----------|------|-------|
-| Enterprise | Managed settings | All org users |
-| Personal | `~/.claude/skills/` | You, all projects |
-| Project | `.claude/skills/` | Anyone in repo |
-| Plugin | Plugin's `skills/` | Plugin users |
+| Location   | Path                | Scope             |
+| ---------- | ------------------- | ----------------- |
+| Enterprise | Managed settings    | All org users     |
+| Personal   | `~/.claude/skills/` | You, all projects |
+| Project    | `.claude/skills/`   | Anyone in repo    |
+| Plugin     | Plugin's `skills/`  | Plugin users      |
 
 Priority: Enterprise > Personal > Project > Plugin
 

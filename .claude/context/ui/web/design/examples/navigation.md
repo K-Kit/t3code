@@ -18,11 +18,11 @@ examples/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Scrollytelling example** | `scrollytelling-headphone.md` |
-| **Scrollytelling guide** | `../guides/building-scrollytelling-pages.md` |
-| **Scroll concepts** | `../concepts/scroll-linked-animations.md` |
+| Task                       | Path                                         |
+| -------------------------- | -------------------------------------------- |
+| **Scrollytelling example** | `scrollytelling-headphone.md`                |
+| **Scrollytelling guide**   | `../guides/building-scrollytelling-pages.md` |
+| **Scroll concepts**        | `../concepts/scroll-linked-animations.md`    |
 
 ---
 

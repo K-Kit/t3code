@@ -18,10 +18,10 @@ lookup/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **CLI commands** | `task-commands.md` |
-| **Task schema** | `../standards/task-schema.md` |
+| Task                | Path                           |
+| ------------------- | ------------------------------ |
+| **CLI commands**    | `task-commands.md`             |
+| **Task schema**     | `../standards/task-schema.md`  |
 | **Splitting guide** | `../guides/splitting-tasks.md` |
 
 ---

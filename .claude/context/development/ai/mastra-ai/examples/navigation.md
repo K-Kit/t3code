@@ -18,11 +18,11 @@ examples/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Workflow example** | `workflow-example.md` |
-| **Workflow concepts** | `../concepts/workflows.md` |
-| **Workflow guide** | `../guides/workflow-step-structure.md` |
+| Task                  | Path                                   |
+| --------------------- | -------------------------------------- |
+| **Workflow example**  | `workflow-example.md`                  |
+| **Workflow concepts** | `../concepts/workflows.md`             |
+| **Workflow guide**    | `../guides/workflow-step-structure.md` |
 
 ---
 

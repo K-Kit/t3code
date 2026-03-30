@@ -23,14 +23,14 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Create context files** | `creation.md` |
-| **Design navigation** | `navigation-design-basics.md` |
-| **Use templates** | `navigation-templates.md` |
-| **Organize context** | `organizing-context.md` |
-| **Compact files** | `compact.md` |
-| **Context workflows** | `workflows.md` |
+| Task                     | Path                          |
+| ------------------------ | ----------------------------- |
+| **Create context files** | `creation.md`                 |
+| **Design navigation**    | `navigation-design-basics.md` |
+| **Use templates**        | `navigation-templates.md`     |
+| **Organize context**     | `organizing-context.md`       |
+| **Compact files**        | `compact.md`                  |
+| **Context workflows**    | `workflows.md`                |
 
 ---
 

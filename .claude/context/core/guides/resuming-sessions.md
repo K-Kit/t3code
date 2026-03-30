@@ -57,6 +57,7 @@ cat .tmp/sessions/$SESSION/PROGRESS.md
 ```
 
 **Look for**:
+
 - ✅ **Completed Work** - What's already done
 - 🔥 **Next Steps** - What to do next
 - 📊 **Overall Progress** - How much is complete
@@ -72,6 +73,7 @@ cat .tmp/sessions/$SESSION/context.md
 ```
 
 **Key sections**:
+
 - **Current Request** - What was asked for
 - **Context Files** - Standards to follow (CRITICAL)
 - **Reference Files** - Existing code to read
@@ -94,6 +96,7 @@ cat $TASK_DIR/subtask_04.json  # Example
 ```
 
 **Subtask format**:
+
 ```json
 {
   "id": "04",
@@ -164,6 +167,7 @@ cat .tmp/sessions/$SESSION/PROGRESS.md | grep -A20 "Completed Work"
 
 ```markdown
 ## Context Files (Standards to Follow)
+
 - .opencode/context/core/standards/code-quality.md - CRITICAL
 - .opencode/context/core/standards/test-coverage.md - CRITICAL
 ```
@@ -177,6 +181,7 @@ cat .tmp/sessions/$SESSION/PROGRESS.md | grep -A20 "Completed Work"
 **Why**: Shows exactly what's done and what's next
 
 **Key sections**:
+
 - **Overall Progress** - % complete, phases
 - **Completed Work** - Files created, tasks done
 - **Next Steps** - What to do immediately
@@ -189,6 +194,7 @@ cat .tmp/sessions/$SESSION/PROGRESS.md | grep -A20 "Completed Work"
 **Why**: Detailed task definition with acceptance criteria
 
 **Use when**:
+
 - Starting a new subtask
 - Need to know exact requirements
 - Want to see dependencies
@@ -263,6 +269,7 @@ Or more specific:
 ```
 
 The agent should:
+
 1. ✅ Read context.md for standards
 2. ✅ Read PROGRESS.md for current state
 3. ✅ Load next subtask JSON
@@ -275,16 +282,19 @@ The agent should:
 ## Session Lifecycle
 
 ### Active Session
+
 - Created when task starts
 - Updated after each subtask completes
 - Contains live progress tracking
 
 ### Completed Session
+
 - All subtasks marked complete
 - Exit criteria met
 - Ready for archival
 
 ### Archived Session
+
 - Moved to `.tmp/archive/sessions/{date}/`
 - Knowledge harvested to permanent context
 - Task JSONs can be deleted

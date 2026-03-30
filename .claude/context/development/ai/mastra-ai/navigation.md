@@ -27,14 +27,14 @@ mastra-ai/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Core concepts** | `concepts/navigation.md` |
-| **Agents & tools** | `concepts/agents-tools.md` |
-| **Workflows** | `concepts/workflows.md` |
+| Task                      | Path                         |
+| ------------------------- | ---------------------------- |
+| **Core concepts**         | `concepts/navigation.md`     |
+| **Agents & tools**        | `concepts/agents-tools.md`   |
+| **Workflows**             | `concepts/workflows.md`      |
 | **Build modular systems** | `guides/modular-building.md` |
-| **Test Mastra apps** | `guides/testing.md` |
-| **Troubleshooting** | `errors/navigation.md` |
+| **Test Mastra apps**      | `guides/testing.md`          |
+| **Troubleshooting**       | `errors/navigation.md`       |
 
 ---
 

@@ -12,6 +12,7 @@
 ## Current Status
 
 ✅ **Planning Complete**
+
 - Context file created
 - GitHub issue #206 created
 - Feature branch created and pushed
@@ -24,6 +25,7 @@
 ## Critical Features Overview
 
 ### 1. User Approval System
+
 - **Default**: Interactive approval for ALL file operations
 - **YOLO Mode** (`--yolo`): Skip confirmations, auto-resolve, report at end
 - **Always asks**: Local vs global install location
@@ -31,6 +33,7 @@
 - **Safety**: Git detection, rollback support, audit log
 
 ### 2. Context Resolution
+
 - **6-layer priority**: Project override → Project → IDE → Docs → User global → OAC official
 - **Smart resolution**: Based on agent location (global vs local)
 - **Configurable**: `preferLocal` option
@@ -63,6 +66,7 @@ gh issue view 206
 ### Tasks
 
 1. **Set up TypeScript project structure**
+
    ```bash
    mkdir -p src/{cli/{commands,config},core/{context,installer,approval},types,utils}
    npm install --save-dev typescript @types/node tsx vitest
@@ -70,6 +74,7 @@ gh issue view 206
    ```
 
 2. **Install CLI dependencies**
+
    ```bash
    npm install commander inquirer zod chalk ora boxen
    npm install --save-dev @types/inquirer
@@ -228,44 +233,46 @@ oac context validate
 
 ```typescript
 // src/cli/config/schema.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const OACConfigSchema = z.object({
   version: z.string(),
   preferences: z.object({
-    defaultIDE: z.enum(['opencode', 'cursor', 'claude', 'windsurf']),
-    installLocation: z.enum(['local', 'global']),
+    defaultIDE: z.enum(["opencode", "cursor", "claude", "windsurf"]),
+    installLocation: z.enum(["local", "global"]),
     autoUpdate: z.boolean(),
-    updateChannel: z.enum(['stable', 'beta', 'alpha'])
+    updateChannel: z.enum(["stable", "beta", "alpha"]),
   }),
-  ides: z.record(z.object({
-    enabled: z.boolean(),
-    path: z.string(),
-    profile: z.string()
-  })),
+  ides: z.record(
+    z.object({
+      enabled: z.boolean(),
+      path: z.string(),
+      profile: z.string(),
+    }),
+  ),
   agents: z.object({
     behavior: z.object({
       approvalGates: z.boolean(),
-      contextLoading: z.enum(['lazy', 'eager']),
-      delegationThreshold: z.number()
+      contextLoading: z.enum(["lazy", "eager"]),
+      delegationThreshold: z.number(),
     }),
     permissions: z.object({
-      bash: z.enum(['approve', 'auto', 'deny']),
-      write: z.enum(['approve', 'auto', 'deny']),
-      edit: z.enum(['approve', 'auto', 'deny']),
-      task: z.enum(['approve', 'auto', 'deny'])
-    })
+      bash: z.enum(["approve", "auto", "deny"]),
+      write: z.enum(["approve", "auto", "deny"]),
+      edit: z.enum(["approve", "auto", "deny"]),
+      task: z.enum(["approve", "auto", "deny"]),
+    }),
   }),
   context: z.object({
     locations: z.array(z.string()),
     autoDiscover: z.boolean(),
-    cacheEnabled: z.boolean()
+    cacheEnabled: z.boolean(),
   }),
   registry: z.object({
     source: z.string().url(),
     localCache: z.string(),
-    updateInterval: z.number()
-  })
+    updateInterval: z.number(),
+  }),
 });
 
 export type OACConfig = z.infer<typeof OACConfigSchema>;
@@ -320,11 +327,7 @@ export type OACConfig = z.infer<typeof OACConfigSchema>;
     }
   },
   "context": {
-    "locations": [
-      ".opencode/context",
-      ".claude/context",
-      "docs/context"
-    ],
+    "locations": [".opencode/context", ".claude/context", "docs/context"],
     "autoDiscover": true,
     "cacheEnabled": true
   },
@@ -341,25 +344,26 @@ export type OACConfig = z.infer<typeof OACConfigSchema>;
 ## Testing Strategy
 
 ### Unit Tests
+
 ```typescript
 // src/cli/config/manager.test.ts
-import { describe, it, expect } from 'vitest';
-import { ConfigManager } from './manager';
+import { describe, it, expect } from "vitest";
+import { ConfigManager } from "./manager";
 
-describe('ConfigManager', () => {
-  it('should load default config', async () => {
+describe("ConfigManager", () => {
+  it("should load default config", async () => {
     const manager = new ConfigManager();
     const config = await manager.load();
-    expect(config.version).toBe('1.0.0');
+    expect(config.version).toBe("1.0.0");
   });
 
-  it('should validate config schema', async () => {
+  it("should validate config schema", async () => {
     const manager = new ConfigManager();
     const valid = await manager.validate(mockConfig);
     expect(valid).toBe(true);
   });
 
-  it('should merge global and local configs', async () => {
+  it("should merge global and local configs", async () => {
     const manager = new ConfigManager();
     const config = await manager.load();
     expect(config.preferences.defaultIDE).toBeDefined();
@@ -368,6 +372,7 @@ describe('ConfigManager', () => {
 ```
 
 ### Integration Tests
+
 ```bash
 # Test CLI commands
 npm run build
@@ -381,11 +386,13 @@ npm run build
 ## Development Workflow
 
 1. **Create feature branch** ✅
+
    ```bash
    git checkout feature/oac-package-refactor
    ```
 
 2. **Set up TypeScript project**
+
    ```bash
    mkdir -p src/{cli/{commands,config},core,types,utils}
    npm install dependencies
@@ -398,11 +405,13 @@ npm run build
    - CLI commands
 
 4. **Write tests**
+
    ```bash
    npm run test
    ```
 
 5. **Build and test locally**
+
    ```bash
    npm run build
    npm pack
@@ -422,16 +431,19 @@ npm run build
 ## Resources
 
 **Context Files**:
+
 - `features/oac-package-refactor.md` - Full feature context
 - `core-concepts/registry.md` - Registry system
 - `guides/npm-publishing.md` - Publishing workflow
 
 **External Docs**:
+
 - Commander.js: https://github.com/tj/commander.js
 - Zod: https://zod.dev
 - Inquirer: https://github.com/SBoudrias/Inquirer.js
 
 **GitHub**:
+
 - Issue: https://github.com/darrenhinde/OpenAgentsControl/issues/206
 - Branch: `feature/oac-package-refactor`
 
@@ -440,6 +452,7 @@ npm run build
 ## Next Phase Preview
 
 **Phase 2: Registry & Component Management**
+
 - Port registry validation to TypeScript
 - Implement registry loader/resolver
 - Create component installer

@@ -13,6 +13,7 @@
 **Overall Assessment**: The OAC refactor plan is **80% solid** but needs critical additions before implementation.
 
 **Key Findings**:
+
 - ✅ Core architecture is sound (approval system, context resolution, multi-IDE)
 - ⚠️ Missing critical features (discovery, lockfile, security)
 - ❌ Some approaches need rethinking (context merging, local/global UX)
@@ -27,30 +28,33 @@
 **Problem**: Community components have no security layer
 
 **Required Additions**:
+
 ```typescript
 interface ComponentSecurity {
-  signature: string;           // GPG signature
-  checksum: string;            // SHA-256 hash
+  signature: string; // GPG signature
+  checksum: string; // SHA-256 hash
   scanResults: {
     malware: boolean;
     secrets: boolean;
     externalCalls: string[];
   };
   permissions: {
-    fileSystem: 'read' | 'write' | 'none';
-    network: 'allowed' | 'denied';
-    shell: 'allowed' | 'denied';
+    fileSystem: "read" | "write" | "none";
+    network: "allowed" | "denied";
+    shell: "allowed" | "denied";
   };
 }
 ```
 
 **Add to Phase 1**:
+
 - Component signing mechanism
 - Checksum verification
 - Basic malware scanning (ClamAV)
 - Secret detection (gitleaks)
 
 **CLI Commands**:
+
 ```bash
 oac verify <component>        # Verify signature
 oac audit                     # Security scan
@@ -66,6 +70,7 @@ oac trust @author             # Trust publisher
 **Current Plan**: Only `oac add` (assumes you know what exists)
 
 **Required Additions**:
+
 ```bash
 oac browse                    # Interactive TUI browser
 oac search "rust" --verified  # Search registry
@@ -75,6 +80,7 @@ oac preview agent:rust        # Show what it does
 ```
 
 **Implementation**:
+
 - Interactive TUI using `ink` or `blessed`
 - Web registry at https://registry.openagents.dev
 - Component ratings and reviews
@@ -89,6 +95,7 @@ oac preview agent:rust        # Show what it does
 **Problem**: No way to guarantee reproducible installs (teams need this)
 
 **Required Addition**:
+
 ```json
 // oac.lock
 {
@@ -108,6 +115,7 @@ oac preview agent:rust        # Show what it does
 ```
 
 **CLI Commands**:
+
 ```bash
 oac lock                      # Generate lock file
 oac install --frozen          # Use exact locked versions
@@ -123,21 +131,23 @@ oac lock verify               # Verify integrity
 **Problem**: No strategy for handling version conflicts
 
 **Required Additions**:
+
 ```json
 {
   "dependencies": {
     "agents": {
-      "tester": "^1.0.0",     // Semver range
-      "reviewer": "~2.1.0"    // Patch updates only
+      "tester": "^1.0.0", // Semver range
+      "reviewer": "~2.1.0" // Patch updates only
     }
   },
   "peerDependencies": {
-    "openagent": "^0.5.0"     // Required version
+    "openagent": "^0.5.0" // Required version
   }
 }
 ```
 
 **CLI Commands**:
+
 ```bash
 oac outdated                  # Show outdated components
 oac update --check-breaking   # Warn about breaking changes
@@ -155,6 +165,7 @@ oac deps conflicts            # Show conflicts
 **Problem**: First-time users need guidance
 
 **Required Addition**:
+
 ```bash
 oac init
 
@@ -191,6 +202,7 @@ oac init
 **Problem**: Long operations feel unresponsive
 
 **Required Addition**:
+
 ```bash
 📦 Installing OpenCode Developer Profile
 ⠋ Downloading components... [████████████░░░░░░░░] 60% (12/20)
@@ -200,6 +212,7 @@ oac init
 ```
 
 **Implementation**:
+
 - Use `ora` for spinners
 - Use `cli-progress` for progress bars
 - Color-coded output with `chalk`
@@ -216,16 +229,18 @@ oac init
 **Current Plan**: Merge context files from multiple sources
 
 **Problem**:
+
 - Conflicts between sections
 - Unclear merge strategy
 - Hard to debug
 
 **Better Approach**: Use composition instead
+
 ```typescript
 interface ContextComposition {
-  base: string;                // Base context
-  overrides: string[];         // Override files (applied in order)
-  strategy: 'override' | 'append' | 'prepend';
+  base: string; // Base context
+  overrides: string[]; // Override files (applied in order)
+  strategy: "override" | "append" | "prepend";
 }
 ```
 
@@ -238,11 +253,13 @@ interface ContextComposition {
 **Current Plan**: Ask "local or global?" on every command
 
 **Problem**:
+
 - Decision fatigue
 - Most users want one or the other
 - No clear guidance
 
 **Better Approach**: Auto-detection with smart defaults
+
 ```bash
 # Set default once
 oac configure set preferences.installLocation auto
@@ -266,14 +283,17 @@ oac install --local
 **Current Plan**: Merge all agents into single .cursorrules
 
 **Problem**:
+
 - Loss of modularity
 - Hard to debug
 - 100KB limit is restrictive
 - Merge conflicts on updates
 
 **Better Approach**: Router agent pattern
+
 ```markdown
 # Cursor Router Agent
+
 When user asks about testing → delegate to tester patterns
 When user asks about frontend → delegate to frontend patterns
 Default → delegate to openagent patterns
@@ -335,7 +355,7 @@ interface OACPlugin {
 ```typescript
 interface ComponentMarketplace {
   downloads: number;
-  rating: number;           // 1-5 stars
+  rating: number; // 1-5 stars
   reviews: Review[];
   verified: boolean;
   maintainer: string;
@@ -386,6 +406,7 @@ interface ComponentMarketplace {
 ```
 
 **Why Monorepo**:
+
 - ✅ Shared dependencies
 - ✅ Atomic commits across packages
 - ✅ Easier to maintain consistency
@@ -441,7 +462,7 @@ name: Component Security Scan
 on:
   pull_request:
     paths:
-      - 'community-registry.json'
+      - "community-registry.json"
 
 jobs:
   scan:
@@ -449,13 +470,13 @@ jobs:
     steps:
       - name: Malware scan
         run: clamav scan component/
-      
+
       - name: Secret scan
         run: gitleaks detect --source component/
-      
+
       - name: Dependency audit
         run: npm audit
-      
+
       - name: Test execution
         run: oac test component/
 ```
@@ -466,29 +487,29 @@ jobs:
 
 ### MVP (v1.0.0 - Must Ship)
 
-| Feature | Priority | Status | Action |
-|---------|----------|--------|--------|
-| Core CLI | P0 | ✅ Planned | Keep |
-| Multi-IDE support | P0 | ✅ Planned | Keep |
-| Approval gates | P0 | ✅ Planned | Keep |
-| Configuration system | P0 | ✅ Planned | Keep |
-| Context resolution | P0 | ✅ Planned | Fix merging |
-| **Discovery** (`browse`, `search`) | P0 | 🚨 **ADD** | Phase 1 |
-| **Lockfile** (`oac.lock`) | P0 | 🚨 **ADD** | Phase 2 |
-| **Security** (verify, audit) | P0 | 🚨 **ADD** | Phase 1 |
-| **Onboarding** (interactive init) | P0 | 🚨 **ADD** | Phase 1 |
-| **Progress UI** (spinners, bars) | P0 | 🚨 **ADD** | Phase 1 |
-| **Auto-detection** (local/global) | P0 | 🚨 **ADD** | Phase 1 |
+| Feature                            | Priority | Status     | Action      |
+| ---------------------------------- | -------- | ---------- | ----------- |
+| Core CLI                           | P0       | ✅ Planned | Keep        |
+| Multi-IDE support                  | P0       | ✅ Planned | Keep        |
+| Approval gates                     | P0       | ✅ Planned | Keep        |
+| Configuration system               | P0       | ✅ Planned | Keep        |
+| Context resolution                 | P0       | ✅ Planned | Fix merging |
+| **Discovery** (`browse`, `search`) | P0       | 🚨 **ADD** | Phase 1     |
+| **Lockfile** (`oac.lock`)          | P0       | 🚨 **ADD** | Phase 2     |
+| **Security** (verify, audit)       | P0       | 🚨 **ADD** | Phase 1     |
+| **Onboarding** (interactive init)  | P0       | 🚨 **ADD** | Phase 1     |
+| **Progress UI** (spinners, bars)   | P0       | 🚨 **ADD** | Phase 1     |
+| **Auto-detection** (local/global)  | P0       | 🚨 **ADD** | Phase 1     |
 
 ### Post-MVP (v1.1.0)
 
-| Feature | Priority | Impact |
-|---------|----------|--------|
-| Preview/try mode | P1 | High |
-| Dependency management | P1 | High |
-| Plugin system | P1 | Medium |
-| Workspace support | P1 | Medium |
-| Marketplace features | P1 | High |
+| Feature               | Priority | Impact |
+| --------------------- | -------- | ------ |
+| Preview/try mode      | P1       | High   |
+| Dependency management | P1       | High   |
+| Plugin system         | P1       | Medium |
+| Workspace support     | P1       | Medium |
+| Marketplace features  | P1       | High   |
 
 ---
 
@@ -577,13 +598,13 @@ jobs:
 
 ## 📊 Success Metrics (Post-Launch)
 
-| Metric | Target (6 months) |
-|--------|-------------------|
-| GitHub stars | 1,000+ |
-| npm downloads/month | 10,000+ |
-| Community components | 50+ |
-| Active contributors | 20+ |
-| Docs page views | 5,000+/month |
+| Metric               | Target (6 months) |
+| -------------------- | ----------------- |
+| GitHub stars         | 1,000+            |
+| npm downloads/month  | 10,000+           |
+| Community components | 50+               |
+| Active contributors  | 20+               |
+| Docs page views      | 5,000+/month      |
 
 ---
 

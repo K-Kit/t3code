@@ -20,12 +20,12 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Build modular systems** | `modular-building.md` |
-| **Test Mastra apps** | `testing.md` |
-| **Structure workflows** | `workflow-step-structure.md` |
-| **Workflow concepts** | `../concepts/workflows.md` |
+| Task                      | Path                         |
+| ------------------------- | ---------------------------- |
+| **Build modular systems** | `modular-building.md`        |
+| **Test Mastra apps**      | `testing.md`                 |
+| **Structure workflows**   | `workflow-step-structure.md` |
+| **Workflow concepts**     | `../concepts/workflows.md`   |
 
 ---
 

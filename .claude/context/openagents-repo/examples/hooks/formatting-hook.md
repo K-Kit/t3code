@@ -11,13 +11,17 @@
 ```json
 {
   "hooks": {
-    "PostToolUse": [{
-      "matcher": "Edit|Write",
-      "hooks": [{
-        "type": "command",
-        "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then npx prettier --write \"$file_path\"; fi; }"
-      }]
-    }]
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then npx prettier --write \"$file_path\"; fi; }"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -36,16 +40,19 @@
 ## Variations
 
 **Go files**:
+
 ```bash
 if echo "$file_path" | grep -q '\\.go$'; then gofmt -w "$file_path"; fi
 ```
 
 **Python files**:
+
 ```bash
 if echo "$file_path" | grep -q '\\.py$'; then black "$file_path"; fi
 ```
 
 **Multiple extensions**:
+
 ```bash
 if echo "$file_path" | grep -qE '\\.(ts|tsx|js|jsx)$'; then npx prettier --write "$file_path"; fi
 ```
