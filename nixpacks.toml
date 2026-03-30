@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["nodejs", "python3", "gcc", "gnumake"]
+aptPkgs = ["python3", "make", "g++", "node-gyp"]
