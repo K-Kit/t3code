@@ -116,6 +116,27 @@ describe("buildComposerSlashCommandItems", () => {
         description: "Switch this thread back to normal chat mode",
       },
       {
+        id: "slash:compact",
+        type: "slash-command",
+        command: "compact",
+        label: "/compact",
+        description: "Summarize conversation to reduce context size",
+      },
+      {
+        id: "slash:clear",
+        type: "slash-command",
+        command: "clear",
+        label: "/clear",
+        description: "Clear conversation history and start fresh",
+      },
+      {
+        id: "slash:help",
+        type: "slash-command",
+        command: "help",
+        label: "/help",
+        description: "Show help information",
+      },
+      {
         id: "skill:frontend-design",
         type: "skill",
         skillName: "frontend-design",

@@ -1095,7 +1095,7 @@ export default function ChatView({ threadId }: ChatViewProps) {
       return buildComposerSlashCommandItems({
         query: composerTrigger.query,
         skills: enabledSkills,
-        sessionSlashCommands: activeThread?.session?.slashCommands,
+        sessionSlashCommands: activeThread?.session?.slashCommands ?? [],
       });
     }
     if (composerTrigger.kind === "skill") {

@@ -179,6 +179,7 @@ Before committing changes to agents, commands, or context files:
    - Updates registry.json
 
 4. **Validate registry**:
+
    ```bash
    ./scripts/registry/validate-registry.sh
    ```

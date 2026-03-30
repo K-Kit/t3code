@@ -252,9 +252,7 @@ export function detectComposerTrigger(text: string, cursorInput: number): Compos
   };
 }
 
-export function parseStandaloneComposerSlashCommand(
-  text: string,
-): "plan" | "default" | null {
+export function parseStandaloneComposerSlashCommand(text: string): "plan" | "default" | null {
   const match = /^\/(plan|default)\s*$/i.exec(text.trim());
   if (!match) {
     return null;
@@ -262,12 +260,6 @@ export function parseStandaloneComposerSlashCommand(
   const command = match[1]?.toLowerCase();
   if (command === "plan") return "plan";
   return "default";
-}
-
-export function parseStandaloneSdkSlashCommand(text: string): string | null {
-  const match = /^\/(compact|clear|help)\s*$/i.exec(text.trim());
-  if (!match) return null;
-  return `/${match[1]!.toLowerCase()}`;
 }
 
 export function replaceTextRange(

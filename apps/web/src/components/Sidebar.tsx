@@ -376,8 +376,7 @@ export default function Sidebar() {
   );
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
-  const isOnSettings =
-    pathname.startsWith("/settings") || pathname.startsWith("/skills");
+  const isOnSettings = pathname.startsWith("/settings") || pathname.startsWith("/skills");
   const appSettings = useSettings();
   const { updateSettings } = useUpdateSettings();
   const { handleNewThread } = useHandleNewThread();
