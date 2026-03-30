@@ -8,7 +8,9 @@
         "name": "JavaScript/TypeScript",
         "version": "^24.13.1",
         "confidence": "high",
-        "markers": ["package.json"]
+        "markers": [
+          "package.json"
+        ]
       }
     ],
     "frameworks": [
@@ -64,8 +66,16 @@
   },
   "structure": {
     "isMonorepo": true,
-    "workspaces": ["apps/*", "packages/*", "scripts"],
-    "mainDirectories": ["assets", "docs", "scripts"],
+    "workspaces": [
+      "apps/*",
+      "packages/*",
+      "scripts"
+    ],
+    "mainDirectories": [
+      "assets",
+      "docs",
+      "scripts"
+    ],
     "gitBranches": {
       "defaultBranch": "main",
       "branchingStrategy": null
@@ -92,7 +102,9 @@
       "purpose": "Documentation",
       "fileCount": 1,
       "lastAccessed": 1774835825677,
-      "keyFiles": ["release.md"]
+      "keyFiles": [
+        "release.md"
+      ]
     },
     "packages": {
       "path": "packages",
@@ -119,7 +131,10 @@
       "purpose": "Library code",
       "fileCount": 2,
       "lastAccessed": 1774835825681,
-      "keyFiles": ["brand-assets.ts", "resolve-catalog.ts"]
+      "keyFiles": [
+        "brand-assets.ts",
+        "resolve-catalog.ts"
+      ]
     },
     "scripts/node_modules": {
       "path": "scripts/node_modules",
@@ -138,26 +153,38 @@
     },
     {
       "path": "apps/server/package.json",
+      "accessCount": 4,
+      "lastAccessed": 1774840602883,
+      "type": "file"
+    },
+    {
+      "path": "packages/contracts/package.json",
+      "accessCount": 4,
+      "lastAccessed": 1774841165077,
+      "type": "file"
+    },
+    {
+      "path": "apps/web/package.json",
       "accessCount": 3,
-      "lastAccessed": 1774836160367,
+      "lastAccessed": 1774840603095,
+      "type": "file"
+    },
+    {
+      "path": "packages/shared/package.json",
+      "accessCount": 3,
+      "lastAccessed": 1774840603570,
+      "type": "file"
+    },
+    {
+      "path": "packages/contracts/src/provider.ts",
+      "accessCount": 3,
+      "lastAccessed": 1774840712696,
       "type": "file"
     },
     {
       "path": "apps/server/src/config.ts",
       "accessCount": 2,
       "lastAccessed": 1774836085757,
-      "type": "file"
-    },
-    {
-      "path": "packages/shared/package.json",
-      "accessCount": 2,
-      "lastAccessed": 1774836094908,
-      "type": "file"
-    },
-    {
-      "path": "packages/contracts/package.json",
-      "accessCount": 2,
-      "lastAccessed": 1774836094924,
       "type": "file"
     },
     {
@@ -179,27 +206,39 @@
       "type": "file"
     },
     {
-      "path": "apps/web/package.json",
-      "accessCount": 2,
-      "lastAccessed": 1774836099838,
-      "type": "file"
-    },
-    {
-      "path": "packages/contracts/src/provider.ts",
-      "accessCount": 2,
-      "lastAccessed": 1774836150521,
-      "type": "file"
-    },
-    {
       "path": "CLAUDE.md",
       "accessCount": 2,
       "lastAccessed": 1774836154139,
       "type": "file"
     },
     {
+      "path": "apps/server/src/wsServer.ts",
+      "accessCount": 2,
+      "lastAccessed": 1774840606555,
+      "type": "file"
+    },
+    {
+      "path": "apps/server/src/index.ts",
+      "accessCount": 2,
+      "lastAccessed": 1774840646886,
+      "type": "file"
+    },
+    {
+      "path": "apps/server/src/main.ts",
+      "accessCount": 2,
+      "lastAccessed": 1774840650095,
+      "type": "file"
+    },
+    {
+      "path": "apps/web/src/wsNativeApi.ts",
+      "accessCount": 2,
+      "lastAccessed": 1774840804359,
+      "type": "file"
+    },
+    {
       "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1774835848837,
+      "accessCount": 2,
+      "lastAccessed": 1774841169604,
       "type": "file"
     },
     {
@@ -212,12 +251,6 @@
       "path": "tsconfig.base.json",
       "accessCount": 1,
       "lastAccessed": 1774835855721,
-      "type": "file"
-    },
-    {
-      "path": "apps/server/src/index.ts",
-      "accessCount": 1,
-      "lastAccessed": 1774835858861,
       "type": "file"
     },
     {
@@ -266,12 +299,6 @@
       "path": ".docs/AGENTS.md",
       "accessCount": 1,
       "lastAccessed": 1774836049387,
-      "type": "file"
-    },
-    {
-      "path": "apps/server/src/main.ts",
-      "accessCount": 1,
-      "lastAccessed": 1774836082853,
       "type": "file"
     },
     {
@@ -347,12 +374,6 @@
       "type": "file"
     },
     {
-      "path": "apps/server/src/wsServer.ts",
-      "accessCount": 1,
-      "lastAccessed": 1774836094176,
-      "type": "file"
-    },
-    {
       "path": "apps/server/src/wsServer/pushBus.ts",
       "accessCount": 1,
       "lastAccessed": 1774836094400,
@@ -422,12 +443,6 @@
       "path": "apps/web/src/router.ts",
       "accessCount": 1,
       "lastAccessed": 1774836103402,
-      "type": "file"
-    },
-    {
-      "path": "apps/web/src/wsNativeApi.ts",
-      "accessCount": 1,
-      "lastAccessed": 1774836103439,
       "type": "file"
     }
   ],

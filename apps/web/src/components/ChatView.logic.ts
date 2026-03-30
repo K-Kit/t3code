@@ -14,6 +14,7 @@ import {
   type TerminalContextDraft,
 } from "../lib/terminalContext";
 import type { ComposerCommandItem } from "./chat/ComposerCommandMenu";
+import type { ComposerSlashCommand } from "../composer-logic";
 
 export const LAST_INVOKED_SCRIPT_BY_PROJECT_KEY = "t3code:last-invoked-script-by-project";
 const WORKTREE_BRANCH_PREFIX = "t3code";
@@ -190,6 +191,27 @@ const BUILT_IN_SLASH_COMMAND_ITEMS = [
     label: "/default",
     description: "Switch this thread back to normal chat mode",
   },
+  {
+    id: "slash:compact",
+    type: "slash-command",
+    command: "compact",
+    label: "/compact",
+    description: "Summarize conversation to reduce context size",
+  },
+  {
+    id: "slash:clear",
+    type: "slash-command",
+    command: "clear",
+    label: "/clear",
+    description: "Clear conversation history and start fresh",
+  },
+  {
+    id: "slash:help",
+    type: "slash-command",
+    command: "help",
+    label: "/help",
+    description: "Show help information",
+  },
 ] satisfies ReadonlyArray<Extract<ComposerCommandItem, { type: "slash-command" }>>;
 
 function buildComposerSkillItems(options: { query: string; skills: ReadonlyArray<SkillSummary> }) {
@@ -224,6 +246,7 @@ function buildComposerSkillItems(options: { query: string; skills: ReadonlyArray
 export function buildComposerSlashCommandItems(options: {
   query: string;
   skills: ReadonlyArray<SkillSummary>;
+  sessionSlashCommands?: ReadonlyArray<string>;
 }): ComposerCommandItem[] {
   const query = options.query.trim().toLowerCase();
   const matchingCommands =
@@ -233,9 +256,25 @@ export function buildComposerSlashCommandItems(options: {
           (item) => item.command.includes(query) || item.label.slice(1).includes(query),
         );
 
+  // Build items for session-provided slash commands not already in built-in list
+  const builtInNames = new Set(BUILT_IN_SLASH_COMMAND_ITEMS.map((item) => `/${item.command}`));
+  const sessionItems: ComposerCommandItem[] = (options.sessionSlashCommands ?? [])
+    .filter((cmd) => !builtInNames.has(cmd))
+    .filter((cmd) => {
+      if (query.length === 0) return true;
+      return cmd.slice(1).toLowerCase().includes(query);
+    })
+    .map((cmd) => ({
+      id: `slash:${cmd.slice(1)}`,
+      type: "slash-command" as const,
+      command: cmd.slice(1) as ComposerSlashCommand,
+      label: cmd,
+      description: "Custom slash command",
+    }));
+
   const matchingSkills = buildComposerSkillItems(options);
 
-  return [...matchingCommands, ...matchingSkills];
+  return [...matchingCommands, ...sessionItems, ...matchingSkills];
 }
 
 export function buildComposerSkillMenuItems(options: {

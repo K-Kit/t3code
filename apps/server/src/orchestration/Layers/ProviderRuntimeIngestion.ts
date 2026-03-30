@@ -917,6 +917,7 @@ const make = Effect.fn("make")(function* () {
 
     if (
       event.type === "session.started" ||
+      event.type === "session.configured" ||
       event.type === "session.state.changed" ||
       event.type === "session.exited" ||
       event.type === "thread.started" ||
@@ -931,6 +932,8 @@ const make = Effect.fn("make")(function* () {
             : activeTurnId;
       const status = (() => {
         switch (event.type) {
+          case "session.configured":
+            return thread.session?.status ?? "ready";
           case "session.state.changed":
             return orchestrationSessionStatusFromRuntimeState(event.payload.state);
           case "turn.started":
@@ -974,6 +977,18 @@ const make = Effect.fn("make")(function* () {
           );
         }
 
+        // Extract slash_commands from session.configured init payload
+        const slashCommands = (() => {
+          if (event.type === "session.configured") {
+            const config = event.payload?.config;
+            if (config && Array.isArray((config as Record<string, unknown>).slash_commands)) {
+              return (config as Record<string, unknown>).slash_commands as string[];
+            }
+          }
+          // Carry forward existing slash commands
+          return thread.session?.slashCommands ?? [];
+        })();
+
         yield* orchestrationEngine.dispatch({
           type: "thread.session.set",
           commandId: providerCommandId(event, "thread-session-set"),
@@ -986,6 +1001,7 @@ const make = Effect.fn("make")(function* () {
             activeTurnId: nextActiveTurnId,
             lastError,
             updatedAt: now,
+            slashCommands,
           },
           createdAt: now,
         });
@@ -1158,6 +1174,7 @@ const make = Effect.fn("make")(function* () {
             activeTurnId: eventTurnId ?? null,
             lastError: runtimeErrorMessage,
             updatedAt: now,
+            slashCommands: thread.session?.slashCommands ?? [],
           },
           createdAt: now,
         });

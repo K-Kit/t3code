@@ -1095,6 +1095,7 @@ export default function ChatView({ threadId }: ChatViewProps) {
       return buildComposerSlashCommandItems({
         query: composerTrigger.query,
         skills: enabledSkills,
+        sessionSlashCommands: activeThread?.session?.slashCommands,
       });
     }
     if (composerTrigger.kind === "skill") {
@@ -3371,11 +3372,30 @@ export default function ChatView({ threadId }: ChatViewProps) {
           }
           return;
         }
-        void handleInteractionModeChange(item.command === "plan" ? "plan" : "default");
-        const applied = applyPromptReplacement(trigger.rangeStart, trigger.rangeEnd, "", {
-          expectedText: snapshot.value.slice(trigger.rangeStart, trigger.rangeEnd),
-        });
-        if (applied) {
+        if (item.command === "plan" || item.command === "default") {
+          void handleInteractionModeChange(item.command === "plan" ? "plan" : "default");
+          const applied = applyPromptReplacement(trigger.rangeStart, trigger.rangeEnd, "", {
+            expectedText: snapshot.value.slice(trigger.rangeStart, trigger.rangeEnd),
+          });
+          if (applied) {
+            setComposerHighlightedItemId(null);
+          }
+          return;
+        }
+        // SDK slash command - insert the full command text so user can send it
+        const sdkReplacement = `/${item.command}`;
+        const sdkReplacementRangeEnd = extendReplacementRangeForTrailingSpace(
+          snapshot.value,
+          trigger.rangeEnd,
+          sdkReplacement,
+        );
+        const sdkApplied = applyPromptReplacement(
+          trigger.rangeStart,
+          sdkReplacementRangeEnd,
+          sdkReplacement,
+          { expectedText: snapshot.value.slice(trigger.rangeStart, sdkReplacementRangeEnd) },
+        );
+        if (sdkApplied) {
           setComposerHighlightedItemId(null);
         }
         return;
