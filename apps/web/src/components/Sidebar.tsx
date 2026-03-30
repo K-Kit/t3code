@@ -6,6 +6,7 @@ import {
   GitPullRequestIcon,
   PlusIcon,
   SettingsIcon,
+  ZapIcon,
   SquarePenIcon,
   TerminalIcon,
   TriangleAlertIcon,
@@ -375,7 +376,8 @@ export default function Sidebar() {
   );
   const navigate = useNavigate();
   const pathname = useLocation({ select: (loc) => loc.pathname });
-  const isOnSettings = pathname.startsWith("/settings");
+  const isOnSettings =
+    pathname.startsWith("/settings") || pathname.startsWith("/skills");
   const appSettings = useSettings();
   const { updateSettings } = useUpdateSettings();
   const { handleNewThread } = useHandleNewThread();
@@ -2047,6 +2049,16 @@ export default function Sidebar() {
           <SidebarFooter className="p-2">
             <SidebarUpdatePill />
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  size="sm"
+                  className="gap-2 px-2 py-1.5 text-muted-foreground/70 hover:bg-accent hover:text-foreground"
+                  onClick={() => void navigate({ to: "/skills" })}
+                >
+                  <ZapIcon className="size-3.5" />
+                  <span className="text-xs">Skills</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   size="sm"
