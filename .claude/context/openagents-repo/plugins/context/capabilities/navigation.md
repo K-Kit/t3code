@@ -21,12 +21,12 @@ capabilities/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Agent capabilities** | `agents.md` |
-| **Event system** | `events.md` |
-| **Events & skills** | `events_skills.md` |
-| **Tool capabilities** | `tools.md` |
+| Task                   | Path               |
+| ---------------------- | ------------------ |
+| **Agent capabilities** | `agents.md`        |
+| **Event system**       | `events.md`        |
+| **Events & skills**    | `events_skills.md` |
+| **Tool capabilities**  | `tools.md`         |
 
 ---
 

@@ -18,11 +18,11 @@ examples/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **View navigation examples** | `navigation-examples.md` |
-| **Learn navigation design** | `../guides/navigation-design-basics.md` |
-| **Use templates** | `../guides/navigation-templates.md` |
+| Task                         | Path                                    |
+| ---------------------------- | --------------------------------------- |
+| **View navigation examples** | `navigation-examples.md`                |
+| **Learn navigation design**  | `../guides/navigation-design-basics.md` |
+| **Use templates**            | `../guides/navigation-templates.md`     |
 
 ---
 

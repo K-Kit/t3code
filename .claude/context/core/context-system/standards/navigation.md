@@ -22,12 +22,12 @@ standards/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **MVI principle** | `mvi.md` |
-| **Frontmatter format** | `frontmatter.md` |
-| **File structure** | `structure.md` |
-| **File templates** | `templates.md` |
+| Task                    | Path                     |
+| ----------------------- | ------------------------ |
+| **MVI principle**       | `mvi.md`                 |
+| **Frontmatter format**  | `frontmatter.md`         |
+| **File structure**      | `structure.md`           |
+| **File templates**      | `templates.md`           |
 | **Codebase references** | `codebase-references.md` |
 
 ---

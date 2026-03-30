@@ -18,11 +18,11 @@ lookup/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Configuration reference** | `mastra-config.md` |
-| **Core concepts** | `../concepts/core.md` |
-| **Guides** | `../guides/navigation.md` |
+| Task                        | Path                      |
+| --------------------------- | ------------------------- |
+| **Configuration reference** | `mastra-config.md`        |
+| **Core concepts**           | `../concepts/core.md`     |
+| **Guides**                  | `../guides/navigation.md` |
 
 ---
 

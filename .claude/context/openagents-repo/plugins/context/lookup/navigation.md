@@ -18,11 +18,11 @@ lookup/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Plugin structure** | `plugin-structure.md` |
-| **Create plugins** | `../guides/creating-plugins.md` |
-| **Best practices** | `../reference/best-practices.md` |
+| Task                 | Path                             |
+| -------------------- | -------------------------------- |
+| **Plugin structure** | `plugin-structure.md`            |
+| **Create plugins**   | `../guides/creating-plugins.md`  |
+| **Best practices**   | `../reference/best-practices.md` |
 
 ---
 

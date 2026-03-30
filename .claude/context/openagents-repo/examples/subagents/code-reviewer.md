@@ -45,11 +45,11 @@ Include specific examples of how to fix issues.
 
 ## Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| No Edit/Write | Read-only ensures review doesn't modify code |
-| `model: inherit` | Uses same model as main conversation |
-| Bash included | Allows running git diff |
+| Decision              | Rationale                                       |
+| --------------------- | ----------------------------------------------- |
+| No Edit/Write         | Read-only ensures review doesn't modify code    |
+| `model: inherit`      | Uses same model as main conversation            |
+| Bash included         | Allows running git diff                         |
 | Proactive description | Claude uses it automatically after code changes |
 
 ---

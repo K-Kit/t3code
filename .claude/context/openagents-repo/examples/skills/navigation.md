@@ -18,11 +18,11 @@ skills/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Multi-file skill** | `multi-file-skill.md` |
-| **Skill concepts** | `../../concepts/skills.md` |
-| **Skill guides** | `../../guides/navigation.md` |
+| Task                 | Path                         |
+| -------------------- | ---------------------------- |
+| **Multi-file skill** | `multi-file-skill.md`        |
+| **Skill concepts**   | `../../concepts/skills.md`   |
+| **Skill guides**     | `../../guides/navigation.md` |
 
 ---
 

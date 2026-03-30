@@ -9,9 +9,11 @@ Format-specific guidance for creating content across different mediums.
 ## Available Files
 
 ### written-content.md
+
 Guidelines for written content (articles, blogs, posts, newsletters).
 
 **Topics**:
+
 - Article structure and flow
 - Blog post best practices
 - Social media post formats
@@ -24,9 +26,11 @@ Guidelines for written content (articles, blogs, posts, newsletters).
 ---
 
 ### video-content.md
+
 Guidelines for video content creation (scripts, ideas, formats).
 
 **Topics**:
+
 - Video script structure
 - Hook and retention strategies
 - Video content ideas by platform (YouTube, TikTok, Instagram)
@@ -39,9 +43,11 @@ Guidelines for video content creation (scripts, ideas, formats).
 ---
 
 ### image-content.md
+
 Guidelines for visual content creation (graphics, infographics, social images).
 
 **Topics**:
+
 - Visual hierarchy principles
 - Text overlay best practices
 - Infographic structure
@@ -54,9 +60,11 @@ Guidelines for visual content creation (graphics, infographics, social images).
 ---
 
 ### audio-content.md
+
 Guidelines for audio content (podcasts, voice content, audio ads).
 
 **Topics**:
+
 - Podcast episode structure
 - Audio script writing
 - Voice content best practices

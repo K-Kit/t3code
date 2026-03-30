@@ -12,7 +12,7 @@
 Progress: ████████████░░░░░░░░ 59.4% (19/32 subtasks)
 
 ✅ Phase 1: Foundation    - 6/6 complete
-✅ Phase 2: Adapters      - 6/6 complete  
+✅ Phase 2: Adapters      - 6/6 complete
 ✅ Phase 3: Mappers       - 7/7 complete
 ⬅️ Phase 4: CLI          - 0/6 pending (NEXT)
 📝 Phase 5: Documentation - 0/7 pending
@@ -22,29 +22,32 @@ Progress: ████████████░░░░░░░░ 59.4% (19
 
 ## Codebase Stats
 
-| Metric | Value |
-|--------|-------|
-| Source Lines | 5,799 (14 files) |
-| Test Lines | 6,322 (9 files) |
-| Tests | 485 passing |
-| Coverage | 97-100% on Phase 3 |
+| Metric       | Value              |
+| ------------ | ------------------ |
+| Source Lines | 5,799 (14 files)   |
+| Test Lines   | 6,322 (9 files)    |
+| Tests        | 485 passing        |
+| Coverage     | 97-100% on Phase 3 |
 
 ---
 
 ## What's Implemented
 
 ### Adapters (3)
+
 - `ClaudeAdapter` - .claude/ format ↔ OAC
-- `CursorAdapter` - .cursorrules ↔ OAC  
+- `CursorAdapter` - .cursorrules ↔ OAC
 - `WindsurfAdapter` - .windsurf/ ↔ OAC
 
 ### Mappers (4)
+
 - `ToolMapper` - bash↔terminal, task↔delegate
 - `PermissionMapper` - granular↔binary
 - `ModelMapper` - model IDs with fallbacks
 - `ContextMapper` - context paths between platforms
 
 ### Core (2)
+
 - `CapabilityMatrix` - feature compatibility analysis
 - `TranslationEngine` - orchestrates all mappers
 
@@ -53,6 +56,7 @@ Progress: ████████████░░░░░░░░ 59.4% (19
 ## What's Next
 
 **Phase 4: CLI Tool** (8h estimated)
+
 1. CLI scaffolding (Commander.js)
 2. `convert` command
 3. `validate` command
@@ -81,13 +85,13 @@ git log --oneline -5  # Recent commits
 
 ## Feature Parity
 
-| Feature | OAC | Claude | Cursor | Windsurf |
-|---------|:---:|:------:|:------:|:--------:|
-| Multi-Agent | ✅ | ✅ | ❌ | ✅ |
-| Hooks | ✅ | ✅ | ❌ | ❌ |
-| Granular Perms | ✅ | ❌ | ❌ | ❌ |
-| Skills | ✅ | ✅ | ❌ | ⚠️ |
-| Temperature | ✅ | ❌ | ⚠️ | ✅ |
+| Feature        | OAC | Claude | Cursor | Windsurf |
+| -------------- | :-: | :----: | :----: | :------: |
+| Multi-Agent    | ✅  |   ✅   |   ❌   |    ✅    |
+| Hooks          | ✅  |   ✅   |   ❌   |    ❌    |
+| Granular Perms | ✅  |   ❌   |   ❌   |    ❌    |
+| Skills         | ✅  |   ✅   |   ❌   |    ⚠️    |
+| Temperature    | ✅  |   ❌   |   ⚠️   |    ✅    |
 
 ---
 

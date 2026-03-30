@@ -9,9 +9,11 @@ Core writing principles, frameworks, and techniques for effective content creati
 ## Available Files
 
 ### copywriting-frameworks.md
+
 Proven copywriting frameworks and persuasive writing techniques.
 
 **Topics**:
+
 - AIDA, PAS, BAB, FAB frameworks
 - Headline formulas
 - Emotional triggers (FOMO, social proof, authority)
@@ -23,9 +25,11 @@ Proven copywriting frameworks and persuasive writing techniques.
 ---
 
 ### tone-voice.md
+
 Maintaining consistent brand voice and adapting tone for different contexts.
 
 **Topics**:
+
 - Voice vs. tone distinction
 - Voice dimensions (formality, enthusiasm, expertise)
 - Tone guidelines by context (marketing, docs, errors, support)
@@ -37,9 +41,11 @@ Maintaining consistent brand voice and adapting tone for different contexts.
 ---
 
 ### hooks.md
+
 Techniques for writing compelling hooks that grab attention.
 
 **Topics**:
+
 - Hook types (question, statistic, story, bold claim)
 - First sentence formulas
 - Opening patterns by format
@@ -50,9 +56,11 @@ Techniques for writing compelling hooks that grab attention.
 ---
 
 ### audience-targeting.md
+
 Understanding and targeting specific audiences effectively.
 
 **Topics**:
+
 - Audience research methods
 - Persona development
 - Pain points and desires mapping
@@ -66,6 +74,7 @@ Understanding and targeting specific audiences effectively.
 ## Usage
 
 Load these files when creating any content to ensure:
+
 - Persuasive, engaging writing
 - Consistent brand voice
 - Audience-appropriate messaging

@@ -24,13 +24,13 @@ Hooks provide **deterministic control** over Claude Code's behavior. Unlike prom
 
 ## Common Use Cases
 
-| Use Case | Event | Example |
-|----------|-------|---------|
-| Auto-format | `PostToolUse` | Run prettier after Edit/Write |
-| Notifications | `Notification` | Desktop alert when input needed |
-| File protection | `PreToolUse` | Block edits to .env files |
-| Logging | `PreToolUse` | Track all bash commands |
-| Feedback | `PostToolUse` | Lint check after code changes |
+| Use Case        | Event          | Example                         |
+| --------------- | -------------- | ------------------------------- |
+| Auto-format     | `PostToolUse`  | Run prettier after Edit/Write   |
+| Notifications   | `Notification` | Desktop alert when input needed |
+| File protection | `PreToolUse`   | Block edits to .env files       |
+| Logging         | `PreToolUse`   | Track all bash commands         |
+| Feedback        | `PostToolUse`  | Lint check after code changes   |
 
 ---
 
@@ -39,13 +39,17 @@ Hooks provide **deterministic control** over Claude Code's behavior. Unlike prom
 ```json
 {
   "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "hooks": [{
-        "type": "command",
-        "command": "jq -r '.tool_input.command' >> ~/.claude/bash-log.txt"
-      }]
-    }]
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' >> ~/.claude/bash-log.txt"
+          }
+        ]
+      }
+    ]
   }
 }
 ```

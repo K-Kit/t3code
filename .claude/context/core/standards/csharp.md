@@ -37,18 +37,18 @@ author: community
 
 ### 1.1 General Rules
 
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Classes, structs, records | PascalCase | `UserService`, `OrderItem` |
-| Interfaces | `I` + PascalCase | `IUserRepository`, `IOrderService` |
-| Methods | PascalCase | `GetUserById`, `ProcessOrder` |
-| Properties | PascalCase | `FirstName`, `CreatedAt` |
-| Fields (private) | `_` + camelCase | `_logger`, `_repository` |
-| Local variables | camelCase | `userId`, `orderTotal` |
-| Parameters | camelCase | `userId`, `cancellationToken` |
-| Constants | PascalCase | `MaxRetryCount`, `DefaultTimeout` |
-| Enums | PascalCase (type and members) | `OrderStatus.Pending` |
-| Async methods | `Async` suffix | `GetUserAsync`, `SaveOrderAsync` |
+| Element                   | Convention                    | Example                            |
+| ------------------------- | ----------------------------- | ---------------------------------- |
+| Classes, structs, records | PascalCase                    | `UserService`, `OrderItem`         |
+| Interfaces                | `I` + PascalCase              | `IUserRepository`, `IOrderService` |
+| Methods                   | PascalCase                    | `GetUserById`, `ProcessOrder`      |
+| Properties                | PascalCase                    | `FirstName`, `CreatedAt`           |
+| Fields (private)          | `_` + camelCase               | `_logger`, `_repository`           |
+| Local variables           | camelCase                     | `userId`, `orderTotal`             |
+| Parameters                | camelCase                     | `userId`, `cancellationToken`      |
+| Constants                 | PascalCase                    | `MaxRetryCount`, `DefaultTimeout`  |
+| Enums                     | PascalCase (type and members) | `OrderStatus.Pending`              |
+| Async methods             | `Async` suffix                | `GetUserAsync`, `SaveOrderAsync`   |
 
 ### 1.2 Method Naming
 
@@ -782,6 +782,7 @@ public class OrderServiceTests
 ```
 
 **Why NSubstitute?**
+
 - ✅ Fluent, readable syntax — substitutes ARE the interfaces, no `.Object` indirection
 - ✅ Lower ceremony, less noise in tests
 - ✅ `Arg.Any<T>()` is cleaner than `It.IsAny<T>()`
@@ -889,15 +890,15 @@ public class OrdersApiTests : IClassFixture<WebApplicationFactory<Program>>
 
 ## Quick Reference
 
-| Topic | Key Rule |
-|-------|---------|
-| Naming | PascalCase methods/properties, `_camelCase` fields, `I`-prefix interfaces, `Async` suffix |
-| Nullability | Enable `<Nullable>enable</Nullable>`, use `?` explicitly, guard with `ArgumentNullException.ThrowIfNull` |
-| Async | Always pass `CancellationToken`, avoid `async void`, prefer `Task.WhenAll` for parallel ops |
-| LINQ | Materialize with `ToList()` once, use `Any()` not `Count() > 0` |
-| Errors | Specific exception types, validate at entry, `Result<T>` for expected failures |
-| Pattern matching | Switch expressions over switch statements, property patterns for readable conditionals |
-| Organization | File-scoped namespaces, feature-based folders, one type per file |
-| Immutability | Records for value objects/DTOs, `IReadOnlyList` for exposed collections |
-| DI | Constructor injection, `readonly` fields, Options pattern for config |
-| Testing | xUnit + Shouldly, `[Fact]`/`[Theory]`, Arrange-Act-Assert, no logic in tests |
+| Topic            | Key Rule                                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| Naming           | PascalCase methods/properties, `_camelCase` fields, `I`-prefix interfaces, `Async` suffix                |
+| Nullability      | Enable `<Nullable>enable</Nullable>`, use `?` explicitly, guard with `ArgumentNullException.ThrowIfNull` |
+| Async            | Always pass `CancellationToken`, avoid `async void`, prefer `Task.WhenAll` for parallel ops              |
+| LINQ             | Materialize with `ToList()` once, use `Any()` not `Count() > 0`                                          |
+| Errors           | Specific exception types, validate at entry, `Result<T>` for expected failures                           |
+| Pattern matching | Switch expressions over switch statements, property patterns for readable conditionals                   |
+| Organization     | File-scoped namespaces, feature-based folders, one type per file                                         |
+| Immutability     | Records for value objects/DTOs, `IReadOnlyList` for exposed collections                                  |
+| DI               | Constructor injection, `readonly` fields, Options pattern for config                                     |
+| Testing          | xUnit + Shouldly, `[Fact]`/`[Theory]`, Arrange-Act-Assert, no logic in tests                             |

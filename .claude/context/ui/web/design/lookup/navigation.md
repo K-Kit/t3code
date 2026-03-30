@@ -18,10 +18,10 @@ lookup/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Animation prompts** | `scroll-animation-prompts.md` |
-| **Scroll concepts** | `../concepts/scroll-linked-animations.md` |
+| Task                     | Path                                         |
+| ------------------------ | -------------------------------------------- |
+| **Animation prompts**    | `scroll-animation-prompts.md`                |
+| **Scroll concepts**      | `../concepts/scroll-linked-animations.md`    |
 | **Scrollytelling guide** | `../guides/building-scrollytelling-pages.md` |
 
 ---

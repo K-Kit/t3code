@@ -14,6 +14,7 @@
 ## Vision
 
 Transform `@nextsystems/oac` from a simple installer into a comprehensive CLI package manager that:
+
 - ✅ Manages agents, skills, and contexts across multiple IDEs (OpenCode, Cursor, Claude Code, Windsurf)
 - ✅ Provides flexible configuration for agent behavior and permissions
 - ✅ Supports community contributions via shadcn-like component registry
@@ -44,6 +45,7 @@ oac update --all
 ```
 
 **Implementation**:
+
 - Use compatibility layer adapters for IDE-specific translation
 - Maintain single source of truth in OAC format
 - Auto-detect IDE configurations
@@ -58,6 +60,7 @@ oac update --all
 **Configuration File**: `~/.config/oac/config.json` (global) or `.oac/config.json` (local/project)
 
 **CRITICAL BEHAVIOR**:
+
 - User runs `oac` commands in their project root directory
 - Always asks: "Install locally (this project) or globally?"
 - Always confirms before overwriting files (unless `--yolo` flag)
@@ -101,11 +104,7 @@ oac update --all
     }
   },
   "context": {
-    "locations": [
-      ".opencode/context",
-      ".claude/context",
-      "docs/context"
-    ],
+    "locations": [".opencode/context", ".claude/context", "docs/context"],
     "autoDiscover": true,
     "cacheEnabled": true
   }
@@ -113,6 +112,7 @@ oac update --all
 ```
 
 **Commands**:
+
 ```bash
 oac configure                              # Interactive wizard
 oac configure set agents.permissions.bash auto
@@ -145,24 +145,24 @@ oac install opencode
 
 # OAC shows what will be installed:
 📦 Installing OpenCode Developer Profile
-  
+
   Will create/modify:
   ✓ .opencode/agent/core/openagent.md
   ✓ .opencode/agent/core/opencoder.md
   ⚠ .opencode/agent/subagents/code/test-engineer.md (exists - will overwrite)
   ✓ .opencode/context/core/standards/code-quality.md
   ✓ .opencode/config.json
-  
+
   Total: 15 files (2 new, 12 updated, 1 conflict)
 
 ? Proceed with installation? (Y/n)
 
 # If conflicts exist:
 ⚠ File exists: .opencode/agent/subagents/code/test-engineer.md
-  
+
   Current: 245 lines, modified 2 days ago
   New:     312 lines, version 0.8.0
-  
+
 ? What would you like to do?
   > Skip (keep existing)
     Overwrite (replace with new)
@@ -185,22 +185,22 @@ oac configure set preferences.yoloMode true
 
 # YOLO mode behavior:
 📦 Installing OpenCode Developer Profile (YOLO MODE)
-  
+
   ⚡ Auto-confirming all operations...
   ✓ Created .opencode/agent/core/openagent.md
   ✓ Created .opencode/agent/core/opencoder.md
   ⚠ Overwrote .opencode/agent/subagents/code/test-engineer.md (backed up to .bak)
   ✓ Created .opencode/context/core/standards/code-quality.md
   ✓ Created .opencode/config.json
-  
+
   ✅ Installation complete!
-  
+
   📊 Summary:
   - 13 files created
   - 2 files overwritten (backups in .opencode/.backups/)
   - 0 files skipped
   - Total time: 1.2s
-  
+
   ⚠ Review changes: git diff
 ```
 
@@ -208,11 +208,11 @@ oac configure set preferences.yoloMode true
 
 ```typescript
 enum ConflictStrategy {
-  ASK = 'ask',           // Ask user for each conflict (default)
-  SKIP = 'skip',         // Skip all conflicts, keep existing
-  OVERWRITE = 'overwrite', // Overwrite all conflicts
-  BACKUP = 'backup',     // Backup existing, install new
-  YOLO = 'yolo'          // Auto-resolve (backup + overwrite)
+  ASK = "ask", // Ask user for each conflict (default)
+  SKIP = "skip", // Skip all conflicts, keep existing
+  OVERWRITE = "overwrite", // Overwrite all conflicts
+  BACKUP = "backup", // Backup existing, install new
+  YOLO = "yolo", // Auto-resolve (backup + overwrite)
 }
 ```
 
@@ -282,31 +282,31 @@ oac install opencode
 
 # Step 3: Review
 📦 Installing OpenCode Developer Profile
-  
+
   Will install to: ~/my-awesome-project/.opencode
-  
+
   Components:
   - 2 core agents (openagent, opencoder)
   - 8 subagents (tester, reviewer, coder-agent, ...)
   - 7 commands (commit, test, context, ...)
   - 15 context files
-  
+
   Total size: ~2.5 MB
 
 ? Proceed? (Y/n) y
 
 # Step 4: Conflict Resolution (if any)
 ⚠ 3 files already exist:
-  
+
   1. .opencode/agent/subagents/code/test-engineer.md
      Current: 245 lines, modified 2 days ago
      New:     312 lines, version 0.8.0
-     
+
 ? Action:
   > Backup and overwrite
     Skip (keep existing)
     Show diff
-    
+
 # Step 5: Installation
 ⚡ Installing...
   ✓ Created .opencode/agent/core/openagent.md
@@ -314,7 +314,7 @@ oac install opencode
   ⚠ Backed up .opencode/agent/subagents/code/test-engineer.md → .backups/TestEngineer.md.2026-02-14
   ✓ Overwrote .opencode/agent/subagents/code/test-engineer.md
   ...
-  
+
 # Step 6: Summary
 ✅ Installation complete!
 
@@ -330,7 +330,7 @@ oac install opencode
   1. Review changes: git diff
   2. Test setup: oac doctor
   3. Configure: oac configure
-  
+
 💡 Tip: Use 'oac --yolo' to skip confirmations next time
 ```
 
@@ -341,6 +341,7 @@ oac install opencode
 **Goal**: Enable users to create and share custom agents, skills, and contexts
 
 **Registry Structure**:
+
 ```json
 {
   "version": "1.0.0",
@@ -366,6 +367,7 @@ oac install opencode
 ```
 
 **Commands**:
+
 ```bash
 # Add component from registry
 oac add agent:rust-specialist
@@ -388,6 +390,7 @@ oac search "rust"
 ```
 
 **Component Package Format**:
+
 ```
 my-custom-agent/
 ├── oac.json                 # Component metadata
@@ -400,6 +403,7 @@ my-custom-agent/
 ```
 
 **oac.json Schema**:
+
 ```json
 {
   "name": "rust-specialist",
@@ -430,6 +434,7 @@ my-custom-agent/
 **Goal**: Intelligent context resolution for agents running locally or globally
 
 **The Problem**:
+
 - Agents can run from **global install** (`~/.config/oac/`) or **local install** (`./opencode/`)
 - Context files exist in **project-specific** locations AND **global** locations
 - Need to resolve: "Which context file should the agent use?"
@@ -442,19 +447,19 @@ my-custom-agent/
 ```
 1. PROJECT OVERRIDE    (./.oac/context/)           [Highest Priority]
    ↓ User's project-specific overrides
-   
+
 2. PROJECT CONTEXT     (./.opencode/context/)
    ↓ Project-specific context files
-   
+
 3. IDE CONTEXT         (./.cursor/context/, ./.claude/context/)
    ↓ IDE-specific context (if different IDE)
-   
+
 4. PROJECT DOCS        (./docs/, ./docs/context/)
    ↓ Project documentation
-   
+
 5. USER GLOBAL         (~/.config/oac/context/)
    ↓ User's personal preferences/standards
-   
+
 6. OAC GLOBAL          (~/.config/oac/official/)   [Lowest Priority]
    ↓ Official OAC context files
 ```
@@ -464,15 +469,15 @@ my-custom-agent/
 ```typescript
 class ContextResolver {
   async resolve(ref: string, options: ResolveOptions): Promise<string | null> {
-    const { 
-      agentLocation,  // 'global' | 'local'
-      projectRoot,    // Current working directory
-      preferLocal     // User preference
+    const {
+      agentLocation, // 'global' | 'local'
+      projectRoot, // Current working directory
+      preferLocal, // User preference
     } = options;
-    
+
     // Build search paths based on agent location and preferences
     const searchPaths = this.buildSearchPaths(agentLocation, projectRoot, preferLocal);
-    
+
     // Search in priority order
     for (const basePath of searchPaths) {
       const fullPath = path.join(basePath, ref);
@@ -480,46 +485,46 @@ class ContextResolver {
         return fullPath;
       }
     }
-    
+
     return null; // Not found
   }
-  
+
   private buildSearchPaths(
-    agentLocation: 'global' | 'local',
+    agentLocation: "global" | "local",
     projectRoot: string,
-    preferLocal: boolean
+    preferLocal: boolean,
   ): string[] {
     const paths: string[] = [];
-    
+
     // If agent is running locally OR user prefers local context
-    if (agentLocation === 'local' || preferLocal) {
+    if (agentLocation === "local" || preferLocal) {
       // Prioritize project context
       paths.push(
-        path.join(projectRoot, '.oac/context'),        // Project override
-        path.join(projectRoot, '.opencode/context'),   // Project context
-        path.join(projectRoot, '.cursor/context'),     // IDE context
-        path.join(projectRoot, '.claude/context'),
-        path.join(projectRoot, 'docs/context'),        // Project docs
-        path.join(projectRoot, 'docs')
+        path.join(projectRoot, ".oac/context"), // Project override
+        path.join(projectRoot, ".opencode/context"), // Project context
+        path.join(projectRoot, ".cursor/context"), // IDE context
+        path.join(projectRoot, ".claude/context"),
+        path.join(projectRoot, "docs/context"), // Project docs
+        path.join(projectRoot, "docs"),
       );
     }
-    
+
     // Always include global context (fallback)
     paths.push(
-      path.join(os.homedir(), '.config/oac/context'),     // User global
-      path.join(os.homedir(), '.config/oac/official')     // OAC official
+      path.join(os.homedir(), ".config/oac/context"), // User global
+      path.join(os.homedir(), ".config/oac/official"), // OAC official
     );
-    
+
     // If agent is running globally AND user prefers global
-    if (agentLocation === 'global' && !preferLocal) {
+    if (agentLocation === "global" && !preferLocal) {
       // Reverse priority: global first, then project
       return [
-        path.join(os.homedir(), '.config/oac/context'),
-        path.join(os.homedir(), '.config/oac/official'),
-        ...paths.slice(0, -2) // Add project paths after global
+        path.join(os.homedir(), ".config/oac/context"),
+        path.join(os.homedir(), ".config/oac/official"),
+        ...paths.slice(0, -2), // Add project paths after global
       ];
     }
-    
+
     return paths;
   }
 }
@@ -531,23 +536,23 @@ class ContextResolver {
 {
   "context": {
     "resolution": {
-      "preferLocal": true,           // Prefer project context over global
-      "allowOverrides": true,        // Allow .oac/context/ overrides
-      "fallbackToGlobal": true,      // Fall back to global if not found locally
-      "cacheResolution": true        // Cache resolved paths
+      "preferLocal": true, // Prefer project context over global
+      "allowOverrides": true, // Allow .oac/context/ overrides
+      "fallbackToGlobal": true, // Fall back to global if not found locally
+      "cacheResolution": true // Cache resolved paths
     },
     "locations": {
       "project": [
-        ".oac/context",              // Project overrides (highest priority)
-        ".opencode/context",         // Project context
-        ".cursor/context",           // IDE-specific
+        ".oac/context", // Project overrides (highest priority)
+        ".opencode/context", // Project context
+        ".cursor/context", // IDE-specific
         ".claude/context",
-        "docs/context",              // Project docs
+        "docs/context", // Project docs
         "docs"
       ],
       "global": [
-        "~/.config/oac/context",     // User global context
-        "~/.config/oac/official"     // OAC official context
+        "~/.config/oac/context", // User global context
+        "~/.config/oac/official" // OAC official context
       ]
     },
     "autoDiscover": true,
@@ -635,19 +640,16 @@ For certain context types, we can **merge** instead of override:
 
 ```typescript
 interface ContextMergeStrategy {
-  type: 'override' | 'merge' | 'append';
+  type: "override" | "merge" | "append";
   mergeKey?: string; // For merge strategy
 }
 
 // Example: Merge project and global standards
-const merged = await contextResolver.resolveWithMerge(
-  'core/standards/code-quality.md',
-  {
-    strategy: 'merge',
-    mergeKey: 'standards', // Merge 'standards' sections
-    preferLocal: true      // Local takes precedence on conflicts
-  }
-);
+const merged = await contextResolver.resolveWithMerge("core/standards/code-quality.md", {
+  strategy: "merge",
+  mergeKey: "standards", // Merge 'standards' sections
+  preferLocal: true, // Local takes precedence on conflicts
+});
 
 // Result:
 // - Global standards: base rules
@@ -676,7 +678,7 @@ oac context validate
   → Checking 45 context references...
   ✓ 42 resolved
   ⚠ 3 missing (using fallbacks)
-  
+
 # Create project override
 oac context override 'core/standards/code-quality.md'
   → Copied from: ~/.config/oac/official/core/standards/code-quality.md
@@ -689,11 +691,11 @@ oac context sources
     .oac/context/              (2 files)
     .opencode/context/         (15 files)
     docs/                      (8 files)
-  
+
   Global Context:
     ~/.config/oac/context/     (5 files)
     ~/.config/oac/official/    (42 files)
-  
+
   Total: 72 context files
 
 # Sync global context to project
@@ -715,22 +717,22 @@ Agents need to know where they're running from:
 ```typescript
 // In agent prompt or configuration
 class AgentContext {
-  location: 'global' | 'local';
+  location: "global" | "local";
   projectRoot: string | null;
   contextResolver: ContextResolver;
-  
+
   async loadContext(ref: string): Promise<string> {
     const resolved = await this.contextResolver.resolve(ref, {
       agentLocation: this.location,
       projectRoot: this.projectRoot || process.cwd(),
-      preferLocal: true
+      preferLocal: true,
     });
-    
+
     if (!resolved) {
       throw new Error(`Context not found: ${ref}`);
     }
-    
-    return fs.readFile(resolved, 'utf-8');
+
+    return fs.readFile(resolved, "utf-8");
   }
 }
 ```
@@ -796,6 +798,7 @@ Agent Running Globally:
 #### Best Practices
 
 **For Users**:
+
 - ✅ Use global context for personal coding standards
 - ✅ Use project context for project-specific requirements
 - ✅ Use `.oac/context/` for temporary overrides
@@ -803,12 +806,14 @@ Agent Running Globally:
 - ✅ Keep global context private (personal preferences)
 
 **For Projects**:
+
 - ✅ Include essential context in `.opencode/context/`
 - ✅ Document required context files in README
 - ✅ Use `oac context validate` in CI/CD
 - ✅ Provide `.oac/context/` examples for common overrides
 
 **For OAC**:
+
 - ✅ Ship official context in `~/.config/oac/official/`
 - ✅ Never modify user's global context without permission
 - ✅ Warn when context is missing
@@ -842,6 +847,7 @@ oac rollback agent:openagent
 ```
 
 **Update Flow**:
+
 1. Fetch latest registry from GitHub
 2. Compare with local cache
 3. Show available updates
@@ -856,6 +862,7 @@ oac rollback agent:openagent
 **Goal**: Allow users to view, customize, and save personal agent configurations
 
 **The Problem**:
+
 - Users want to customize agent prompts for their workflow
 - Users want to save personal presets
 - Updates shouldn't overwrite customizations
@@ -910,6 +917,7 @@ oac customize agent:openagent
 ```
 
 **Preset Structure**:
+
 ```
 ~/.config/oac/
 ├── presets/
@@ -923,6 +931,7 @@ oac customize agent:openagent
 ```
 
 **Preset Metadata** (`.presets.json`):
+
 ```json
 {
   "presets": {
@@ -1019,14 +1028,14 @@ oac update --check
 agent:openagent (base for preset:my-openagent)
   Current: 0.7.1
   Latest:  0.8.0
-  
+
   Changes:
   - Added new context loading patterns
   - Improved delegation logic
   - Fixed approval gate bug
-  
+
   ⚠️ You have a personal preset based on this agent
-  
+
 ? How would you like to update?
   > Review changes first (recommended)
     Update base, keep my customizations
@@ -1051,7 +1060,7 @@ oac update agent:openagent --merge-preset my-openagent
   Section: Approval Gates
   Base (new):    "Always ask before execution"
   Your preset:   "Auto-approve read operations"
-  
+
 ? Keep your customization? (Y/n) y
 
 ✓ Preset updated with merge
@@ -1064,16 +1073,18 @@ oac update agent:openagent --merge-preset my-openagent
 ```
 
 **Update Strategies**:
+
 ```typescript
 enum PresetUpdateStrategy {
-  MANUAL = 'manual',           // User reviews every update
-  AUTO_BASE = 'auto-base',     // Auto-update base, keep preset unchanged
-  AUTO_MERGE = 'auto-merge',   // Auto-merge, prompt on conflicts
-  LOCKED = 'locked'            // Never update base
+  MANUAL = "manual", // User reviews every update
+  AUTO_BASE = "auto-base", // Auto-update base, keep preset unchanged
+  AUTO_MERGE = "auto-merge", // Auto-merge, prompt on conflicts
+  LOCKED = "locked", // Never update base
 }
 ```
 
 **Configuration**:
+
 ```json
 {
   "presets": {
@@ -1081,7 +1092,7 @@ enum PresetUpdateStrategy {
       "updateStrategy": "manual",
       "autoUpdate": false,
       "mergeStrategy": {
-        "onConflict": "ask",     // ask | keep-mine | keep-theirs
+        "onConflict": "ask", // ask | keep-mine | keep-theirs
         "backupOnMerge": true,
         "maxBackups": 10
       }
@@ -1119,13 +1130,13 @@ oac publish preset:my-openagent --public
 oac edit agent:openagent --in-place
 
 ⚠️  WARNING: Editing installed agent directly
-  
+
   This will modify the installed agent file.
   Updates will overwrite your changes.
-  
+
   Recommended: Create a preset instead
     oac customize agent:openagent
-  
+
 ? Are you sure you want to edit in-place? (y/N) n
 
 # Force in-place edit (advanced users)
@@ -1210,14 +1221,14 @@ preset:
   type: agent
   created: 2026-02-14T10:30:00Z
   modified: 2026-02-14T15:45:00Z
-  
+
 # Customizations
 customizations:
   - section: "Approval Gates"
     description: "Auto-approve read operations"
   - section: "Context Loading"
     description: "Changed to eager loading"
-  
+
 # Update Strategy
 update:
   strategy: manual
@@ -1230,7 +1241,9 @@ update:
 [Your customized agent prompt here]
 
 <!-- CUSTOMIZATION: Approval Gates -->
+
 **Modified Behavior**: Auto-approve read operations (glob, read, grep)
+
 <!-- END CUSTOMIZATION -->
 
 [Rest of agent prompt...]
@@ -1304,6 +1317,7 @@ User wants to customize agent:openagent
 #### Best Practices
 
 **For Users**:
+
 - ✅ Always create presets instead of editing in-place
 - ✅ Use descriptive preset names
 - ✅ Document your customizations in preset metadata
@@ -1311,6 +1325,7 @@ User wants to customize agent:openagent
 - ✅ Keep backups of important presets
 
 **For OAC**:
+
 - ✅ Default to preset creation (safest)
 - ✅ Warn loudly on in-place edits
 - ✅ Always create backups before updates
@@ -1353,6 +1368,7 @@ User wants to customize agent:openagent
 **Goal**: Support different feature sets per IDE based on their capabilities
 
 **The Problem**:
+
 - Different IDEs support different features
 - OpenCode and Claude Code: Full feature support (agents, skills, context, plugins, tools)
 - Cursor: Limited (single .cursorrules file, no skills/plugins)
@@ -1384,8 +1400,8 @@ interface IDECapabilities {
 
 const IDE_CAPABILITIES: Record<string, IDECapabilities> = {
   opencode: {
-    id: 'opencode',
-    name: 'OpenCode',
+    id: "opencode",
+    name: "OpenCode",
     features: {
       multipleAgents: true,
       skills: true,
@@ -1394,14 +1410,14 @@ const IDE_CAPABILITIES: Record<string, IDECapabilities> = {
       contexts: true,
       commands: true,
       granularPermissions: true,
-      hooks: true
-    }
+      hooks: true,
+    },
     // No limits - full support
   },
-  
+
   claude: {
-    id: 'claude',
-    name: 'Claude Code',
+    id: "claude",
+    name: "Claude Code",
     features: {
       multipleAgents: true,
       skills: true,
@@ -1410,33 +1426,33 @@ const IDE_CAPABILITIES: Record<string, IDECapabilities> = {
       contexts: true,
       commands: false,
       granularPermissions: false,
-      hooks: true
-    }
+      hooks: true,
+    },
     // Full support except commands and granular permissions
   },
-  
+
   cursor: {
-    id: 'cursor',
-    name: 'Cursor IDE',
+    id: "cursor",
+    name: "Cursor IDE",
     features: {
-      multipleAgents: false,  // Single .cursorrules file
+      multipleAgents: false, // Single .cursorrules file
       skills: false,
       plugins: false,
       tools: false,
-      contexts: true,         // Embedded in .cursorrules
+      contexts: true, // Embedded in .cursorrules
       commands: false,
       granularPermissions: false,
-      hooks: false
+      hooks: false,
     },
     limits: {
-      maxAgents: 1,           // Merge all agents into one
-      maxFileSize: 100000     // ~100KB limit for .cursorrules
-    }
+      maxAgents: 1, // Merge all agents into one
+      maxFileSize: 100000, // ~100KB limit for .cursorrules
+    },
   },
-  
+
   windsurf: {
-    id: 'windsurf',
-    name: 'Windsurf',
+    id: "windsurf",
+    name: "Windsurf",
     features: {
       multipleAgents: true,
       skills: false,
@@ -1445,12 +1461,12 @@ const IDE_CAPABILITIES: Record<string, IDECapabilities> = {
       contexts: true,
       commands: false,
       granularPermissions: false,
-      hooks: false
+      hooks: false,
     },
     limits: {
-      maxAgents: 10
-    }
-  }
+      maxAgents: 10,
+    },
+  },
 };
 ```
 
@@ -1461,20 +1477,20 @@ const IDE_CAPABILITIES: Record<string, IDECapabilities> = {
 oac install cursor --profile developer
 
 ⚠ Feature Compatibility Warning:
-  
+
   IDE: Cursor
   Profile: developer
-  
+
   Unsupported features in this profile:
   ❌ Skills (8 skills will be skipped)
   ❌ Plugins (2 plugins will be skipped)
   ❌ Commands (7 commands will be skipped)
   ⚠ Multiple agents (2 agents will be merged into .cursorrules)
-  
+
   Supported features:
   ✓ Agents (will merge into single .cursorrules)
   ✓ Contexts (will embed in .cursorrules)
-  
+
 ? How would you like to proceed?
   > Continue with supported features only
     Cancel installation
@@ -1514,73 +1530,70 @@ class AdaptiveInstaller {
   async install(ide: string, profile: string, options: InstallOptions) {
     const capabilities = IDE_CAPABILITIES[ide];
     const components = await this.loadProfile(profile);
-    
+
     // Filter components based on IDE capabilities
     const supported = this.filterByCapabilities(components, capabilities);
-    const unsupported = components.filter(c => !supported.includes(c));
-    
+    const unsupported = components.filter((c) => !supported.includes(c));
+
     // Warn user about unsupported features
     if (unsupported.length > 0 && !options.yolo) {
-      const proceed = await this.warnUnsupportedFeatures(
-        ide,
-        supported,
-        unsupported,
-        capabilities
-      );
-      
+      const proceed = await this.warnUnsupportedFeatures(ide, supported, unsupported, capabilities);
+
       if (!proceed) {
         return { cancelled: true };
       }
     }
-    
+
     // Apply transformations for IDE-specific limitations
     const transformed = await this.transformForIDE(supported, capabilities);
-    
+
     // Install
     return this.installComponents(transformed, ide, options);
   }
-  
+
   private filterByCapabilities(
     components: Component[],
-    capabilities: IDECapabilities
+    capabilities: IDECapabilities,
   ): Component[] {
-    return components.filter(component => {
+    return components.filter((component) => {
       switch (component.type) {
-        case 'agent':
-        case 'subagent':
-          return capabilities.features.multipleAgents || 
-                 components.filter(c => c.type === 'agent').length === 1;
-        case 'skill':
+        case "agent":
+        case "subagent":
+          return (
+            capabilities.features.multipleAgents ||
+            components.filter((c) => c.type === "agent").length === 1
+          );
+        case "skill":
           return capabilities.features.skills;
-        case 'plugin':
+        case "plugin":
           return capabilities.features.plugins;
-        case 'tool':
+        case "tool":
           return capabilities.features.tools;
-        case 'context':
+        case "context":
           return capabilities.features.contexts;
-        case 'command':
+        case "command":
           return capabilities.features.commands;
         default:
           return false;
       }
     });
   }
-  
+
   private async transformForIDE(
     components: Component[],
-    capabilities: IDECapabilities
+    capabilities: IDECapabilities,
   ): Promise<Component[]> {
     // Special handling for Cursor: merge all agents
-    if (capabilities.id === 'cursor') {
-      const agents = components.filter(c => c.type === 'agent' || c.type === 'subagent');
-      const contexts = components.filter(c => c.type === 'context');
-      
+    if (capabilities.id === "cursor") {
+      const agents = components.filter((c) => c.type === "agent" || c.type === "subagent");
+      const contexts = components.filter((c) => c.type === "context");
+
       // Merge agents into single .cursorrules
       const merged = await this.mergeAgentsForCursor(agents, contexts);
-      
+
       return [merged];
     }
-    
+
     return components;
   }
 }
@@ -1597,11 +1610,11 @@ oac create profile --for cursor --name cursor-essentials
   ✓ openagent
   ✓ opencoder
   ✓ frontend-specialist
-  
+
   Contexts (will be embedded):
   ✓ core/standards/code-quality
   ✓ development/react-patterns
-  
+
   ⚠ Skills, plugins, and commands are not supported by Cursor
 
 ✓ Created profile: cursor-essentials
@@ -1650,13 +1663,13 @@ oac create agent rust-specialist
 oac install cursor --profile developer
 
 ⚠ Capacity Warning:
-  
+
   IDE: Cursor
   Limit: 100KB for .cursorrules
-  
+
   Current profile size: 125KB
   ❌ Exceeds limit by 25KB
-  
+
 ? How would you like to proceed:
   > Remove optional components (interactive)
     Use compact mode (reduce file sizes)
@@ -1665,21 +1678,21 @@ oac install cursor --profile developer
 
 # Interactive component selection
 ? Select components to include (max 100KB):
-  
+
   Core (required):
   ✓ openagent (12KB)
   ✓ opencoder (15KB)
-  
+
   Specialists (optional):
   ✓ frontend-specialist (18KB)
   ✓ devops-specialist (16KB)
   ☐ data-analyst (14KB)
   ☐ copywriter (12KB)
-  
+
   Contexts:
   ✓ core/standards (8KB)
   ✓ development/patterns (12KB)
-  
+
   Current: 81KB / 100KB
   Remaining: 19KB
 ```
@@ -1755,11 +1768,13 @@ oac validate --ide <ide>
 **Best Practices**:
 
 **For Full Features** (OpenCode, Claude Code):
+
 - ✅ Use standard profiles (developer, business, etc.)
 - ✅ Install all component types
 - ✅ No optimization needed
 
 **For Limited IDEs** (Cursor):
+
 - ✅ Create IDE-specific profiles
 - ✅ Keep agent count low (1-3 agents)
 - ✅ Use compact mode
@@ -1767,6 +1782,7 @@ oac validate --ide <ide>
 - ✅ Monitor file size limits
 
 **For All IDEs**:
+
 - ✅ Check compatibility before installing: `oac compatibility <ide>`
 - ✅ Use `--dry-run` to preview changes
 - ✅ Create custom profiles for specific needs
@@ -1880,19 +1896,19 @@ oac create
       Plugin
       Command
       Tool
-  
+
   ? Component type:
     > agent
       subagent
-  
+
   ? Name: rust-specialist
   ? Description: Expert in Rust programming
   ? Category: development
-  
+
   ✓ Created .opencode/agent/subagents/development/rust-specialist.md
   ✓ Created tests/smoke-test.yaml
   ✓ Added to registry
-  
+
   Next steps:
   1. Edit agent prompt
   2. Add tests
@@ -1919,7 +1935,7 @@ oac create plugin [name]
 # List available templates
 oac templates
   --type <type>                 # Filter by type
-  
+
 # Use template
 oac create agent --template specialist
   → Uses specialist agent template
@@ -2056,20 +2072,20 @@ oac help [command]
 ```json
 {
   "dependencies": {
-    "commander": "^12.0.0",      // CLI framework
-    "inquirer": "^9.2.0",        // Interactive prompts
-    "zod": "^3.22.0",            // Schema validation
-    "chalk": "^5.3.0",           // Terminal colors
-    "ora": "^8.0.0",             // Spinners
-    "boxen": "^7.1.0",           // Boxes
-    "table": "^6.8.0",           // Tables
-    "fs-extra": "^11.2.0",       // File system
-    "glob": "^10.3.0",           // Pattern matching
-    "semver": "^7.6.0",          // Version comparison
-    "node-fetch": "^3.3.0",      // HTTP requests
-    "yaml": "^2.3.0",            // YAML parsing
-    "tar": "^6.2.0",             // Package extraction
-    "simple-git": "^3.22.0"      // Git operations
+    "commander": "^12.0.0", // CLI framework
+    "inquirer": "^9.2.0", // Interactive prompts
+    "zod": "^3.22.0", // Schema validation
+    "chalk": "^5.3.0", // Terminal colors
+    "ora": "^8.0.0", // Spinners
+    "boxen": "^7.1.0", // Boxes
+    "table": "^6.8.0", // Tables
+    "fs-extra": "^11.2.0", // File system
+    "glob": "^10.3.0", // Pattern matching
+    "semver": "^7.6.0", // Version comparison
+    "node-fetch": "^3.3.0", // HTTP requests
+    "yaml": "^2.3.0", // YAML parsing
+    "tar": "^6.2.0", // Package extraction
+    "simple-git": "^3.22.0" // Git operations
   }
 }
 ```
@@ -2079,9 +2095,11 @@ oac help [command]
 ## Implementation Phases
 
 ### Phase 1: Core CLI Infrastructure (Week 1)
+
 **Goal**: Set up CLI framework and configuration system
 
 **Tasks**:
+
 - Set up TypeScript project in `src/`
 - Install dependencies (Commander, Zod, inquirer)
 - Create configuration schema and manager
@@ -2089,6 +2107,7 @@ oac help [command]
 - Write tests
 
 **Deliverables**:
+
 - `src/cli/index.ts`
 - `src/cli/config/manager.ts`
 - `src/cli/config/schema.ts`
@@ -2098,9 +2117,11 @@ oac help [command]
 ---
 
 ### Phase 2: Registry & Component Management (Week 2)
+
 **Goal**: Component installation and management
 
 **Tasks**:
+
 - Port registry validation to TypeScript
 - Implement registry loader and resolver
 - Create component installer
@@ -2108,6 +2129,7 @@ oac help [command]
 - Add dependency resolution
 
 **Deliverables**:
+
 - `src/core/registry/loader.ts`
 - `src/core/installer/component.ts`
 - `oac install opencode --profile developer` works
@@ -2115,9 +2137,11 @@ oac help [command]
 ---
 
 ### Phase 3: IDE Adapters Integration (Week 3)
+
 **Goal**: Multi-IDE support
 
 **Tasks**:
+
 - Move compatibility layer to `src/adapters/`
 - Implement IDE-specific installers
 - Create adapter registry
@@ -2125,6 +2149,7 @@ oac help [command]
 - Add IDE detection
 
 **Deliverables**:
+
 - `src/adapters/opencode.ts`
 - `src/adapters/cursor.ts`
 - `oac apply cursor` works
@@ -2132,9 +2157,11 @@ oac help [command]
 ---
 
 ### Phase 4: Update System (Week 4)
+
 **Goal**: Version management
 
 **Tasks**:
+
 - Create version checker
 - Implement update fetcher
 - Create update applier
@@ -2142,6 +2169,7 @@ oac help [command]
 - Add update notifications
 
 **Deliverables**:
+
 - `src/core/updater/version.ts`
 - `oac update --check` works
 - `oac update --claude --global` works
@@ -2149,9 +2177,11 @@ oac help [command]
 ---
 
 ### Phase 5: Context System (Week 5)
+
 **Goal**: Flexible context locations
 
 **Tasks**:
+
 - Create context locator service
 - Implement context resolver
 - Add context validator
@@ -2159,15 +2189,18 @@ oac help [command]
 - Add context discovery
 
 **Deliverables**:
+
 - `src/core/context/locator.ts`
 - Context files resolve from multiple locations
 
 ---
 
 ### Phase 6: Community Registry (Week 6)
+
 **Goal**: shadcn-like component sharing
 
 **Tasks**:
+
 - Design component package format
 - Implement `oac add` command
 - Implement `oac publish` command
@@ -2176,6 +2209,7 @@ oac help [command]
 - Implement search and browse
 
 **Deliverables**:
+
 - `src/cli/commands/add.ts`
 - `src/cli/commands/publish.ts`
 - `src/core/registry/publisher.ts`
@@ -2185,9 +2219,11 @@ oac help [command]
 ---
 
 ### Phase 7: Polish & Documentation (Week 7)
+
 **Goal**: Production-ready package
 
 **Tasks**:
+
 - Add comprehensive error handling
 - Improve CLI UX
 - Write user documentation
@@ -2196,6 +2232,7 @@ oac help [command]
 - Publish to npm
 
 **Deliverables**:
+
 - `docs/cli-reference.md`
 - `docs/configuration.md`
 - `docs/community-components.md`
@@ -2208,15 +2245,19 @@ oac help [command]
 ### Component Types
 
 **Agents**: AI agent prompts for specific domains
+
 - Example: `rust-specialist`, `python-expert`, `devops-guru`
 
 **Skills**: Auto-invoked guidance for specific tasks
+
 - Example: `git-workflow`, `testing-patterns`, `security-checks`
 
 **Contexts**: Shared knowledge files
+
 - Example: `rust-patterns`, `react-best-practices`, `api-design`
 
 **Tools**: Custom MCP tools
+
 - Example: `database-inspector`, `api-tester`, `log-analyzer`
 
 ---
@@ -2224,6 +2265,7 @@ oac help [command]
 ### Publishing Requirements
 
 **Must have**:
+
 - ✅ Valid `oac.json` metadata
 - ✅ Component file (agent.md, skill.md, etc.)
 - ✅ README.md with usage instructions
@@ -2231,12 +2273,14 @@ oac help [command]
 - ✅ Passes validation (`oac validate`)
 
 **Should have**:
+
 - ✅ Tests (smoke-test.yaml minimum)
 - ✅ Examples in README
 - ✅ Version history in CHANGELOG.md
 - ✅ GitHub repository
 
 **Nice to have**:
+
 - ✅ Context files
 - ✅ Multiple test cases
 - ✅ Screenshots/demos
@@ -2247,6 +2291,7 @@ oac help [command]
 ### Verification System
 
 **Verified Components**: Official or community-approved
+
 - ✅ Reviewed by maintainers
 - ✅ Follows best practices
 - ✅ Has comprehensive tests
@@ -2254,6 +2299,7 @@ oac help [command]
 - ✅ Actively maintained
 
 **Unverified Components**: Community contributions
+
 - ⚠️ Use at your own risk
 - ⚠️ May not follow best practices
 - ⚠️ May have limited testing
@@ -2263,6 +2309,7 @@ oac help [command]
 ## Backward Compatibility
 
 **Preserve existing workflows**:
+
 - ✅ Keep `install.sh` for direct usage
 - ✅ Keep `bin/oac.js` as entry point
 - ✅ Keep registry.json format
@@ -2270,6 +2317,7 @@ oac help [command]
 - ✅ Support legacy `oac [profile]` syntax
 
 **Migration path**:
+
 ```bash
 # Old way (still works)
 npm install -g @nextsystems/oac
@@ -2287,6 +2335,7 @@ oac add agent:rust-specialist
 ## Success Metrics
 
 **Must have**:
+
 - ✅ Multi-IDE installation works
 - ✅ Configuration persists
 - ✅ Updates work across IDEs
@@ -2295,6 +2344,7 @@ oac add agent:rust-specialist
 - ✅ Backward compatible
 
 **Nice to have**:
+
 - ✅ 100+ community components
 - ✅ Auto-update notifications
 - ✅ IDE auto-detection
@@ -2305,15 +2355,18 @@ oac add agent:rust-specialist
 ## Related Files
 
 **Core Concepts**:
+
 - `core-concepts/agents.md` - Agent system
 - `core-concepts/registry.md` - Registry system
 - `concepts/compatibility-layer.md` - Multi-IDE support
 
 **Guides**:
+
 - `guides/npm-publishing.md` - Publishing workflow
 - `guides/adding-agent.md` - Creating agents
 
 **Lookup**:
+
 - `lookup/file-locations.md` - File structure
 - `lookup/compatibility-layer-structure.md` - Adapter structure
 
@@ -2322,12 +2375,14 @@ oac add agent:rust-specialist
 ## Next Steps
 
 **Immediate**:
+
 1. ✅ Create feature branch
 2. ✅ Create context file (this file)
 3. Create GitHub issue for tracking
 4. Set up project board
 
 **Phase 1 Start**:
+
 1. Set up TypeScript project structure
 2. Install dependencies
 3. Create configuration schema

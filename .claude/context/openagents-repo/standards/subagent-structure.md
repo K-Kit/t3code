@@ -1,4 +1,5 @@
 <!-- Context: openagents-repo/standards/subagent-structure | Priority: critical | Version: 1.0 | Updated: 2026-01-31 -->
+
 # Standard: Subagent File Structure
 
 **Purpose**: Standard structure for subagent files  
@@ -8,17 +9,18 @@
 
 ## File Template
 
-```markdown
+````markdown
 ---
 name: AgentName
 description: Brief description
 mode: subagent
 temperature: 0.1
-tools: {...}
-permissions: {...}
+tools: { ... }
+permissions: { ... }
 ---
 
 # AgentName
+
 > **Mission**: One-sentence mission
 
 <rule id="rule_name">Rule description</rule>
@@ -35,15 +37,21 @@ permissions: {...}
 </tier>
 
 ## Workflow
+
 ### Step 1: Preparation
+
 ### Step 2: Execution
+
 ### Step 3: Output
 
 ## Output Format
+
 ```yaml
 status: "success" | "failure"
 ```
-```
+````
+
+````
 
 ---
 
@@ -57,15 +65,17 @@ status: "success" | "failure"
 ```markdown
 # TestEngineer
 > **Mission**: Author tests following TDD — grounded in project standards.
-```
+````
 
 ### 3. Critical Rules (3-5 max)
+
 ```markdown
 <rule id="context_first">ALWAYS call ContextScout BEFORE writing tests.</rule>
 <rule id="positive_and_negative">EVERY behavior needs positive AND negative tests.</rule>
 ```
 
 ### 4. Context
+
 ```markdown
 <context>
   <system>Code quality gate</system>
@@ -76,6 +86,7 @@ status: "success" | "failure"
 ```
 
 ### 5. Execution Tiers
+
 ```markdown
 <tier level="1" desc="Critical">
   - @context_first: Load context first
@@ -92,28 +103,31 @@ status: "success" | "failure"
 ## Tool Permission Patterns
 
 ### Read-Only (Reviewers, Analyzers)
+
 ```yaml
-tools: {read: true, grep: true, glob: true, bash: false, edit: false, write: false}
+tools: { read: true, grep: true, glob: true, bash: false, edit: false, write: false }
 permissions:
-  bash: {"*": "deny"}
-  edit: {"**/*": "deny"}
-  task: {contextscout: "allow", "*": "deny"}
+  bash: { "*": "deny" }
+  edit: { "**/*": "deny" }
+  task: { contextscout: "allow", "*": "deny" }
 ```
 
 ### Write-Enabled (Coders, Testers)
+
 ```yaml
-tools: {read: true, edit: true, write: true, bash: true}
+tools: { read: true, edit: true, write: true, bash: true }
 permissions:
-  bash: {"npm test *": "allow", "git *": "allow", "sudo *": "deny", "*": "deny"}
-  edit: {"**/*.env*": "deny", "**/*.key": "deny"}
-  task: {contextscout: "allow", "*": "deny"}
+  bash: { "npm test *": "allow", "git *": "allow", "sudo *": "deny", "*": "deny" }
+  edit: { "**/*.env*": "deny", "**/*.key": "deny" }
+  task: { contextscout: "allow", "*": "deny" }
 ```
 
 ### Restricted Bash (Task Managers)
+
 ```yaml
-tools: {read: true, bash: true}
+tools: { read: true, bash: true }
 permissions:
-  bash: {"npx ts-node*task-cli*": "allow", "mkdir -p .tmp/tasks*": "allow", "*": "deny"}
+  bash: { "npx ts-node*task-cli*": "allow", "mkdir -p .tmp/tasks*": "allow", "*": "deny" }
 ```
 
 ---
@@ -148,6 +162,7 @@ permissions:
 ## Common Patterns
 
 **Context-First Pattern**:
+
 ```markdown
 <rule id="context_first">
   ALWAYS call ContextScout BEFORE starting work. Load relevant standards first.
@@ -155,6 +170,7 @@ permissions:
 ```
 
 **Read-Only Pattern**:
+
 ```markdown
 <rule id="read_only">
   Read-only agent. NEVER use write, edit, or bash. Provide suggestions only.
@@ -162,12 +178,13 @@ permissions:
 ```
 
 **Security Pattern**:
+
 ```markdown
 permissions:
-  edit:
-    "**/*.env*": "deny"
-    "**/*.key": "deny"
-    "**/*.secret": "deny"
+edit:
+"**/_.env_": "deny"
+"**/_.key": "deny"
+"\*\*/_.secret": "deny"
 ```
 
 ---
@@ -175,6 +192,7 @@ permissions:
 ## Examples
 
 **See existing subagents**:
+
 - `.opencode/agent/subagents/code/tester.md` - Write-enabled with tests
 - `.opencode/agent/subagents/code/reviewer.md` - Read-only reviewer
 - `.opencode/agent/subagents/core/task-manager.md` - Restricted bash

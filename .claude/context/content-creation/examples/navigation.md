@@ -15,6 +15,7 @@ Real-world content examples demonstrating effective techniques and formats.
 ## Planned Content
 
 Future examples will include:
+
 - High-performing blog posts
 - Effective video scripts
 - Engaging social media posts
@@ -28,6 +29,7 @@ Future examples will include:
 ## Usage
 
 When examples are added, they will demonstrate:
+
 - Application of copywriting frameworks
 - Effective hooks and storytelling
 - Format-specific best practices

@@ -18,10 +18,10 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Resume sessions** | `resuming-sessions.md` |
-| **Context system guides** | `../context-system/guides/navigation.md` |
+| Task                       | Path                                      |
+| -------------------------- | ----------------------------------------- |
+| **Resume sessions**        | `resuming-sessions.md`                    |
+| **Context system guides**  | `../context-system/guides/navigation.md`  |
 | **Task management guides** | `../task-management/guides/navigation.md` |
 
 ---

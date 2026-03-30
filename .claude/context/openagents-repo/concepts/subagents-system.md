@@ -34,12 +34,12 @@ Subagents are isolated AI assistants that handle specific tasks. Each runs in it
 
 ## Subagent Locations
 
-| Location | Scope | Priority |
-|----------|-------|----------|
-| `--agents` CLI flag | Current session | 1 (highest) |
-| `.claude/agents/` | Current project | 2 |
-| `~/.claude/agents/` | All your projects | 3 |
-| Plugin's `agents/` | Plugin users | 4 (lowest) |
+| Location            | Scope             | Priority    |
+| ------------------- | ----------------- | ----------- |
+| `--agents` CLI flag | Current session   | 1 (highest) |
+| `.claude/agents/`   | Current project   | 2           |
+| `~/.claude/agents/` | All your projects | 3           |
+| Plugin's `agents/`  | Plugin users      | 4 (lowest)  |
 
 ---
 

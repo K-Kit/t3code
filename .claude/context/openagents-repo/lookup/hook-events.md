@@ -8,18 +8,18 @@
 
 ## Available Events
 
-| Event | When It Fires | Can Block? |
-|-------|---------------|------------|
-| `PreToolUse` | Before tool calls | Yes (exit 2) |
-| `PostToolUse` | After tool calls complete | No |
-| `PermissionRequest` | Permission dialog shown | Yes (allow/deny) |
-| `UserPromptSubmit` | User submits prompt | No |
-| `Notification` | Claude sends notification | No |
-| `Stop` | Claude finishes responding | No |
-| `SubagentStop` | Subagent task completes | No |
-| `PreCompact` | Before compact operation | No |
-| `SessionStart` | New/resumed session | No |
-| `SessionEnd` | Session ends | No |
+| Event               | When It Fires              | Can Block?       |
+| ------------------- | -------------------------- | ---------------- |
+| `PreToolUse`        | Before tool calls          | Yes (exit 2)     |
+| `PostToolUse`       | After tool calls complete  | No               |
+| `PermissionRequest` | Permission dialog shown    | Yes (allow/deny) |
+| `UserPromptSubmit`  | User submits prompt        | No               |
+| `Notification`      | Claude sends notification  | No               |
+| `Stop`              | Claude finishes responding | No               |
+| `SubagentStop`      | Subagent task completes    | No               |
+| `PreCompact`        | Before compact operation   | No               |
+| `SessionStart`      | New/resumed session        | No               |
+| `SessionEnd`        | Session ends               | No               |
 
 ---
 
@@ -34,17 +34,18 @@
 
 ## Exit Codes
 
-| Code | Behavior |
-|------|----------|
-| 0 | Success, continue execution |
-| 1 | Error logged, continue execution |
-| 2 | **Block operation**, feed stderr to Claude |
+| Code | Behavior                                   |
+| ---- | ------------------------------------------ |
+| 0    | Success, continue execution                |
+| 1    | Error logged, continue execution           |
+| 2    | **Block operation**, feed stderr to Claude |
 
 ---
 
 ## Input/Output
 
 Hooks receive JSON via stdin:
+
 ```json
 {
   "tool_name": "Bash",

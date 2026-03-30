@@ -25,6 +25,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 ## Phase Breakdown
 
 ### Phase 1: Foundation (100% ✅)
+
 **Time**: 7.5h / 8h estimated
 
 - ✅ Subtask 01: Project Setup
@@ -39,6 +40,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 ---
 
 ### Phase 2: Adapters (100% ✅)
+
 **Time**: ~12h
 
 - ✅ Subtask 07: ClaudeAdapter (600 lines)
@@ -53,6 +55,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 ---
 
 ### Phase 3: Mappers & Translation (100% ✅)
+
 **Time**: ~10h
 
 - ✅ Subtask 13: ToolMapper (308 lines, 34 tests)
@@ -68,6 +71,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 ---
 
 ### Phase 4: CLI (0% ⬅️ NEXT)
+
 **Estimated**: 8h
 
 - 📝 Subtask 20: CLI Scaffolding (Commander.js setup)
@@ -80,6 +84,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 ---
 
 ### Phase 5: Documentation (0%)
+
 **Estimated**: 6h
 
 - 📝 Subtask 26-30: Migration Guides (5 guides)
@@ -90,20 +95,20 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 
 ## Code Stats
 
-| Category | Lines | Files |
-|----------|-------|-------|
-| Source Code | 5,799 | 14 |
-| Test Code | 6,322 | 9 |
-| **Total** | **12,121** | **23** |
+| Category    | Lines      | Files  |
+| ----------- | ---------- | ------ |
+| Source Code | 5,799      | 14     |
+| Test Code   | 6,322      | 9      |
+| **Total**   | **12,121** | **23** |
 
 ### By Phase
 
-| Phase | Source Lines | Tests |
-|-------|-------------|-------|
-| Phase 1 (Foundation) | 1,475 | - |
-| Phase 2 (Adapters) | 1,858 | 236 |
-| Phase 3 (Mappers) | 2,471 | 249 |
-| **Total** | **5,804** | **485** |
+| Phase                | Source Lines | Tests   |
+| -------------------- | ------------ | ------- |
+| Phase 1 (Foundation) | 1,475        | -       |
+| Phase 2 (Adapters)   | 1,858        | 236     |
+| Phase 3 (Mappers)    | 2,471        | 249     |
+| **Total**            | **5,804**    | **485** |
 
 ---
 
@@ -111,29 +116,29 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 
 **485 tests passing** ✅
 
-| Module | Statements | Branches | Functions |
-|--------|-----------|----------|-----------|
-| Adapters | 97-99% | 82-93% | 95-100% |
-| Mappers | 97-100% | 90-100% | 100% |
-| Core (Matrix/Engine) | 98-99% | 93-96% | 100% |
+| Module               | Statements | Branches | Functions |
+| -------------------- | ---------- | -------- | --------- |
+| Adapters             | 97-99%     | 82-93%   | 95-100%   |
+| Mappers              | 97-100%    | 90-100%  | 100%      |
+| Core (Matrix/Engine) | 98-99%     | 93-96%   | 100%      |
 
 ---
 
 ## Commits (Issue #141)
 
-| Commit | Phase | Description |
-|--------|-------|-------------|
-| `0b98cbd` | 1 | Foundation implementation |
-| `340d144` | 1 | AgentLoader |
-| `81c2f65` | 1 | AdapterRegistry |
-| `175eac8` | 1 | index.ts entry point |
-| `d38dc27` | 2 | ClaudeAdapter |
-| `7695696` | 2 | CursorAdapter |
-| `71fa384` | 2 | WindsurfAdapter |
-| `a9176c9` | 2 | ClaudeAdapter tests |
-| `713fd09` | 2 | CursorAdapter tests |
-| `0b93a47` | 2 | WindsurfAdapter tests |
-| `99eba67` | 3 | Mappers, Matrix, Engine + tests |
+| Commit    | Phase | Description                     |
+| --------- | ----- | ------------------------------- |
+| `0b98cbd` | 1     | Foundation implementation       |
+| `340d144` | 1     | AgentLoader                     |
+| `81c2f65` | 1     | AdapterRegistry                 |
+| `175eac8` | 1     | index.ts entry point            |
+| `d38dc27` | 2     | ClaudeAdapter                   |
+| `7695696` | 2     | CursorAdapter                   |
+| `71fa384` | 2     | WindsurfAdapter                 |
+| `a9176c9` | 2     | ClaudeAdapter tests             |
+| `713fd09` | 2     | CursorAdapter tests             |
+| `0b93a47` | 2     | WindsurfAdapter tests           |
+| `99eba67` | 3     | Mappers, Matrix, Engine + tests |
 
 ---
 
@@ -158,6 +163,7 @@ Phase 5 (Documentation):  ░░░░░░░░░░░░░░░░░░
 **Location**: `packages/compatibility-layer/`
 
 **Related**:
+
 - lookup/compatibility-layer-adapters.md
 - lookup/compatibility-layer-structure.md
 - guides/compatibility-layer-workflow.md

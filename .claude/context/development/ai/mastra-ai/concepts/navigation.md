@@ -22,13 +22,13 @@ concepts/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Core concepts** | `core.md` |
+| Task               | Path              |
+| ------------------ | ----------------- |
+| **Core concepts**  | `core.md`         |
 | **Agents & tools** | `agents-tools.md` |
-| **Workflows** | `workflows.md` |
-| **Storage** | `storage.md` |
-| **Evaluations** | `evaluations.md` |
+| **Workflows**      | `workflows.md`    |
+| **Storage**        | `storage.md`      |
+| **Evaluations**    | `evaluations.md`  |
 
 ---
 

@@ -19,12 +19,12 @@ standards/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Base schema (v1.0)** | `task-schema.md` |
-| **Enhanced schema (v2.0)** | `enhanced-task-schema.md` |
-| **Splitting guide** | `../guides/splitting-tasks.md` |
-| **CLI commands** | `../lookup/task-commands.md` |
+| Task                       | Path                           |
+| -------------------------- | ------------------------------ |
+| **Base schema (v1.0)**     | `task-schema.md`               |
+| **Enhanced schema (v2.0)** | `enhanced-task-schema.md`      |
+| **Splitting guide**        | `../guides/splitting-tasks.md` |
+| **CLI commands**           | `../lookup/task-commands.md`   |
 
 ---
 

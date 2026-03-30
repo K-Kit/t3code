@@ -19,12 +19,12 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Create plugins** | `creating-plugins.md` |
-| **Migrate to plugins** | `migrating-to-plugins.md` |
-| **Plugin structure** | `../lookup/plugin-structure.md` |
-| **Best practices** | `../reference/best-practices.md` |
+| Task                   | Path                             |
+| ---------------------- | -------------------------------- |
+| **Create plugins**     | `creating-plugins.md`            |
+| **Migrate to plugins** | `migrating-to-plugins.md`        |
+| **Plugin structure**   | `../lookup/plugin-structure.md`  |
+| **Best practices**     | `../reference/best-practices.md` |
 
 ---
 

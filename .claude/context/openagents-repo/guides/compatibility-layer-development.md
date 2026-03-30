@@ -33,6 +33,7 @@ Development follows a structured 6-stage approach:
 **Goal**: Understand requirements before implementation
 
 **Actions**:
+
 1. Use `ContextScout` to discover relevant context files
 2. For external packages: Check install scripts first, then use `ExternalScout`
 3. Read context standards (code-quality.md is MANDATORY)
@@ -46,6 +47,7 @@ Development follows a structured 6-stage approach:
 **Goal**: Get user approval BEFORE any file creation
 
 **Present lightweight summary**:
+
 - What we're building (1-2 sentences)
 - Components list
 - Approach (direct execution vs delegation)
@@ -60,6 +62,7 @@ Development follows a structured 6-stage approach:
 **Goal**: Create session and persist context (ONLY after approval)
 
 **Actions**:
+
 1. Create session directory: `.tmp/sessions/{YYYY-MM-DD}-{task-slug}/`
 2. Write `context.md` with:
    - Task requirements
@@ -77,10 +80,12 @@ Development follows a structured 6-stage approach:
 **Decision**: Simple vs Complex?
 
 **Simple** (1-3 files, <30min):
+
 - Skip TaskManager
 - Execute directly in Stage 5
 
 **Complex** (4+ files, >60min):
+
 - Delegate to `TaskManager`
 - Creates `.tmp/tasks/{feature}/task.json` + subtasks
 - Present plan for confirmation
@@ -110,6 +115,7 @@ Development follows a structured 6-stage approach:
 ## Stage 6: Validate & Handoff
 
 **Actions**:
+
 1. Run full system integration tests
 2. Delegate to `TestEngineer` or `CodeReviewer` (pass session context)
 3. Summarize what was built
@@ -138,7 +144,7 @@ Development follows a structured 6-stage approach:
     - Bidirectional conversion
     - Extends BaseAdapter
     - JSON config format"
-   
+
 3. Init Session:
    Create .tmp/sessions/2026-02-04-windsurf-adapter/
    Write context.md with standards + references
@@ -162,6 +168,7 @@ Development follows a structured 6-stage approach:
 ## Reference
 
 **Related**:
+
 - standards/code-quality.md (MANDATORY before coding)
 - concepts/compatibility-layer.md
 - examples/baseadapter-implementation.md

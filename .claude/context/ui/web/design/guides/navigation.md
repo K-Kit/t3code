@@ -23,14 +23,14 @@ guides/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Build scrollytelling** | `building-scrollytelling-pages.md` |
-| **Dark UI colors** | `premium-dark-ui-colors.md` |
-| **Dark UI components** | `premium-dark-ui-components.md` |
-| **Dark UI layouts** | `premium-dark-ui-layouts.md` |
-| **Dark UI advanced** | `premium-dark-ui-advanced.md` |
-| **Dark UI reference** | `premium-dark-ui-visual-reference.md` |
+| Task                     | Path                                  |
+| ------------------------ | ------------------------------------- |
+| **Build scrollytelling** | `building-scrollytelling-pages.md`    |
+| **Dark UI colors**       | `premium-dark-ui-colors.md`           |
+| **Dark UI components**   | `premium-dark-ui-components.md`       |
+| **Dark UI layouts**      | `premium-dark-ui-layouts.md`          |
+| **Dark UI advanced**     | `premium-dark-ui-advanced.md`         |
+| **Dark UI reference**    | `premium-dark-ui-visual-reference.md` |
 
 ---
 

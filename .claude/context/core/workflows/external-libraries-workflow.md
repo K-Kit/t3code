@@ -1,4 +1,5 @@
 <!-- Context: workflows/external-libraries | Priority: high | Version: 2.1 | Updated: 2026-02-05 -->
+
 # Workflow: External Libraries
 
 **Purpose**: Fetch current documentation for external packages before implementation
@@ -12,6 +13,7 @@
 **Process**: Detect package → Check install scripts → Use ExternalScout → Implement
 
 **When to use ExternalScout** (MANDATORY):
+
 - New builds with external packages
 - First-time package setup
 - Package/dependency errors
@@ -28,11 +30,13 @@
 </rule>
 
 **Why:**
+
 - APIs change (new methods, deprecated features)
 - Configuration patterns evolve
 - Breaking changes happen frequently
 
 **Example:**
+
 ```
 Training data (2023): Next.js 13 uses pages/ directory
 Current (2025): Next.js 15 uses app/ directory
@@ -65,12 +69,12 @@ task(
   subagent_type="ExternalScout",
   description="Fetch [Library] docs for [topic]",
   prompt="Fetch current documentation for [Library]: [specific question]
-  
+
   Focus on:
   - Installation and setup steps
   - [Specific feature/API needed]
   - Required environment variables
-  
+
   Context: [What you're building]"
 )
 ```
@@ -107,23 +111,25 @@ STEP 1: ContextScout → Search internal context
                                STEP 3: Combine internal + external → Implement
 ```
 
-| Scenario | ContextScout | ExternalScout |
-|----------|--------------|---------------|
-| Project coding standards | ✅ | ❌ |
-| External library setup | ❌ | ✅ MANDATORY |
-| Feature with external lib | ✅ standards | ✅ lib docs |
+| Scenario                  | ContextScout | ExternalScout |
+| ------------------------- | ------------ | ------------- |
+| Project coding standards  | ✅           | ❌            |
+| External library setup    | ❌           | ✅ MANDATORY  |
+| Feature with external lib | ✅ standards | ✅ lib docs   |
 
 ---
 
 ## Best Practices
 
 **Do ✅:**
+
 - Check install scripts first
 - Always fetch current docs
 - Verify versions match
 - Test integrations
 
 **Don't ❌:**
+
 - Assume APIs based on training data
 - Skip version checks
 - Ignore peer dependencies

@@ -24,12 +24,12 @@ context/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Plugin overview** | `context-overview.md` |
-| **Architecture** | `architecture/navigation.md` |
-| **Capabilities** | `capabilities/navigation.md` |
-| **Create plugins** | `guides/creating-plugins.md` |
+| Task                 | Path                         |
+| -------------------- | ---------------------------- |
+| **Plugin overview**  | `context-overview.md`        |
+| **Architecture**     | `architecture/navigation.md` |
+| **Capabilities**     | `capabilities/navigation.md` |
+| **Create plugins**   | `guides/creating-plugins.md` |
 | **Plugin structure** | `lookup/plugin-structure.md` |
 
 ---

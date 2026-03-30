@@ -9,9 +9,11 @@ Content planning, ideation, and production workflows.
 ## Available Files
 
 ### content-matrix.md
+
 Content planning matrix for organizing content across topics and formats.
 
 **Topics**:
+
 - Content matrix structure
 - Topic clustering
 - Format distribution
@@ -24,9 +26,11 @@ Content planning matrix for organizing content across topics and formats.
 ---
 
 ### content-ideas.md
+
 Frameworks and techniques for generating content ideas.
 
 **Topics**:
+
 - Ideation frameworks (SCAMPER, mind mapping, etc.)
 - Content idea sources
 - Trending topic research
@@ -39,9 +43,11 @@ Frameworks and techniques for generating content ideas.
 ---
 
 ### audience-review.md
+
 Process for reviewing content for audience fit and effectiveness.
 
 **Topics**:
+
 - Audience alignment checklist
 - Message clarity assessment
 - Tone and voice verification
@@ -54,9 +60,11 @@ Process for reviewing content for audience fit and effectiveness.
 ---
 
 ### remix-repurpose.md
+
 Strategies for remixing and repurposing existing content.
 
 **Topics**:
+
 - Content atomization (breaking down pillar content)
 - Format transformation (blog → video → social posts)
 - Update and refresh strategies
@@ -71,6 +79,7 @@ Strategies for remixing and repurposing existing content.
 ## Usage
 
 Load these workflow files when:
+
 - Planning content strategy
 - Generating new content ideas
 - Reviewing content before publishing

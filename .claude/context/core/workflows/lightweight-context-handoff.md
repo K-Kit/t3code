@@ -1,4 +1,5 @@
 <!-- Context: workflows/lightweight-context-handoff | Priority: critical | Version: 1.0 | Updated: 2026-02-15 -->
+
 # Lightweight Context Handoff Pattern
 
 ## Problem
@@ -23,11 +24,13 @@
 ## Key Principle
 
 ✅ **DO THIS:**
+
 ```
 Orchestrator → Agent: "Here's the ONE file you need: .tmp/architecture/auth-system/contexts.json"
 ```
 
 ❌ **NOT THIS:**
+
 ```
 Orchestrator → Agent: "Here's the entire session context with everything from all previous agents (5000 lines)"
 ```
@@ -46,16 +49,16 @@ Orchestrator → Agent: "Here's the entire session context with everything from 
   agents: {
     "ArchitectureAnalyzer": {
       outputs: [".tmp/architecture/auth-system/contexts.json"],
-      metadata: { 
-        boundedContext: "authentication", 
-        module: "auth-service" 
+      metadata: {
+        boundedContext: "authentication",
+        module: "auth-service"
       },
       timestamp: "2026-02-15T10:05:00Z"
     },
     "StoryMapper": {
       outputs: [".tmp/story-maps/auth-system/map.json"],
-      metadata: { 
-        verticalSlice: "user-login" 
+      metadata: {
+        verticalSlice: "user-login"
       },
       timestamp: "2026-02-15T10:15:00Z"
     }
@@ -73,6 +76,7 @@ Orchestrator → Agent: "Here's the entire session context with everything from 
 ### What Gets Stored
 
 **Lightweight (paths and metadata only):**
+
 - ✅ File paths to agent outputs
 - ✅ Small metadata objects (boundedContext, module, etc.)
 - ✅ Timestamps
@@ -80,6 +84,7 @@ Orchestrator → Agent: "Here's the entire session context with everything from 
 - ✅ Reference file paths
 
 **NOT stored (content stays in files):**
+
 - ❌ Full file contents
 - ❌ Large JSON blobs
 - ❌ Entire session history
@@ -96,16 +101,14 @@ Orchestrator → Agent: "Here's the entire session context with everything from 
 Initialize a new context index for a feature.
 
 ```typescript
-import { createContextIndex } from './context-index';
+import { createContextIndex } from "./context-index";
 
-const result = createContextIndex('auth-system', {
+const result = createContextIndex("auth-system", {
   contextFiles: [
-    '.opencode/context/core/standards/code-quality.md',
-    '(example: .opencode/context/security/auth-patterns.md)'
+    ".opencode/context/core/standards/code-quality.md",
+    "(example: .opencode/context/security/auth-patterns.md)",
   ],
-  referenceFiles: [
-    'src/auth/old-auth.ts'
-  ]
+  referenceFiles: ["src/auth/old-auth.ts"],
 });
 
 // Result: { success: true }
@@ -117,28 +120,23 @@ const result = createContextIndex('auth-system', {
 Track what each agent produced.
 
 ```typescript
-import { addAgentOutput } from './context-index';
+import { addAgentOutput } from "./context-index";
 
 // After ArchitectureAnalyzer completes
 addAgentOutput(
-  'auth-system',
-  'ArchitectureAnalyzer',
-  '.tmp/architecture/auth-system/contexts.json',
-  { 
-    boundedContext: 'authentication',
-    module: 'auth-service'
-  }
+  "auth-system",
+  "ArchitectureAnalyzer",
+  ".tmp/architecture/auth-system/contexts.json",
+  {
+    boundedContext: "authentication",
+    module: "auth-service",
+  },
 );
 
 // After StoryMapper completes
-addAgentOutput(
-  'auth-system',
-  'StoryMapper',
-  '.tmp/story-maps/auth-system/map.json',
-  { 
-    verticalSlice: 'user-login'
-  }
-);
+addAgentOutput("auth-system", "StoryMapper", ".tmp/story-maps/auth-system/map.json", {
+  verticalSlice: "user-login",
+});
 ```
 
 #### `getContextForAgent(feature, agentType)`
@@ -177,9 +175,9 @@ const result = getContextForAgent('auth-system', 'StoryMapper');
 Orchestrator can see everything (for coordination).
 
 ```typescript
-import { getFullContext } from './context-index';
+import { getFullContext } from "./context-index";
 
-const result = getFullContext('auth-system');
+const result = getFullContext("auth-system");
 
 // Returns complete index with all agent outputs
 ```
@@ -191,11 +189,14 @@ const result = getFullContext('auth-system');
 Each agent type gets a minimal, focused context:
 
 ### ArchitectureAnalyzer
+
 **Needs:**
+
 - Architecture patterns context files
 - Reference files (existing code)
 
 **Gets:**
+
 ```typescript
 {
   contextFiles: [
@@ -210,11 +211,14 @@ Each agent type gets a minimal, focused context:
 ```
 
 ### StoryMapper
+
 **Needs:**
+
 - ArchitectureAnalyzer output
 - Story mapping context files
 
 **Gets:**
+
 ```typescript
 {
   contextFiles: [
@@ -232,11 +236,14 @@ Each agent type gets a minimal, focused context:
 ```
 
 ### PrioritizationEngine
+
 **Needs:**
+
 - StoryMapper output
 - Prioritization context files
 
 **Gets:**
+
 ```typescript
 {
   contextFiles: [
@@ -253,11 +260,14 @@ Each agent type gets a minimal, focused context:
 ```
 
 ### TaskManager
+
 **Needs:**
+
 - ALL previous agent outputs
 - Task management context files
 
 **Gets:**
+
 ```typescript
 {
   contextFiles: [
@@ -278,11 +288,14 @@ Each agent type gets a minimal, focused context:
 ```
 
 ### CoderAgent
+
 **Needs:**
+
 - TaskManager output (subtask JSON)
 - Coding standards
 
 **Gets:**
+
 ```typescript
 {
   contextFiles: [
@@ -304,52 +317,43 @@ Each agent type gets a minimal, focused context:
 ### Complete Feature Implementation Flow
 
 ```typescript
-import { 
-  createContextIndex, 
-  addAgentOutput, 
-  getContextForAgent 
-} from './context-index';
+import { createContextIndex, addAgentOutput, getContextForAgent } from "./context-index";
 
 // 1. Initialize context index
-createContextIndex('auth-system', {
+createContextIndex("auth-system", {
   contextFiles: [
-    '.opencode/context/core/standards/code-quality.md',
-    '(example: .opencode/context/security/auth-patterns.md)',
-    '(example: .opencode/context/architecture/patterns.md)'
+    ".opencode/context/core/standards/code-quality.md",
+    "(example: .opencode/context/security/auth-patterns.md)",
+    "(example: .opencode/context/architecture/patterns.md)",
   ],
-  referenceFiles: [
-    'src/auth/old-auth.ts'
-  ]
+  referenceFiles: ["src/auth/old-auth.ts"],
 });
 
 // 2. Delegate to ArchitectureAnalyzer
-const archContext = getContextForAgent('auth-system', 'ArchitectureAnalyzer');
+const archContext = getContextForAgent("auth-system", "ArchitectureAnalyzer");
 // Pass ONLY: archContext.contextFiles + archContext.referenceFiles
 
 // 3. ArchitectureAnalyzer completes → Read output and update index
 addAgentOutput(
-  'auth-system',
-  'ArchitectureAnalyzer',
-  '.tmp/architecture/auth-system/contexts.json',
-  { boundedContext: 'authentication', module: 'auth-service' }
+  "auth-system",
+  "ArchitectureAnalyzer",
+  ".tmp/architecture/auth-system/contexts.json",
+  { boundedContext: "authentication", module: "auth-service" },
 );
 
 // 4. Delegate to StoryMapper
-const storyContext = getContextForAgent('auth-system', 'StoryMapper');
-// Pass ONLY: 
+const storyContext = getContextForAgent("auth-system", "StoryMapper");
+// Pass ONLY:
 //   - storyContext.contextFiles (story mapping guide)
 //   - storyContext.agentOutputs (ArchitectureAnalyzer output path)
 
 // 5. StoryMapper completes → Update index
-addAgentOutput(
-  'auth-system',
-  'StoryMapper',
-  '.tmp/story-maps/auth-system/map.json',
-  { verticalSlice: 'user-login' }
-);
+addAgentOutput("auth-system", "StoryMapper", ".tmp/story-maps/auth-system/map.json", {
+  verticalSlice: "user-login",
+});
 
 // 6. Delegate to PrioritizationEngine
-const prioContext = getContextForAgent('auth-system', 'PrioritizationEngine');
+const prioContext = getContextForAgent("auth-system", "PrioritizationEngine");
 // Pass ONLY:
 //   - prioContext.contextFiles (prioritization guide)
 //   - prioContext.agentOutputs (StoryMapper output path)
@@ -365,20 +369,20 @@ const context = getContextForAgent(feature, agentType);
 
 // Delegate with minimal context
 task(
-  subagent_type=agentType,
-  description="...",
-  prompt=`
+  (subagent_type = agentType),
+  (description = "..."),
+  (prompt = `
     Context files to load:
-    ${context.contextFiles.map(f => `- ${f}`).join('\n')}
+    ${context.contextFiles.map((f) => `- ${f}`).join("\n")}
     
     Previous agent outputs to read:
-    ${context.agentOutputs.map(f => `- ${f}`).join('\n')}
+    ${context.agentOutputs.map((f) => `- ${f}`).join("\n")}
     
     Metadata from previous agents:
     ${JSON.stringify(context.metadata, null, 2)}
     
     Your task: ...
-  `
+  `),
 );
 
 // After agent completes, update index
@@ -392,6 +396,7 @@ addAgentOutput(feature, agentType, outputPath, metadata);
 ### When to Use Session Context Manager
 
 **Use `session-context-manager.ts` when:**
+
 - ✅ Single long-running session with one agent
 - ✅ Need human-readable markdown summary
 - ✅ Want to track decisions and progress narratively
@@ -402,6 +407,7 @@ addAgentOutput(feature, agentType, outputPath, metadata);
 ### When to Use Context Index
 
 **Use `context-index.ts` when:**
+
 - ✅ Multi-agent orchestration with delegation
 - ✅ Need minimal context handoff between agents
 - ✅ Want to avoid context bloat
@@ -412,15 +418,15 @@ addAgentOutput(feature, agentType, outputPath, metadata);
 
 ### Comparison Table
 
-| Feature | Session Context | Context Index |
-|---------|----------------|---------------|
-| **Format** | Markdown (human-readable) | JSON (machine-readable) |
-| **Size** | Large (full content) | Small (paths only) |
-| **Audience** | Humans + Agents | Agents only |
-| **Context Passing** | Everything to everyone | Minimal per agent |
-| **Use Case** | Interactive sessions | Automated pipelines |
-| **Performance** | Slower (large files) | Faster (lightweight) |
-| **Tracking** | Decisions, progress, narrative | Outputs, metadata, pointers |
+| Feature             | Session Context                | Context Index               |
+| ------------------- | ------------------------------ | --------------------------- |
+| **Format**          | Markdown (human-readable)      | JSON (machine-readable)     |
+| **Size**            | Large (full content)           | Small (paths only)          |
+| **Audience**        | Humans + Agents                | Agents only                 |
+| **Context Passing** | Everything to everyone         | Minimal per agent           |
+| **Use Case**        | Interactive sessions           | Automated pipelines         |
+| **Performance**     | Slower (large files)           | Faster (lightweight)        |
+| **Tracking**        | Decisions, progress, narrative | Outputs, metadata, pointers |
 
 ### Can You Use Both?
 
@@ -448,18 +454,21 @@ createContextIndex('auth-system', {
 ## Benefits
 
 ### For Orchestrator
+
 - ✅ Lightweight tracking (just paths and metadata)
 - ✅ Full visibility into all agent outputs
 - ✅ Easy to coordinate dependencies
 - ✅ Fast lookups
 
 ### For Subagents
+
 - ✅ Minimal context (only what they need)
 - ✅ Faster execution (less reading)
 - ✅ Clear dependencies (explicit output paths)
 - ✅ No context bloat
 
 ### For System
+
 - ✅ Scalable (index stays small)
 - ✅ Maintainable (clear separation of concerns)
 - ✅ Debuggable (trace agent outputs)
@@ -473,8 +482,8 @@ createContextIndex('auth-system', {
 
 ```typescript
 // BAD: Agent gets everything
-const index = getFullContext('auth-system');
-task(subagent_type="StoryMapper", prompt=JSON.stringify(index));
+const index = getFullContext("auth-system");
+task((subagent_type = "StoryMapper"), (prompt = JSON.stringify(index)));
 ```
 
 **Why bad:** Agent wastes time parsing irrelevant data
@@ -483,8 +492,8 @@ task(subagent_type="StoryMapper", prompt=JSON.stringify(index));
 
 ```typescript
 // BAD: Storing full file contents
-addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
-  fullContent: fs.readFileSync(outputPath, 'utf-8') // DON'T DO THIS
+addAgentOutput("auth-system", "ArchitectureAnalyzer", outputPath, {
+  fullContent: fs.readFileSync(outputPath, "utf-8"), // DON'T DO THIS
 });
 ```
 
@@ -505,7 +514,7 @@ task(subagent_type="ArchitectureAnalyzer", ...);
 
 ```typescript
 // BAD: Expecting humans to read JSON index
-const index = getFullContext('auth-system');
+const index = getFullContext("auth-system");
 console.log("Review this:", JSON.stringify(index));
 ```
 
@@ -534,15 +543,17 @@ addAgentOutput(
 
 ```typescript
 // GOOD: Small metadata that helps next agent
-addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
-  boundedContext: 'authentication',
-  module: 'auth-service',
-  complexity: 'medium'
+addAgentOutput("auth-system", "ArchitectureAnalyzer", outputPath, {
+  boundedContext: "authentication",
+  module: "auth-service",
+  complexity: "medium",
 });
 
 // BAD: Large data that should stay in files
-addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
-  fullAnalysis: { /* 1000 lines of JSON */ }
+addAgentOutput("auth-system", "ArchitectureAnalyzer", outputPath, {
+  fullAnalysis: {
+    /* 1000 lines of JSON */
+  },
 });
 ```
 
@@ -550,34 +561,31 @@ addAgentOutput('auth-system', 'ArchitectureAnalyzer', outputPath, {
 
 ```typescript
 // GOOD: Agent reads the file
-const context = getContextForAgent('auth-system', 'StoryMapper');
+const context = getContextForAgent("auth-system", "StoryMapper");
 task(
-  subagent_type="StoryMapper",
-  prompt=`Read architecture analysis: ${context.agentOutputs[0]}`
+  (subagent_type = "StoryMapper"),
+  (prompt = `Read architecture analysis: ${context.agentOutputs[0]}`),
 );
 
 // BAD: Orchestrator reads and passes content
-const archOutput = fs.readFileSync('.tmp/architecture/...', 'utf-8');
-task(
-  subagent_type="StoryMapper",
-  prompt=`Here's the full architecture: ${archOutput}`
-);
+const archOutput = fs.readFileSync(".tmp/architecture/...", "utf-8");
+task((subagent_type = "StoryMapper"), (prompt = `Here's the full architecture: ${archOutput}`));
 ```
 
 ### 4. Keep Context Files Focused
 
 ```typescript
 // GOOD: Only relevant context files
-createContextIndex('auth-system', {
+createContextIndex("auth-system", {
   contextFiles: [
-    '(example: .opencode/context/security/auth-patterns.md)',
-    '.opencode/context/core/standards/code-quality.md'
-  ]
+    "(example: .opencode/context/security/auth-patterns.md)",
+    ".opencode/context/core/standards/code-quality.md",
+  ],
 });
 
 // BAD: Every context file in the project
-createContextIndex('auth-system', {
-  contextFiles: glob('.opencode/context/**/*.md') // Too much!
+createContextIndex("auth-system", {
+  contextFiles: glob(".opencode/context/**/*.md"), // Too much!
 });
 ```
 
@@ -633,6 +641,7 @@ npx ts-node context-index.ts show auth-system
 ## Summary
 
 **Lightweight Context Handoff Pattern:**
+
 - Orchestrator maintains lightweight index (paths + metadata)
 - Each agent gets minimal, focused context
 - Index stays small and fast
@@ -640,12 +649,14 @@ npx ts-node context-index.ts show auth-system
 - Clear separation: index for coordination, files for content
 
 **Use this pattern when:**
+
 - Multi-agent orchestration
 - Performance matters
 - Context bloat is a problem
 - Agents should be isolated
 
 **Use session-context when:**
+
 - Human-readable tracking needed
 - Single-agent sessions
 - Narrative progress tracking

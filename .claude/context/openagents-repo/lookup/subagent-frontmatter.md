@@ -8,35 +8,35 @@
 
 ## Required Fields
 
-| Field | Description |
-|-------|-------------|
-| `name` | Unique identifier (lowercase, hyphens) |
+| Field         | Description                                  |
+| ------------- | -------------------------------------------- |
+| `name`        | Unique identifier (lowercase, hyphens)       |
 | `description` | When Claude should delegate to this subagent |
 
 ---
 
 ## Optional Fields
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `tools` | All | Tools subagent can use |
-| `disallowedTools` | - | Tools to deny (removed from list) |
-| `model` | `sonnet` | Model: `sonnet`, `opus`, `haiku`, `inherit` |
-| `permissionMode` | `default` | Permission handling mode |
-| `skills` | - | Skills to load into context |
-| `hooks` | - | Lifecycle hooks for this subagent |
+| Field             | Default   | Description                                 |
+| ----------------- | --------- | ------------------------------------------- |
+| `tools`           | All       | Tools subagent can use                      |
+| `disallowedTools` | -         | Tools to deny (removed from list)           |
+| `model`           | `sonnet`  | Model: `sonnet`, `opus`, `haiku`, `inherit` |
+| `permissionMode`  | `default` | Permission handling mode                    |
+| `skills`          | -         | Skills to load into context                 |
+| `hooks`           | -         | Lifecycle hooks for this subagent           |
 
 ---
 
 ## Permission Modes
 
-| Mode | Behavior |
-|------|----------|
-| `default` | Standard permission checking |
-| `acceptEdits` | Auto-accept file edits |
-| `dontAsk` | Auto-deny permission prompts |
-| `bypassPermissions` | Skip all permission checks |
-| `plan` | Read-only exploration |
+| Mode                | Behavior                     |
+| ------------------- | ---------------------------- |
+| `default`           | Standard permission checking |
+| `acceptEdits`       | Auto-accept file edits       |
+| `dontAsk`           | Auto-deny permission prompts |
+| `bypassPermissions` | Skip all permission checks   |
+| `plan`              | Read-only exploration        |
 
 ⚠️ `bypassPermissions` is dangerous - skips all checks
 
@@ -70,7 +70,6 @@ tools: Read, Edit, Bash, Grep, Glob
 model: inherit
 permissionMode: default
 ---
-
 You are an expert debugger...
 ```
 

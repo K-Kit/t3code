@@ -23,14 +23,14 @@ operations/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Extract context** | `extract.md` |
-| **Harvest summaries** | `harvest.md` |
-| **Organize files** | `organize.md` |
-| **Update context** | `update.md` |
-| **Migrate context** | `migrate.md` |
-| **Add errors** | `error.md` |
+| Task                  | Path          |
+| --------------------- | ------------- |
+| **Extract context**   | `extract.md`  |
+| **Harvest summaries** | `harvest.md`  |
+| **Organize files**    | `organize.md` |
+| **Update context**    | `update.md`   |
+| **Migrate context**   | `migrate.md`  |
+| **Add errors**        | `error.md`    |
 
 ---
 

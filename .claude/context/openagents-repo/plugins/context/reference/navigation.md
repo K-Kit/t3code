@@ -18,10 +18,10 @@ reference/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Best practices** | `best-practices.md` |
-| **Create plugins** | `../guides/creating-plugins.md` |
+| Task                 | Path                            |
+| -------------------- | ------------------------------- |
+| **Best practices**   | `best-practices.md`             |
+| **Create plugins**   | `../guides/creating-plugins.md` |
 | **Plugin structure** | `../lookup/plugin-structure.md` |
 
 ---

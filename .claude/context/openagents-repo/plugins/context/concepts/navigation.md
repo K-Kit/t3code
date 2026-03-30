@@ -18,11 +18,11 @@ concepts/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Plugin architecture** | `plugin-architecture.md` |
+| Task                     | Path                            |
+| ------------------------ | ------------------------------- |
+| **Plugin architecture**  | `plugin-architecture.md`        |
 | **Architecture details** | `../architecture/navigation.md` |
-| **Capabilities** | `../capabilities/navigation.md` |
+| **Capabilities**         | `../capabilities/navigation.md` |
 
 ---
 

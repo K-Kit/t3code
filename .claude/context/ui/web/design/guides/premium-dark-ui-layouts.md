@@ -14,9 +14,7 @@ Common layout patterns for premium dark UI.
     <PremiumHeading as="h1" accent="AI">
       Build Production
     </PremiumHeading>
-    <p className="text-xl text-slate-300 mb-8">
-      Your subtitle goes here
-    </p>
+    <p className="text-xl text-slate-300 mb-8">Your subtitle goes here</p>
     <button className="px-8 py-4 rounded-full bg-[#80cca5] hover:bg-[#6bb890] text-white font-semibold transition-all shadow-lg">
       Get Started
     </button>
@@ -31,20 +29,14 @@ Common layout patterns for premium dark UI.
 ```tsx
 <PremiumSection>
   <div className="text-center mb-16">
-    <PremiumHeading accent="Features">
-      Powerful
-    </PremiumHeading>
+    <PremiumHeading accent="Features">Powerful</PremiumHeading>
   </div>
   <div className="grid md:grid-cols-3 gap-8">
     {features.map((feature) => (
       <PremiumCard key={feature.id}>
         <Icon className="size-12 text-[#80cca5] mb-4" />
-        <h3 className="text-xl font-bold text-white mb-2">
-          {feature.title}
-        </h3>
-        <p className="text-slate-300">
-          {feature.description}
-        </p>
+        <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+        <p className="text-slate-300">{feature.description}</p>
       </PremiumCard>
     ))}
   </div>
@@ -59,16 +51,12 @@ Common layout patterns for premium dark UI.
 <PremiumSection>
   <div className="max-w-3xl mx-auto">
     <div className="text-center mb-12">
-      <PremiumHeading accent="Started">
-        Get
-      </PremiumHeading>
-      <p className="text-xl text-slate-300">
-        Join thousands of users
-      </p>
+      <PremiumHeading accent="Started">Get</PremiumHeading>
+      <p className="text-xl text-slate-300">Join thousands of users</p>
     </div>
     <PremiumCard className="p-8 md:p-12">
       <form className="space-y-6">
-        <input 
+        <input
           type="email"
           placeholder="you@example.com"
           className="w-full px-4 py-3 rounded-lg border border-[#80cca5]/20 bg-slate-900/50 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-[#80cca5] focus:border-transparent"
@@ -109,6 +97,7 @@ Common layout patterns for premium dark UI.
 ```
 
 **Breakpoints**:
+
 - `sm`: 640px (tablets)
 - `md`: 768px (tablets/small laptops)
 - `lg`: 1024px (laptops)
@@ -155,14 +144,20 @@ export default function Page() {
           <PremiumHeading accent="Started">Get</PremiumHeading>
           <PremiumCard className="p-8 md:p-12">
             <form className="space-y-6">
-              <input type="email" placeholder="you@example.com" className="w-full px-4 py-3 rounded-lg border border-[#80cca5]/20 bg-slate-900/50 text-white" />
-              <button className="w-full px-8 py-4 rounded-full bg-[#80cca5] text-white font-semibold">Sign Up</button>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 rounded-lg border border-[#80cca5]/20 bg-slate-900/50 text-white"
+              />
+              <button className="w-full px-8 py-4 rounded-full bg-[#80cca5] text-white font-semibold">
+                Sign Up
+              </button>
             </form>
           </PremiumCard>
         </div>
       </PremiumSection>
     </div>
-  )
+  );
 }
 ```
 

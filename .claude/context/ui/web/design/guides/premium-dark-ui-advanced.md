@@ -29,21 +29,21 @@ Animations, accessibility, and checklists for premium dark UI.
 
 ```tsx
 // npm install react-intersection-observer
-import { useInView } from 'react-intersection-observer'
+import { useInView } from "react-intersection-observer";
 
 function Component() {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
-  
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
+
   return (
-    <div 
+    <div
       ref={ref}
       className={`transition-all duration-700 ${
-        inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
       }`}
     >
       Content
     </div>
-  )
+  );
 }
 ```
 
@@ -60,9 +60,7 @@ function Component() {
 ### Focus States
 
 ```tsx
-<button className="focus:ring-2 focus:ring-[#80cca5] focus:outline-none">
-  Button
-</button>
+<button className="focus:ring-2 focus:ring-[#80cca5] focus:outline-none">Button</button>
 ```
 
 ### Semantic HTML
@@ -70,7 +68,9 @@ function Component() {
 ```tsx
 <nav>
   <ul>
-    <li><a href="#">Link</a></li>
+    <li>
+      <a href="#">Link</a>
+    </li>
   </ul>
 </nav>
 ```
@@ -93,6 +93,7 @@ function Component() {
 ## Common Mistakes
 
 ❌ **DON'T**:
+
 - Use light backgrounds (`bg-white`, `bg-slate-100`)
 - Use `dark:` variants (this is dark-only)
 - Mix multiple accent colors
@@ -103,6 +104,7 @@ function Component() {
 - Ignore mobile layout
 
 ✅ **DO**:
+
 - Stick to the color palette
 - Use consistent spacing (multiples of 4)
 - Add subtle animations

@@ -19,11 +19,11 @@ architecture/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Architecture overview** | `overview.md` |
-| **Plugin lifecycle** | `lifecycle.md` |
-| **Plugin concepts** | `../concepts/plugin-architecture.md` |
+| Task                      | Path                                 |
+| ------------------------- | ------------------------------------ |
+| **Architecture overview** | `overview.md`                        |
+| **Plugin lifecycle**      | `lifecycle.md`                       |
+| **Plugin concepts**       | `../concepts/plugin-architecture.md` |
 
 ---
 

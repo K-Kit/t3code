@@ -1,4 +1,5 @@
 <!-- Context: workflows/external-context | Priority: high | Version: 1.0 | Updated: 2026-01-28 -->
+
 # External Context Management
 
 ## Overview
@@ -50,36 +51,25 @@ External context is live documentation fetched from external libraries and frame
 **Purpose**: Track what's cached, when it was fetched, and from which source
 
 **Structure**:
+
 ```json
 {
   "last_updated": "2026-01-28T14:30:22Z",
   "packages": {
     "drizzle-orm": {
-      "files": [
-        "modular-schemas.md",
-        "postgresql-setup.md",
-        "typescript-config.md"
-      ],
+      "files": ["modular-schemas.md", "postgresql-setup.md", "typescript-config.md"],
       "last_updated": "2026-01-28T14:30:22Z",
       "source": "Context7 API",
       "official_docs": "https://orm.drizzle.team"
     },
     "better-auth": {
-      "files": [
-        "nextjs-integration.md",
-        "drizzle-adapter.md",
-        "session-management.md"
-      ],
+      "files": ["nextjs-integration.md", "drizzle-adapter.md", "session-management.md"],
       "last_updated": "2026-01-28T14:25:10Z",
       "source": "Context7 API",
       "official_docs": "https://better-auth.com"
     },
     "next.js": {
-      "files": [
-        "app-router-setup.md",
-        "server-actions.md",
-        "middleware.md"
-      ],
+      "files": ["app-router-setup.md", "server-actions.md", "middleware.md"],
       "last_updated": "2026-01-28T14:20:05Z",
       "source": "Context7 API",
       "official_docs": "https://nextjs.org"
@@ -95,6 +85,7 @@ External context is live documentation fetched from external libraries and frame
 Each external context file has a metadata header followed by the documentation content.
 
 **Template**:
+
 ```markdown
 ---
 source: Context7 API
@@ -203,14 +194,17 @@ Add this section to `.tmp/sessions/{session-id}/context.md`:
 These are live documentation files fetched from external libraries. Subagents should reference these instead of re-fetching.
 
 ### Drizzle ORM
+
 - `.tmp/external-context/drizzle-orm/modular-schemas.md` — Schema organization patterns
 - `.tmp/external-context/drizzle-orm/postgresql-setup.md` — PostgreSQL configuration
 
 ### Better Auth
+
 - `.tmp/external-context/better-auth/nextjs-integration.md` — Next.js integration guide
 - `.tmp/external-context/better-auth/drizzle-adapter.md` — Drizzle adapter setup
 
 ### Next.js
+
 - `.tmp/external-context/next.js/app-router-setup.md` — App Router basics
 - `.tmp/external-context/next.js/server-actions.md` — Server Actions patterns
 
@@ -229,10 +223,7 @@ When TaskManager creates subtask JSONs, it should include external context files
     ".opencode/context/core/standards/code-quality.md",
     ".opencode/context/core/standards/test-coverage.md"
   ],
-  "reference_files": [
-    "package.json",
-    "src/db/schema.ts"
-  ],
+  "reference_files": ["package.json", "src/db/schema.ts"],
   "external_context": [
     ".tmp/external-context/drizzle-orm/modular-schemas.md",
     ".tmp/external-context/drizzle-orm/postgresql-setup.md"
@@ -248,6 +239,7 @@ When TaskManager creates subtask JSONs, it should include external context files
 ### When to Clean Up
 
 External context files should be cleaned up when:
+
 1. Task is complete and session is deleted
 2. External docs become stale (>7 days old)
 3. User explicitly requests cleanup
@@ -256,12 +248,14 @@ External context files should be cleaned up when:
 ### How to Clean Up
 
 **Manual cleanup** (ask user first):
+
 ```bash
 rm -rf .tmp/external-context/{package-name}/
 # Update .manifest.json to remove package entry
 ```
 
 **Automatic cleanup** (future enhancement):
+
 - Add cleanup script that removes files older than 7 days
 - Run as part of session cleanup process
 - Update manifest after cleanup
@@ -269,6 +263,7 @@ rm -rf .tmp/external-context/{package-name}/
 ### Manifest Cleanup
 
 After deleting external context files, update `.manifest.json`:
+
 ```json
 {
   "last_updated": "2026-01-28T15:00:00Z",
@@ -313,6 +308,7 @@ After deleting external context files, update `.manifest.json`:
 ### Example 1: Drizzle + Better Auth Integration
 
 **Main Agent Flow**:
+
 ```
 1. User asks: "Set up Drizzle + Better Auth in Next.js"
 2. Main agent calls ExternalScout
@@ -330,24 +326,29 @@ After deleting external context files, update `.manifest.json`:
 ```
 
 **Session Context File**:
+
 ```markdown
 ## External Context Fetched
 
 ### Drizzle ORM
+
 - `.tmp/external-context/drizzle-orm/modular-schemas.md`
 - `.tmp/external-context/drizzle-orm/postgresql-setup.md`
 
 ### Better Auth
+
 - `.tmp/external-context/better-auth/nextjs-integration.md`
 - `.tmp/external-context/better-auth/drizzle-adapter.md`
 
 ### Next.js
+
 - `.tmp/external-context/next.js/app-router-setup.md`
 ```
 
 ### Example 2: TanStack Query + Server Components
 
 **Main Agent Flow**:
+
 ```
 1. User asks: "How do I use TanStack Query with Next.js Server Components?"
 2. Main agent calls ExternalScout
@@ -369,6 +370,7 @@ After deleting external context files, update `.manifest.json`:
 **Problem**: Subagent can't find `.tmp/external-context/{package-name}/{topic}.md`
 
 **Solution**:
+
 1. Check that ExternalScout ran successfully
 2. Verify file path in session context matches actual file location
 3. Check `.manifest.json` to see what's cached
@@ -379,6 +381,7 @@ After deleting external context files, update `.manifest.json`:
 **Problem**: External docs are outdated (>7 days old)
 
 **Solution**:
+
 1. Delete stale files: `rm -rf .tmp/external-context/{package-name}/`
 2. Update `.manifest.json`
 3. Re-run ExternalScout to fetch fresh docs
@@ -389,6 +392,7 @@ After deleting external context files, update `.manifest.json`:
 **Problem**: `.manifest.json` doesn't match actual files
 
 **Solution**:
+
 1. Regenerate manifest by listing actual files:
    ```bash
    find .tmp/external-context -name "*.md" | sort

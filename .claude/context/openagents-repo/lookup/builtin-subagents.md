@@ -13,6 +13,7 @@
 **Purpose**: File discovery, code search, codebase exploration
 
 Thoroughness levels:
+
 - `quick` - Targeted lookups
 - `medium` - Balanced exploration
 - `very thorough` - Comprehensive analysis
@@ -41,17 +42,18 @@ Used when task requires both exploration AND modification, complex reasoning, or
 
 ## Other Built-in Agents
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| Bash | Inherits | Terminal commands in separate context |
-| statusline-setup | Sonnet | Configure status line (`/statusline`) |
-| Claude Code Guide | Haiku | Questions about Claude Code features |
+| Agent             | Model    | Purpose                               |
+| ----------------- | -------- | ------------------------------------- |
+| Bash              | Inherits | Terminal commands in separate context |
+| statusline-setup  | Sonnet   | Configure status line (`/statusline`) |
+| Claude Code Guide | Haiku    | Questions about Claude Code features  |
 
 ---
 
 ## Disabling Subagents
 
 In settings or CLI:
+
 ```json
 {
   "permissions": {

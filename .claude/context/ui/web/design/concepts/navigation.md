@@ -18,11 +18,11 @@ concepts/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Scroll animations** | `scroll-linked-animations.md` |
+| Task                     | Path                                         |
+| ------------------------ | -------------------------------------------- |
+| **Scroll animations**    | `scroll-linked-animations.md`                |
 | **Scrollytelling guide** | `../guides/building-scrollytelling-pages.md` |
-| **Animation prompts** | `../lookup/scroll-animation-prompts.md` |
+| **Animation prompts**    | `../lookup/scroll-animation-prompts.md`      |
 
 ---
 

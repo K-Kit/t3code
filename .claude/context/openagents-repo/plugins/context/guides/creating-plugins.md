@@ -43,14 +43,14 @@ Greet the user named "$ARGUMENTS" warmly.
 
 ## Adding Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| Commands | `commands/*.md` | Slash commands |
-| Agents | `agents/*.md` | Custom subagents |
-| Skills | `skills/*/SKILL.md` | Agent capabilities |
-| Hooks | `hooks/hooks.json` | Event handlers |
-| MCP | `.mcp.json` | External tools |
-| LSP | `.lsp.json` | Code intelligence |
+| Component | Location            | Purpose            |
+| --------- | ------------------- | ------------------ |
+| Commands  | `commands/*.md`     | Slash commands     |
+| Agents    | `agents/*.md`       | Custom subagents   |
+| Skills    | `skills/*/SKILL.md` | Agent capabilities |
+| Hooks     | `hooks/hooks.json`  | Event handlers     |
+| MCP       | `.mcp.json`         | External tools     |
+| LSP       | `.lsp.json`         | Code intelligence  |
 
 ---
 

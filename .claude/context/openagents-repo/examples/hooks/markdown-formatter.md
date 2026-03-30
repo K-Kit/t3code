@@ -11,13 +11,17 @@
 ```json
 {
   "hooks": {
-    "PostToolUse": [{
-      "matcher": "Edit|Write",
-      "hooks": [{
-        "type": "command",
-        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/markdown_formatter.py"
-      }]
-    }]
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/markdown_formatter.py"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
@@ -26,7 +30,7 @@
 
 ## Python Script
 
-```python
+````python
 #!/usr/bin/env python3
 import json, sys, re, os
 
@@ -51,7 +55,7 @@ def format_markdown(content):
         if not info.strip():
             return f"{indent}```{detect_language(body)}\n{body}{closing}\n"
         return match.group(0)
-    
+
     pattern = r'(?ms)^([ \t]{0,3})```([^\n]*)\n(.*?)(\n\1```)\s*$'
     content = re.sub(pattern, add_lang, content)
     return re.sub(r'\n{3,}', '\n\n', content).rstrip() + '\n'
@@ -67,7 +71,7 @@ if path.endswith(('.md', '.mdx')) and os.path.exists(path):
         with open(path, 'w') as f:
             f.write(formatted)
         print(f"✓ Fixed formatting in {path}")
-```
+````
 
 ---
 

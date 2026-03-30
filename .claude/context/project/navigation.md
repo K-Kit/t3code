@@ -10,8 +10,8 @@
 
 ## Files
 
-| File | Purpose | Status |
-|------|---------|--------|
+| File                 | Purpose                               | Status        |
+| -------------------- | ------------------------------------- | ------------- |
 | `project-context.md` | Technology stack, patterns, workflows | ⛔ DEPRECATED |
 
 ---

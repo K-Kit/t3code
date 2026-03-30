@@ -18,11 +18,11 @@ errors/
 
 ## Quick Routes
 
-| Task | Path |
-|------|------|
-| **Common errors** | `mastra-errors.md` |
-| **Guides** | `../guides/navigation.md` |
-| **Concepts** | `../concepts/navigation.md` |
+| Task              | Path                        |
+| ----------------- | --------------------------- |
+| **Common errors** | `mastra-errors.md`          |
+| **Guides**        | `../guides/navigation.md`   |
+| **Concepts**      | `../concepts/navigation.md` |
 
 ---
 

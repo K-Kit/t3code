@@ -8,9 +8,9 @@
 
 ## Files
 
-| File | Description | Priority |
-|------|-------------|----------|
-| _(No files yet)_ | | |
+| File             | Description | Priority |
+| ---------------- | ----------- | -------- |
+| _(No files yet)_ |             |          |
 
 ---
 

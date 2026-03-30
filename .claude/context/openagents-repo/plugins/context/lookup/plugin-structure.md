@@ -44,13 +44,13 @@ my-plugin/
 
 ```json
 {
-  "name": "plugin-name",        // Required: namespace prefix
+  "name": "plugin-name", // Required: namespace prefix
   "description": "What it does", // Required: shown in manager
-  "version": "1.0.0",           // Required: semver
-  "author": { "name": "You" },  // Optional
-  "homepage": "https://...",    // Optional
-  "repository": "https://...",  // Optional
-  "license": "MIT"              // Optional
+  "version": "1.0.0", // Required: semver
+  "author": { "name": "You" }, // Optional
+  "homepage": "https://...", // Optional
+  "repository": "https://...", // Optional
+  "license": "MIT" // Optional
 }
 ```
 

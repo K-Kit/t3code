@@ -6,7 +6,7 @@ This directory contains context files for education, coaching, and teaching meth
 
 ## Available Context Files
 
-*No context files yet. This category is ready for learning-related context.*
+_No context files yet. This category is ready for learning-related context._
 
 ## Planned Context Files
 

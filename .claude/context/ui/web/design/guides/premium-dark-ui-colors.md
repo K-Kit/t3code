@@ -10,17 +10,17 @@ Quick reference for colors, spacing, and typography in premium dark UI.
 
 ```css
 /* Backgrounds */
---bg-deep-dark: #0a0f0d;      /* Main background */
---bg-black: #000000;           /* Alternate sections */
+--bg-deep-dark: #0a0f0d; /* Main background */
+--bg-black: #000000; /* Alternate sections */
 
 /* Text */
---text-heading: #ffffff;       /* Headings */
---text-body: #cbd5e1;          /* Body (slate-300) */
---text-muted: #94a3b8;         /* Muted (slate-400) */
+--text-heading: #ffffff; /* Headings */
+--text-body: #cbd5e1; /* Body (slate-300) */
+--text-muted: #94a3b8; /* Muted (slate-400) */
 
 /* Accent */
---accent: #80cca5;             /* Green - CTAs, links, highlights */
---accent-hover: #6bb890;       /* Hover state */
+--accent: #80cca5; /* Green - CTAs, links, highlights */
+--accent-hover: #6bb890; /* Hover state */
 
 /* Glass */
 --glass-bg: rgba(255, 255, 255, 0.02);
@@ -99,14 +99,14 @@ mb-16  /* 64px - Section margin bottom */
 ```tsx
 // Primary CTA Button
 <button className="
-  px-8 py-4 
-  rounded-full 
-  bg-[#80cca5] 
-  hover:bg-[#6bb890] 
-  text-white 
-  font-semibold 
-  transition-all 
-  shadow-lg 
+  px-8 py-4
+  rounded-full
+  bg-[#80cca5]
+  hover:bg-[#6bb890]
+  text-white
+  font-semibold
+  transition-all
+  shadow-lg
   hover:shadow-xl
 ">
   Primary Action
@@ -114,13 +114,13 @@ mb-16  /* 64px - Section margin bottom */
 
 // Secondary Button
 <button className="
-  px-6 py-3 
-  rounded-full 
-  bg-white/[0.02] 
-  border border-white/10 
-  hover:border-[#80cca5]/30 
-  text-white 
-  font-medium 
+  px-6 py-3
+  rounded-full
+  bg-white/[0.02]
+  border border-white/10
+  hover:border-[#80cca5]/30
+  text-white
+  font-medium
   transition-all
 ">
   Secondary Action
@@ -138,14 +138,14 @@ mb-16  /* 64px - Section margin bottom */
 
 ```tsx
 // Text Input
-<input 
+<input
   type="text"
   className="
-    w-full px-4 py-3 rounded-lg 
-    border border-[#80cca5]/20 
-    bg-slate-900/50 
-    text-white 
-    placeholder:text-slate-500 
+    w-full px-4 py-3 rounded-lg
+    border border-[#80cca5]/20
+    bg-slate-900/50
+    text-white
+    placeholder:text-slate-500
     focus:ring-2 focus:ring-[#80cca5] focus:border-transparent
   "
   placeholder="Enter text"

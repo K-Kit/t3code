@@ -1,4 +1,5 @@
 <!-- Context: openagents-repo/standards/agent-frontmatter | Priority: critical | Version: 1.0 | Updated: 2026-01-31 -->
+
 # Standard: Agent YAML Frontmatter
 
 **Purpose**: Valid OpenCode agent frontmatter structure and common mistakes to avoid  
@@ -17,33 +18,35 @@ Agent frontmatter must contain ONLY valid OpenCode fields. All other metadata (i
 ## Valid OpenCode Fields
 
 ### Required
+
 ```yaml
 ---
-name: AgentName                      # Display name
-description: "What this agent does"  # When to use
-mode: subagent                       # primary, subagent, or all
+name: AgentName # Display name
+description: "What this agent does" # When to use
+mode: subagent # primary, subagent, or all
 ---
 ```
 
 ### Optional
+
 ```yaml
-temperature: 0.1                     # Response randomness (0.0-1.0)
-model: anthropic/claude-sonnet-4     # Model override
-maxSteps: 50                         # Max iterations
-disable: false                       # Disable agent
-hidden: false                        # Hide from autocomplete
+temperature: 0.1 # Response randomness (0.0-1.0)
+model: anthropic/claude-sonnet-4 # Model override
+maxSteps: 50 # Max iterations
+disable: false # Disable agent
+hidden: false # Hide from autocomplete
 prompt: "{file:./prompts/custom.txt}" # Custom prompt
 
-tools:                               # Tool access
+tools: # Tool access
   read: true
   write: false
   edit: false
   bash: false
   task: false
 
-permission:                          # Permission rules (v1.1.1+)
-  "*": "ask"                         # Catch-all (last-match-wins)
-  read: "allow"                      # Specific override
+permission: # Permission rules (v1.1.1+)
+  "*": "ask" # Catch-all (last-match-wins)
+  read: "allow" # Specific override
   bash:
     "*": "deny"
     "git status*": "allow"
@@ -53,7 +56,7 @@ permission:                          # Permission rules (v1.1.1+)
     contextscout: "allow"
     "*": "deny"
 
-skills:                              # Skills to load
+skills: # Skills to load
   - task-management
 ```
 
@@ -93,51 +96,62 @@ permission:
 ## Common Mistakes (Fixed in 18 Agents)
 
 ### 1. Duplicate Keys ❌
+
 ```yaml
 tools:
   read: true
   read: {"**/*": "allow"}  # ❌ Duplicate key
 ```
+
 **Fix**: Use only one declaration per key
 
 ### 2. Orphaned List Items ❌
+
 ```yaml
 tools:
   read: true
   - write: false  # ❌ No parent key
 ```
+
 **Fix**: Proper YAML structure (no orphaned items)
 
 ### 3. Wrong Field Names ❌
+
 ```yaml
-permissions:  # ❌ Deprecated - use 'permission' (singular)
+permissions: # ❌ Deprecated - use 'permission' (singular)
   bash:
     "*": "deny"
 ```
+
 **Fix**: Use correct field name `permission:` (singular, v1.1.1+)
 
 ### 4. Extra Delimiter Blocks ❌
+
 ```yaml
 ---
 name: MyAgent
 ---
 # Content
----  # ❌ Extra delimiter
+--- # ❌ Extra delimiter
 More content
 ```
+
 **Fix**: Only one `---` block at top
 
 ### 5. Invalid OpenCode Fields ❌
+
 ```yaml
 ---
-id: my-agent          # ❌ Not valid
+id: my-agent # ❌ Not valid
 category: development # ❌ Not valid
-type: agent           # ❌ Not valid
-version: 1.0.0        # ❌ Not valid
-tags: [coding]        # ❌ Not valid
-dependencies: []      # ❌ Not valid
+type: agent # ❌ Not valid
+version: 1.0.0 # ❌ Not valid
+tags: [coding] # ❌ Not valid
+dependencies: [] # ❌ Not valid
 ```
+
 **Fix**: Move to `.opencode/config/agent-metadata.json`:
+
 ```json
 {
   "agents": {
