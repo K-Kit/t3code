@@ -1,2 +1,9 @@
 [phases.setup]
-aptPkgs = ["python3", "make", "g++", "node-gyp"]
+aptPkgs = ["python3", "make", "g++"]
+
+[phases.install]
+cmds = [
+  "npm install -g node-gyp corepack@0.24.1",
+  "corepack enable",
+  "bun i --no-save",
+]
