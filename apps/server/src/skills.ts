@@ -268,24 +268,45 @@ interface InstalledPluginsManifest {
 }
 
 /**
+ * Read ~/.claude/settings.json to get the enabledPlugins map.
+ * Returns a map of pluginKey → boolean (true = enabled).
+ */
+async function readEnabledPlugins(): Promise<Record<string, boolean>> {
+  try {
+    const raw = await fs.readFile(
+      path.join(os.homedir(), ".claude", "settings.json"),
+      "utf-8",
+    );
+    const settings = JSON.parse(raw) as { enabledPlugins?: Record<string, boolean> };
+    return settings.enabledPlugins ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/**
  * Read installed_plugins.json and scan each plugin's skills/ directory.
+ * Only includes skills from plugins that are enabled in settings.json.
  * Plugin names use `plugin:<name>` as their source label and are namespaced
  * as `<pluginName>:<skillName>` when the plugin provides multiple skills.
  */
 async function readPluginSkillSummaries(): Promise<SkillSummary[]> {
-  let manifest: InstalledPluginsManifest;
-  try {
-    const raw = await fs.readFile(installedPluginsPath(), "utf-8");
-    manifest = JSON.parse(raw) as InstalledPluginsManifest;
-  } catch {
-    return [];
-  }
+  const [manifest, enabledPlugins] = await Promise.all([
+    fs
+      .readFile(installedPluginsPath(), "utf-8")
+      .then((raw) => JSON.parse(raw) as InstalledPluginsManifest)
+      .catch(() => ({ plugins: {} }) as InstalledPluginsManifest),
+    readEnabledPlugins(),
+  ]);
 
   if (!manifest.plugins) return [];
 
   const results: SkillSummary[] = [];
 
   for (const [pluginKey, entries] of Object.entries(manifest.plugins)) {
+    // Skip plugins that are explicitly disabled in settings
+    if (enabledPlugins[pluginKey] === false) continue;
+
     // Use first entry (latest install) for each plugin
     const entry = entries[0];
     if (!entry?.installPath) continue;
