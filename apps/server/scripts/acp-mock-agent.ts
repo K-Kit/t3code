@@ -45,6 +45,9 @@ const permissionOptionIds = {
   allowAlways: process.env.T3_ACP_ALLOW_ALWAYS_OPTION_ID ?? "allow-always",
   rejectOnce: process.env.T3_ACP_REJECT_ONCE_OPTION_ID ?? "reject-once",
 };
+const emitElicitation = process.env.T3_ACP_EMIT_ELICITATION === "1";
+const emitUnsupportedElicitation = process.env.T3_ACP_EMIT_UNSUPPORTED_ELICITATION === "1";
+const extraModelId = process.env.T3_ACP_EXTRA_MODEL_ID?.trim();
 const sessionId = "mock-session-1";
 
 let currentModeId = "ask";
@@ -219,6 +222,7 @@ function configOptions(): ReadonlyArray<AcpSchema.SessionConfigOption> {
         { value: "composer-2", name: "Composer 2" },
         { value: "composer-2[fast=true]", name: "Composer 2 Fast" },
         { value: "gpt-5.3-codex[reasoning=medium,fast=false]", name: "Codex 5.3" },
+        ...(extraModelId ? [{ value: extraModelId, name: extraModelId }] : []),
       ],
     },
   ];
@@ -810,6 +814,27 @@ const program = Effect.gen(function* () {
         return { stopReason: "end_turn" };
       }
 
+      if (emitElicitation) {
+        yield* agent.client.elicit({
+          mode: "form",
+          sessionId: requestedSessionId,
+          message: "Choose an OMP strategy",
+          requestedSchema: {
+            type: "object",
+            required: ["strategy"],
+            properties: {
+              strategy: {
+                type: "string",
+                title: "Strategy",
+                enum: ["safe", "fast"],
+              },
+            },
+          },
+        });
+
+        return { stopReason: "end_turn" };
+      }
+
       if (emitForeignSessionUpdates) {
         yield* agent.client.sessionUpdate({
           sessionId: requestedSessionId,
@@ -843,6 +868,27 @@ const program = Effect.gen(function* () {
             content: { type: "text", text: " root after child" },
           },
         });
+
+        return { stopReason: "end_turn" };
+      }
+
+      if (emitUnsupportedElicitation) {
+        yield* agent.client.elicit({
+          mode: "form",
+          sessionId: requestedSessionId,
+          message: "Describe the requested change",
+          requestedSchema: {
+            type: "object",
+            required: ["description"],
+            properties: {
+              description: {
+                type: "string",
+                title: "Description",
+              },
+            },
+          },
+        });
+
         return { stopReason: "end_turn" };
       }
 

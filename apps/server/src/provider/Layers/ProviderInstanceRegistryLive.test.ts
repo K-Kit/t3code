@@ -10,7 +10,7 @@
  *
  *  2. **Many drivers, one registry** — the "all drivers slice" describe
  *     block below configures one instance of every shipped driver
- *     (`codex`, `claudeAgent`, `cursor`, `grok`, `opencode`) in a single
+ *     (`codex`, `claudeAgent`, `cursor`, `grok`, `opencode`, `omp`) in a single
  *     `ProviderInstanceConfigMap` and asserts the registry boots them all
  *     without cross-contamination. This proves the driver SPI is uniform
  *     across every provider — any driver plugs into the registry through
@@ -30,6 +30,7 @@ import {
   type CursorSettings,
   type GrokSettings,
   type OpenCodeSettings,
+  type OmpSettings,
   ProviderDriverKind,
   type ProviderInstanceConfigMap,
   ProviderInstanceId,
@@ -45,6 +46,7 @@ import { CodexDriver } from "../Drivers/CodexDriver.ts";
 import { CursorDriver } from "../Drivers/CursorDriver.ts";
 import { GrokDriver } from "../Drivers/GrokDriver.ts";
 import { OpenCodeDriver } from "../Drivers/OpenCodeDriver.ts";
+import { OmpDriver } from "../Drivers/OmpDriver.ts";
 import { OpenCodeRuntimeLive } from "../opencodeRuntime.ts";
 import { NoOpProviderEventLoggers, ProviderEventLoggers } from "./ProviderEventLoggers.ts";
 import { makeProviderInstanceRegistry } from "./ProviderInstanceRegistryLive.ts";
@@ -94,6 +96,14 @@ const makeOpenCodeConfig = (overrides: Partial<OpenCodeSettings>): OpenCodeSetti
   binaryPath: "opencode",
   serverUrl: "",
   serverPassword: "",
+  customModels: [],
+  ...overrides,
+});
+
+const makeOmpConfig = (overrides: Partial<OmpSettings>): OmpSettings => ({
+  enabled: false,
+  binaryPath: "omp",
+  profile: "",
   customModels: [],
   ...overrides,
 });
@@ -229,7 +239,7 @@ describe("ProviderInstanceRegistryLive — multi-instance codex slice", () => {
 });
 
 describe("ProviderInstanceRegistryLive — all drivers slice", () => {
-  // All drivers need `NodeServices` (ChildProcessSpawner + FileSystem +
+  // All six drivers need `NodeServices` (ChildProcessSpawner + FileSystem +
   // Path). `OpenCodeDriver.create` additionally yields `OpenCodeRuntime`
   // at construction time, so we wire `OpenCodeRuntimeLive` into the stack.
   // `OpenCodeRuntimeLive` bundles its own `NetService.layer` via
@@ -258,12 +268,14 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
       const cursorId = ProviderInstanceId.make("cursor_default");
       const grokId = ProviderInstanceId.make("grok_default");
       const openCodeId = ProviderInstanceId.make("opencode_default");
+      const ompId = ProviderInstanceId.make("omp_default");
 
       const codexDriverKind = ProviderDriverKind.make("codex");
       const claudeDriverKind = ProviderDriverKind.make("claudeAgent");
       const cursorDriverKind = ProviderDriverKind.make("cursor");
       const grokDriverKind = ProviderDriverKind.make("grok");
       const openCodeDriverKind = ProviderDriverKind.make("opencode");
+      const ompDriverKind = ProviderDriverKind.make("omp");
 
       const configMap: ProviderInstanceConfigMap = {
         [codexId]: {
@@ -299,10 +311,16 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
           enabled: false,
           config: makeOpenCodeConfig({}),
         },
+        [ompId]: {
+          driver: ompDriverKind,
+          displayName: "OMP",
+          enabled: false,
+          config: makeOmpConfig({ profile: "work" }),
+        },
       };
 
       const { registry } = yield* makeProviderInstanceRegistry({
-        drivers: [CodexDriver, ClaudeDriver, CursorDriver, GrokDriver, OpenCodeDriver],
+        drivers: [CodexDriver, ClaudeDriver, CursorDriver, GrokDriver, OpenCodeDriver, OmpDriver],
         configMap,
       });
 
@@ -312,9 +330,9 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
       expect(unavailable).toEqual([]);
 
       const instances = yield* registry.listInstances;
-      expect(instances).toHaveLength(5);
+      expect(instances).toHaveLength(6);
       expect(instances.map((instance) => instance.instanceId).toSorted()).toEqual(
-        [codexId, claudeId, cursorId, grokId, openCodeId].toSorted(),
+        [codexId, claudeId, cursorId, grokId, openCodeId, ompId].toSorted(),
       );
 
       // Instance lookup by id resolves each instance to its own bundle —
@@ -325,16 +343,19 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
       const cursor = yield* registry.getInstance(cursorId);
       const grok = yield* registry.getInstance(grokId);
       const openCode = yield* registry.getInstance(openCodeId);
+      const omp = yield* registry.getInstance(ompId);
       expect(codex?.driverKind).toBe(codexDriverKind);
       expect(claude?.driverKind).toBe(claudeDriverKind);
       expect(cursor?.driverKind).toBe(cursorDriverKind);
       expect(grok?.driverKind).toBe(grokDriverKind);
       expect(openCode?.driverKind).toBe(openCodeDriverKind);
+      expect(omp?.driverKind).toBe(ompDriverKind);
       expect(codex?.displayName).toBe("Codex");
       expect(claude?.displayName).toBe("Claude");
       expect(cursor?.displayName).toBe("Cursor");
       expect(grok?.displayName).toBe("Grok");
       expect(openCode?.displayName).toBe("OpenCode");
+      expect(omp?.displayName).toBe("OMP");
 
       // Every instance owns its own set of closures — no sharing across
       // drivers. `adapter` / `textGeneration` / `snapshot` are all
@@ -347,6 +368,7 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
         cursor!.adapter,
         grok!.adapter,
         openCode!.adapter,
+        omp!.adapter,
       ];
       expect(new Set(adapters).size).toBe(adapters.length);
       const textGenerations = [
@@ -355,6 +377,7 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
         cursor!.textGeneration,
         grok!.textGeneration,
         openCode!.textGeneration,
+        omp!.textGeneration,
       ];
       expect(new Set(textGenerations).size).toBe(textGenerations.length);
       const snapshots = [
@@ -363,6 +386,7 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
         cursor!.snapshot,
         grok!.snapshot,
         openCode!.snapshot,
+        omp!.snapshot,
       ];
       expect(new Set(snapshots).size).toBe(snapshots.length);
 
@@ -405,6 +429,12 @@ describe("ProviderInstanceRegistryLive — all drivers slice", () => {
       expect(openCodeSnapshot.continuation?.groupKey).toBe(
         `${openCodeDriverKind}:instance:${openCodeId}`,
       );
+
+      const ompSnapshot = yield* omp!.snapshot.getSnapshot;
+      expect(ompSnapshot.instanceId).toBe(ompId);
+      expect(ompSnapshot.driver).toBe(ompDriverKind);
+      expect(ompSnapshot.enabled).toBe(false);
+      expect(ompSnapshot.continuation?.groupKey).toBe(`${ompDriverKind}:instance:${ompId}`);
     }).pipe(Effect.provide(testLayer)),
   );
 });
