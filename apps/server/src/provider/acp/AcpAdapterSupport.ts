@@ -5,6 +5,7 @@ import {
 } from "@t3tools/contracts";
 import * as Schema from "effect/Schema";
 import * as EffectAcpErrors from "effect-acp/errors";
+import type * as EffectAcpSchema from "effect-acp/schema";
 
 import {
   ProviderAdapterRequestError,
@@ -43,14 +44,22 @@ export function mapAcpToAdapterError(
   });
 }
 
-export function acpPermissionOutcome(decision: ProviderApprovalDecision): string {
-  switch (decision) {
-    case "acceptForSession":
-      return "allow-always";
-    case "accept":
-      return "allow-once";
-    case "decline":
-    default:
-      return "reject-once";
-  }
+export function acpPermissionOutcome(
+  decision: ProviderApprovalDecision,
+  options: ReadonlyArray<EffectAcpSchema.PermissionOption>,
+): string | undefined {
+  const desiredKind =
+    decision === "acceptForSession"
+      ? "allow_always"
+      : decision === "accept"
+        ? "allow_once"
+        : "reject_once";
+  const byKind = options.find((option) => option.kind === desiredKind)?.optionId;
+  if (byKind?.trim()) return byKind;
+
+  // Some pre-standard ACP agents used kebab-case ids while newer agents,
+  // including OMP, use snake_case ids. `kind` is authoritative, but retain
+  // both id spellings for agents that omit it.
+  const aliases = new Set([desiredKind, desiredKind.replaceAll("_", "-")]);
+  return options.find((option) => aliases.has(option.optionId))?.optionId;
 }

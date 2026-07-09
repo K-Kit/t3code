@@ -42,6 +42,12 @@ describe("ServerSettings.providerInstances (slice-2 invariant)", () => {
     // Legacy `providers` struct is still hydrated with its per-driver defaults
     // so existing call sites keep working through the migration.
     expect(decoded.providers.codex.enabled).toBe(true);
+    expect(decoded.providers.omp).toEqual({
+      enabled: true,
+      binaryPath: "omp",
+      profile: "",
+      customModels: [],
+    });
   });
 
   it("decodes a multi-instance map mixing first-party and fork drivers", () => {
@@ -142,6 +148,10 @@ describe("ServerSettingsPatch string normalization", () => {
           binaryPath: "  /opt/homebrew/bin/codex  ",
           homePath: "  ~/.codex  ",
         },
+        omp: {
+          binaryPath: "  /opt/homebrew/bin/omp  ",
+          profile: "  work  ",
+        },
       },
       providerInstances: {
         codex_personal: {
@@ -157,6 +167,8 @@ describe("ServerSettingsPatch string normalization", () => {
     expect(patch.observability?.otlpTracesUrl).toBe("http://localhost:4318/v1/traces");
     expect(patch.providers?.codex?.binaryPath).toBe("/opt/homebrew/bin/codex");
     expect(patch.providers?.codex?.homePath).toBe("~/.codex");
+    expect(patch.providers?.omp?.binaryPath).toBe("/opt/homebrew/bin/omp");
+    expect(patch.providers?.omp?.profile).toBe("work");
     expect(patch.providerInstances?.[ProviderInstanceId.make("codex_personal")]?.driver).toBe(
       "codex",
     );
