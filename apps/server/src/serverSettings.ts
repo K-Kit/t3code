@@ -11,7 +11,6 @@
  * @module ServerSettings
  */
 import {
-  DEFAULT_GIT_TEXT_GENERATION_MODEL,
   DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER,
   DEFAULT_SERVER_SETTINGS,
   isProviderDriverKind,
@@ -206,9 +205,15 @@ function fallbackTextGenerationProvider(settings: ServerSettings): ServerSetting
     ...settings,
     textGenerationModelSelection: {
       instanceId: ProviderInstanceId.make(fallback),
+      // Some providers (notably OMP) expose a credential-dependent model
+      // inventory and therefore have no universally valid static default.
+      // Keep the previous model as a provisional value for those providers;
+      // the text-generation router resolves it against the selected
+      // instance's live snapshot before dispatch. This avoids manufacturing a
+      // provider/model selector that the provider is guaranteed to reject.
       model:
         DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER[fallback] ??
-        DEFAULT_GIT_TEXT_GENERATION_MODEL,
+        settings.textGenerationModelSelection.model,
     } satisfies ModelSelection,
   };
 }

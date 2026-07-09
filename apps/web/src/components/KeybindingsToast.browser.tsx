@@ -130,6 +130,12 @@ function createBaseServerConfig(): ServerConfig {
           serverPassword: "",
           customModels: [],
         },
+        omp: {
+          enabled: true,
+          binaryPath: "",
+          profile: "",
+          customModels: [],
+        },
       },
     },
   };
