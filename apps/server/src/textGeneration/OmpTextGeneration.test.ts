@@ -1,8 +1,8 @@
 // @effect-diagnostics nodeBuiltinImport:off
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import * as os from "node:os";
-import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import * as NodeFS from "node:fs";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+import * as NodeURL from "node:url";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { it } from "@effect/vitest";
@@ -15,8 +15,8 @@ import { expect } from "vitest";
 import { ServerConfig } from "../config.ts";
 import { makeOmpTextGeneration } from "./OmpTextGeneration.ts";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const mockAgentPath = path.join(__dirname, "../../scripts/acp-mock-agent.ts");
+const __dirname = NodePath.dirname(NodeURL.fileURLToPath(import.meta.url));
+const mockAgentPath = NodePath.join(__dirname, "../../scripts/acp-mock-agent.ts");
 const decodeOmpSettings = Schema.decodeSync(OmpSettings);
 const encodeUnknownJson = Schema.encodeSync(Schema.UnknownFromJsonString);
 const decodeRequestLogEntry = Schema.decodeUnknownSync(
@@ -36,10 +36,10 @@ function shellSingleQuote(value: string): string {
 }
 
 function makeOmpWrapper(dir: string, env: Record<string, string>): string {
-  const binDir = path.join(dir, "bin");
-  const ompPath = path.join(binDir, "omp");
-  mkdirSync(binDir, { recursive: true });
-  writeFileSync(
+  const binDir = NodePath.join(dir, "bin");
+  const ompPath = NodePath.join(binDir, "omp");
+  NodeFS.mkdirSync(binDir, { recursive: true });
+  NodeFS.writeFileSync(
     ompPath,
     [
       "#!/bin/sh",
@@ -53,21 +53,21 @@ function makeOmpWrapper(dir: string, env: Record<string, string>): string {
     ].join("\n"),
     "utf8",
   );
-  chmodSync(ompPath, 0o755);
+  NodeFS.chmodSync(ompPath, 0o755);
   return ompPath;
 }
 
 it.layer(OmpTextGenerationTestLayer)("OmpTextGeneration", (it) => {
   it.effect("uses the exact OMP provider/model selector for structured generation", () =>
     Effect.gen(function* () {
-      const tempDir = mkdtempSync(path.join(os.tmpdir(), "t3code-omp-text-acp-"));
+      const tempDir = NodeFS.mkdtempSync(NodePath.join(NodeOS.tmpdir(), "t3code-omp-text-acp-"));
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
-          rmSync(tempDir, { recursive: true, force: true });
+          NodeFS.rmSync(tempDir, { recursive: true, force: true });
         }),
       );
 
-      const requestLogPath = path.join(tempDir, "requests.ndjson");
+      const requestLogPath = NodePath.join(tempDir, "requests.ndjson");
       const model = "openai-codex/gpt-5.4";
       const ompPath = makeOmpWrapper(tempDir, {
         T3_ACP_EXTRA_MODEL_ID: model,
@@ -98,7 +98,7 @@ it.layer(OmpTextGenerationTestLayer)("OmpTextGeneration", (it) => {
         body: "- select the exact provider model",
       });
 
-      const requests = readFileSync(requestLogPath, "utf8")
+      const requests = NodeFS.readFileSync(requestLogPath, "utf8")
         .trim()
         .split("\n")
         .filter(Boolean)

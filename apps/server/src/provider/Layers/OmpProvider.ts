@@ -6,6 +6,7 @@ import {
 } from "@t3tools/contracts";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import { compareSemverVersions } from "@t3tools/shared/semver";
+import { HostProcessPlatform } from "@t3tools/shared/hostProcess";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
@@ -154,10 +155,11 @@ const runOmpCommand = (
 ) =>
   Effect.gen(function* () {
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+    const platform = yield* HostProcessPlatform;
     const child = yield* spawner.spawn(
       ChildProcess.make(settings.binaryPath, [...args], {
         env: environment,
-        shell: process.platform === "win32",
+        shell: platform === "win32",
       }),
     );
     const [stdout, stderr, exitCode] = yield* Effect.all(

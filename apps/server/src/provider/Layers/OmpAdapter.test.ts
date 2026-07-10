@@ -1,8 +1,8 @@
 // @effect-diagnostics nodeBuiltinImport:off
-import * as os from "node:os";
-import * as path from "node:path";
-import { chmod, mkdtemp, readFile, writeFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import * as NodeFSP from "node:fs/promises";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+import * as NodeURL from "node:url";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import { assert, it } from "@effect/vitest";
@@ -23,16 +23,16 @@ import * as Stream from "effect/Stream";
 import { ServerConfig } from "../../config.ts";
 import { makeOmpAdapter } from "./OmpAdapter.ts";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const mockAgentPath = path.join(__dirname, "../../../scripts/acp-mock-agent.ts");
+const __dirname = NodePath.dirname(NodeURL.fileURLToPath(import.meta.url));
+const mockAgentPath = NodePath.join(__dirname, "../../../scripts/acp-mock-agent.ts");
 const decodeOmpSettings = Schema.decodeSync(OmpSettings);
 
 async function makeMockOmpWrapper(input?: {
   readonly argvLogPath?: string;
   readonly environment?: Readonly<Record<string, string>>;
 }) {
-  const dir = await mkdtemp(path.join(os.tmpdir(), "omp-acp-mock-"));
-  const wrapperPath = path.join(dir, "fake-omp.sh");
+  const dir = await NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-acp-mock-"));
+  const wrapperPath = NodePath.join(dir, "fake-omp.sh");
   const exports = Object.entries(input?.environment ?? {})
     .map(([key, value]) => `export ${key}=${JSON.stringify(value)}`)
     .join("\n");
@@ -44,8 +44,8 @@ ${exports}
 ${argvLog}
 exec bun ${JSON.stringify(mockAgentPath)} "$@"
 `;
-  await writeFile(wrapperPath, script, "utf8");
-  await chmod(wrapperPath, 0o755);
+  await NodeFSP.writeFile(wrapperPath, script, "utf8");
+  await NodeFSP.chmod(wrapperPath, 0o755);
   return wrapperPath;
 }
 
@@ -56,9 +56,11 @@ const testLayer = ServerConfig.layerTest(process.cwd(), {
 it.effect("OMP adapter starts a scoped ACP session with profile and runtime policy", () =>
   Effect.scoped(
     Effect.gen(function* () {
-      const tempDir = yield* Effect.promise(() => mkdtemp(path.join(os.tmpdir(), "omp-argv-")));
-      const argvLogPath = path.join(tempDir, "argv.txt");
-      yield* Effect.promise(() => writeFile(argvLogPath, "", "utf8"));
+      const tempDir = yield* Effect.promise(() =>
+        NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-argv-")),
+      );
+      const argvLogPath = NodePath.join(tempDir, "argv.txt");
+      yield* Effect.promise(() => NodeFSP.writeFile(argvLogPath, "", "utf8"));
       const binaryPath = yield* Effect.promise(() => makeMockOmpWrapper({ argvLogPath }));
       const adapter = yield* makeOmpAdapter(
         decodeOmpSettings({ binaryPath, profile: "work", enabled: true }),
@@ -83,7 +85,7 @@ it.effect("OMP adapter starts a scoped ACP session with profile and runtime poli
         sessionId: "mock-session-1",
       });
       assert.deepStrictEqual(
-        (yield* Effect.promise(() => readFile(argvLogPath, "utf8")))
+        (yield* Effect.promise(() => NodeFSP.readFile(argvLogPath, "utf8")))
           .trim()
           .split("\t")
           .filter(Boolean),

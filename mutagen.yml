@@ -3,13 +3,13 @@ sync:
     flushOnCreate: true
     ignore:
       paths:
-      - node_modules
-      - dist
-      - build
-      - .next
-      - .turbo
-      - coverage
-      - .DS_Store
+        - node_modules
+        - dist
+        - build
+        - .next
+        - .turbo
+        - coverage
+        - .DS_Store
   code:
     alpha: /Users/kit/_dev/t3code
     beta: pop:~/t3code

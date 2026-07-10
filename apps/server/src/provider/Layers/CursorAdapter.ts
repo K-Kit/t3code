@@ -22,6 +22,7 @@ import {
   TurnId,
 } from "@t3tools/contracts";
 import * as DateTime from "effect/DateTime";
+import * as Crypto from "effect/Crypto";
 import * as Deferred from "effect/Deferred";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
@@ -30,7 +31,6 @@ import * as FileSystem from "effect/FileSystem";
 import * as Option from "effect/Option";
 import * as Path from "effect/Path";
 import * as PubSub from "effect/PubSub";
-import * as Random from "effect/Random";
 import * as Schema from "effect/Schema";
 import * as Scope from "effect/Scope";
 import * as Semaphore from "effect/Semaphore";
@@ -49,10 +49,7 @@ import {
   type ProviderAdapterError,
 } from "../Errors.ts";
 import { acpPermissionOutcome, mapAcpToAdapterError } from "../acp/AcpAdapterSupport.ts";
-import {
-  type AcpSessionRuntimeOptions,
-  type AcpSessionRuntimeShape,
-} from "../acp/AcpSessionRuntime.ts";
+import type * as AcpSessionRuntime from "../acp/AcpSessionRuntime.ts";
 import {
   makeAcpAssistantItemEvent,
   makeAcpContentDeltaEvent,
@@ -67,7 +64,7 @@ import {
   parsePermissionRequest,
 } from "../acp/AcpRuntimeModel.ts";
 import { buildAcpElicitationForm } from "../acp/AcpElicitation.ts";
-import { makeAcpNativeLoggers } from "../acp/AcpNativeLogging.ts";
+import { makeAcpNativeLoggerFactory } from "../acp/AcpNativeLogging.ts";
 import { applyCursorAcpModelSelection, makeCursorAcpRuntime } from "../acp/CursorAcpSupport.ts";
 import {
   CursorAskQuestionRequest,
@@ -81,7 +78,7 @@ import { type CursorAdapterShape } from "../Services/CursorAdapter.ts";
 import type { ProviderAdapterShape } from "../Services/ProviderAdapter.ts";
 import { resolveCursorAcpBaseModelId } from "./CursorProvider.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
-import type * as EffectAcpErrors from "effect-acp/errors";
+import * as EffectAcpErrors from "effect-acp/errors";
 const encodeUnknownJsonStringExit = Schema.encodeUnknownExit(Schema.UnknownFromJsonString);
 
 const PROVIDER = ProviderDriverKind.make("cursor");
@@ -127,12 +124,15 @@ interface AcpProviderRuntimeFactoryInput<Settings> {
   readonly cwd: string;
   readonly runtimeMode: RuntimeMode;
   readonly resumeSessionId?: string;
-  readonly clientInfo: AcpSessionRuntimeOptions["clientInfo"];
-  readonly nativeLoggers: Pick<AcpSessionRuntimeOptions, "requestLogger" | "protocolLogging">;
+  readonly clientInfo: AcpSessionRuntime.AcpSessionRuntimeOptions["clientInfo"];
+  readonly nativeLoggers: Pick<
+    AcpSessionRuntime.AcpSessionRuntimeOptions,
+    "requestLogger" | "protocolLogging"
+  >;
 }
 
 interface AcpProviderModelSelectionInput {
-  readonly runtime: AcpSessionRuntimeShape;
+  readonly runtime: AcpSessionRuntime.AcpSessionRuntime["Service"];
   readonly threadId: ThreadId;
   readonly model: string;
   readonly selections: ReadonlyArray<ProviderOptionSelection> | null | undefined;
@@ -151,7 +151,11 @@ export interface AcpProviderAdapterDefinition<Settings> {
   }) => boolean;
   readonly makeRuntime: (
     input: AcpProviderRuntimeFactoryInput<Settings>,
-  ) => Effect.Effect<AcpSessionRuntimeShape, EffectAcpErrors.AcpError, Scope.Scope>;
+  ) => Effect.Effect<
+    AcpSessionRuntime.AcpSessionRuntime["Service"],
+    EffectAcpErrors.AcpError,
+    Scope.Scope
+  >;
   readonly applyModelSelection: (
     input: AcpProviderModelSelectionInput,
   ) => Effect.Effect<void, ProviderAdapterError>;
@@ -171,7 +175,7 @@ interface AcpSessionContext {
   readonly threadId: ThreadId;
   session: ProviderSession;
   readonly scope: Scope.Closeable;
-  readonly acp: AcpSessionRuntimeShape;
+  readonly acp: AcpSessionRuntime.AcpSessionRuntime["Service"];
   notificationFiber: Fiber.Fiber<void, never> | undefined;
   readonly pendingApprovals: Map<ApprovalRequestId, PendingApproval>;
   readonly pendingUserInputs: Map<ApprovalRequestId, PendingUserInput>;
@@ -287,7 +291,7 @@ function resolveRequestedModeId(input: {
 }
 
 function applyRequestedSessionConfiguration<E>(input: {
-  readonly runtime: AcpSessionRuntimeShape;
+  readonly runtime: AcpSessionRuntime.AcpSessionRuntime["Service"];
   readonly runtimeMode: RuntimeMode;
   readonly interactionMode: ProviderInteractionMode | undefined;
   readonly modelSelection:
@@ -297,7 +301,7 @@ function applyRequestedSessionConfiguration<E>(input: {
       }
     | undefined;
   readonly applyModelSelection: (input: {
-    readonly runtime: AcpSessionRuntimeShape;
+    readonly runtime: AcpSessionRuntime.AcpSessionRuntime["Service"];
     readonly model: string;
     readonly selections: ReadonlyArray<ProviderOptionSelection> | null | undefined;
   }) => Effect.Effect<void, E>;
@@ -362,6 +366,7 @@ export function makeAcpProviderAdapter<Settings>(
     const path = yield* Path.Path;
     const childProcessSpawner = yield* ChildProcessSpawner.ChildProcessSpawner;
     const serverConfig = yield* Effect.service(ServerConfig);
+    const crypto = yield* Crypto.Crypto;
     const nativeEventLogger =
       options?.nativeEventLogger ??
       (options?.nativeEventLogPath !== undefined
@@ -371,14 +376,36 @@ export function makeAcpProviderAdapter<Settings>(
         : undefined);
     const managedNativeEventLogger =
       options?.nativeEventLogger === undefined ? nativeEventLogger : undefined;
+    const makeAcpNativeLoggers = yield* makeAcpNativeLoggerFactory();
 
     const sessions = new Map<ThreadId, AcpSessionContext>();
     const threadLocksRef = yield* SynchronizedRef.make(new Map<string, Semaphore.Semaphore>());
     const runtimeEventPubSub = yield* PubSub.unbounded<ProviderRuntimeEvent>();
 
     const nowIso = Effect.map(DateTime.now, DateTime.formatIso);
-    const nextEventId = Effect.map(Random.nextUUIDv4, (id) => EventId.make(id));
+    const randomUUIDv4 = crypto.randomUUIDv4.pipe(
+      Effect.mapError(
+        (cause) =>
+          new ProviderAdapterRequestError({
+            provider: PROVIDER,
+            method: "crypto/randomUUIDv4",
+            detail: "Failed to generate ACP runtime identifier.",
+            cause,
+          }),
+      ),
+    );
+    const nextEventId = Effect.map(randomUUIDv4, (id) => EventId.make(id));
     const makeEventStamp = () => Effect.all({ eventId: nextEventId, createdAt: nowIso });
+    const mapAcpCallbackFailure = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+      effect.pipe(
+        Effect.mapError(
+          (cause) =>
+            new EffectAcpErrors.AcpTransportError({
+              detail: "Failed to process ACP callback.",
+              cause,
+            }),
+        ),
+      );
 
     const offerRuntimeEvent = (event: ProviderRuntimeEvent) =>
       PubSub.publish(runtimeEventPubSub, event).pipe(Effect.asVoid);
@@ -417,7 +444,7 @@ export function makeAcpProviderAdapter<Settings>(
           {
             observedAt,
             event: {
-              id: yield* Random.nextUUIDv4,
+              id: yield* randomUUIDv4,
               kind: "notification",
               provider: PROVIDER,
               createdAt: observedAt,
@@ -575,211 +602,221 @@ export function makeAcpProviderAdapter<Settings>(
             );
           const started = yield* Effect.gen(function* () {
             yield* acp.handleElicitation((params) =>
-              Effect.gen(function* () {
-                yield* logNative(input.threadId, "session/elicitation", params, "acp.jsonrpc");
-                const form = buildAcpElicitationForm(params);
-                if (!form) {
-                  return { action: { action: "cancel" as const } };
-                }
-                const requestId = ApprovalRequestId.make(crypto.randomUUID());
-                const runtimeRequestId = RuntimeRequestId.make(requestId);
-                const answers = yield* Deferred.make<ProviderUserInputAnswers>();
-                pendingUserInputs.set(requestId, { answers });
-                yield* offerRuntimeEvent({
-                  type: "user-input.requested",
-                  ...(yield* makeEventStamp()),
-                  provider: PROVIDER,
-                  threadId: input.threadId,
-                  turnId: ctx?.activeTurnId,
-                  requestId: runtimeRequestId,
-                  payload: { questions: form.questions },
-                  raw: {
-                    source: "acp.jsonrpc",
-                    method: "session/elicitation",
-                    payload: params,
-                  },
-                });
-                const resolved = yield* Deferred.await(answers);
-                pendingUserInputs.delete(requestId);
-                yield* offerRuntimeEvent({
-                  type: "user-input.resolved",
-                  ...(yield* makeEventStamp()),
-                  provider: PROVIDER,
-                  threadId: input.threadId,
-                  turnId: ctx?.activeTurnId,
-                  requestId: runtimeRequestId,
-                  payload: { answers: resolved },
-                });
-                return form.resolve(resolved);
-              }),
+              mapAcpCallbackFailure(
+                Effect.gen(function* () {
+                  yield* logNative(input.threadId, "session/elicitation", params, "acp.jsonrpc");
+                  const form = buildAcpElicitationForm(params);
+                  if (!form) {
+                    return { action: { action: "cancel" as const } };
+                  }
+                  const requestId = ApprovalRequestId.make(yield* randomUUIDv4);
+                  const runtimeRequestId = RuntimeRequestId.make(requestId);
+                  const answers = yield* Deferred.make<ProviderUserInputAnswers>();
+                  pendingUserInputs.set(requestId, { answers });
+                  yield* offerRuntimeEvent({
+                    type: "user-input.requested",
+                    ...(yield* makeEventStamp()),
+                    provider: PROVIDER,
+                    threadId: input.threadId,
+                    turnId: ctx?.activeTurnId,
+                    requestId: runtimeRequestId,
+                    payload: { questions: form.questions },
+                    raw: {
+                      source: "acp.jsonrpc",
+                      method: "session/elicitation",
+                      payload: params,
+                    },
+                  });
+                  const resolved = yield* Deferred.await(answers);
+                  pendingUserInputs.delete(requestId);
+                  yield* offerRuntimeEvent({
+                    type: "user-input.resolved",
+                    ...(yield* makeEventStamp()),
+                    provider: PROVIDER,
+                    threadId: input.threadId,
+                    turnId: ctx?.activeTurnId,
+                    requestId: runtimeRequestId,
+                    payload: { answers: resolved },
+                  });
+                  return form.resolve(resolved);
+                }),
+              ),
             );
             if (definition.cursorExtensions) {
               yield* acp.handleExtRequest(
                 "cursor/ask_question",
                 CursorAskQuestionRequest,
                 (params) =>
+                  mapAcpCallbackFailure(
+                    Effect.gen(function* () {
+                      yield* logNative(
+                        input.threadId,
+                        "cursor/ask_question",
+                        params,
+                        "acp.cursor.extension",
+                      );
+                      const requestId = ApprovalRequestId.make(yield* randomUUIDv4);
+                      const runtimeRequestId = RuntimeRequestId.make(requestId);
+                      const answers = yield* Deferred.make<ProviderUserInputAnswers>();
+                      pendingUserInputs.set(requestId, { answers });
+                      yield* offerRuntimeEvent({
+                        type: "user-input.requested",
+                        ...(yield* makeEventStamp()),
+                        provider: PROVIDER,
+                        threadId: input.threadId,
+                        turnId: ctx?.activeTurnId,
+                        requestId: runtimeRequestId,
+                        payload: { questions: extractAskQuestions(params) },
+                        raw: {
+                          source: "acp.cursor.extension",
+                          method: "cursor/ask_question",
+                          payload: params,
+                        },
+                      });
+                      const resolved = yield* Deferred.await(answers);
+                      pendingUserInputs.delete(requestId);
+                      yield* offerRuntimeEvent({
+                        type: "user-input.resolved",
+                        ...(yield* makeEventStamp()),
+                        provider: PROVIDER,
+                        threadId: input.threadId,
+                        turnId: ctx?.activeTurnId,
+                        requestId: runtimeRequestId,
+                        payload: { answers: resolved },
+                      });
+                      return { answers: resolved };
+                    }),
+                  ),
+              );
+              yield* acp.handleExtRequest("cursor/create_plan", CursorCreatePlanRequest, (params) =>
+                mapAcpCallbackFailure(
                   Effect.gen(function* () {
                     yield* logNative(
                       input.threadId,
-                      "cursor/ask_question",
+                      "cursor/create_plan",
                       params,
                       "acp.cursor.extension",
                     );
-                    const requestId = ApprovalRequestId.make(crypto.randomUUID());
-                    const runtimeRequestId = RuntimeRequestId.make(requestId);
-                    const answers = yield* Deferred.make<ProviderUserInputAnswers>();
-                    pendingUserInputs.set(requestId, { answers });
                     yield* offerRuntimeEvent({
-                      type: "user-input.requested",
+                      type: "turn.proposed.completed",
                       ...(yield* makeEventStamp()),
                       provider: PROVIDER,
                       threadId: input.threadId,
                       turnId: ctx?.activeTurnId,
-                      requestId: runtimeRequestId,
-                      payload: { questions: extractAskQuestions(params) },
+                      payload: { planMarkdown: extractPlanMarkdown(params) },
                       raw: {
                         source: "acp.cursor.extension",
-                        method: "cursor/ask_question",
+                        method: "cursor/create_plan",
                         payload: params,
                       },
                     });
-                    const resolved = yield* Deferred.await(answers);
-                    pendingUserInputs.delete(requestId);
-                    yield* offerRuntimeEvent({
-                      type: "user-input.resolved",
-                      ...(yield* makeEventStamp()),
-                      provider: PROVIDER,
-                      threadId: input.threadId,
-                      turnId: ctx?.activeTurnId,
-                      requestId: runtimeRequestId,
-                      payload: { answers: resolved },
-                    });
-                    return { answers: resolved };
+                    return { accepted: true } as const;
                   }),
-              );
-              yield* acp.handleExtRequest("cursor/create_plan", CursorCreatePlanRequest, (params) =>
-                Effect.gen(function* () {
-                  yield* logNative(
-                    input.threadId,
-                    "cursor/create_plan",
-                    params,
-                    "acp.cursor.extension",
-                  );
-                  yield* offerRuntimeEvent({
-                    type: "turn.proposed.completed",
-                    ...(yield* makeEventStamp()),
-                    provider: PROVIDER,
-                    threadId: input.threadId,
-                    turnId: ctx?.activeTurnId,
-                    payload: { planMarkdown: extractPlanMarkdown(params) },
-                    raw: {
-                      source: "acp.cursor.extension",
-                      method: "cursor/create_plan",
-                      payload: params,
-                    },
-                  });
-                  return { accepted: true } as const;
-                }),
+                ),
               );
               yield* acp.handleExtNotification(
                 "cursor/update_todos",
                 CursorUpdateTodosRequest,
                 (params) =>
-                  Effect.gen(function* () {
-                    yield* logNative(
-                      input.threadId,
-                      "cursor/update_todos",
-                      params,
-                      "acp.cursor.extension",
-                    );
-                    if (ctx) {
-                      yield* emitPlanUpdate(
-                        ctx,
-                        extractTodosAsPlan(params),
+                  mapAcpCallbackFailure(
+                    Effect.gen(function* () {
+                      yield* logNative(
+                        input.threadId,
+                        "cursor/update_todos",
                         params,
                         "acp.cursor.extension",
-                        "cursor/update_todos",
                       );
-                    }
-                  }),
+                      if (ctx) {
+                        yield* emitPlanUpdate(
+                          ctx,
+                          extractTodosAsPlan(params),
+                          params,
+                          "acp.cursor.extension",
+                          "cursor/update_todos",
+                        );
+                      }
+                    }),
+                  ),
               );
             }
             yield* acp.handleRequestPermission((params) =>
-              Effect.gen(function* () {
-                yield* logNative(
-                  input.threadId,
-                  "session/request_permission",
-                  params,
-                  "acp.jsonrpc",
-                );
-                const permissionRequest = parsePermissionRequest(params);
-                const autoApprove =
-                  input.runtimeMode === "full-access" ||
-                  (input.runtimeMode === "auto-accept-edits" &&
-                    (permissionRequest.kind === "edit" ||
-                      permissionRequest.kind === "delete" ||
-                      permissionRequest.kind === "move")) ||
-                  definition.shouldAutoApprovePermission?.({
-                    runtimeMode: input.runtimeMode,
-                    permissionKind: permissionRequest.kind,
-                  }) === true;
-                if (autoApprove) {
-                  const autoApprovedOptionId = selectAutoApprovedPermissionOption(params);
-                  if (autoApprovedOptionId !== undefined) {
-                    return {
-                      outcome: {
-                        outcome: "selected" as const,
-                        optionId: autoApprovedOptionId,
-                      },
-                    };
+              mapAcpCallbackFailure(
+                Effect.gen(function* () {
+                  yield* logNative(
+                    input.threadId,
+                    "session/request_permission",
+                    params,
+                    "acp.jsonrpc",
+                  );
+                  const permissionRequest = parsePermissionRequest(params);
+                  const autoApprove =
+                    input.runtimeMode === "full-access" ||
+                    (input.runtimeMode === "auto-accept-edits" &&
+                      (permissionRequest.kind === "edit" ||
+                        permissionRequest.kind === "delete" ||
+                        permissionRequest.kind === "move")) ||
+                    definition.shouldAutoApprovePermission?.({
+                      runtimeMode: input.runtimeMode,
+                      permissionKind: permissionRequest.kind,
+                    }) === true;
+                  if (autoApprove) {
+                    const autoApprovedOptionId = selectAutoApprovedPermissionOption(params);
+                    if (autoApprovedOptionId !== undefined) {
+                      return {
+                        outcome: {
+                          outcome: "selected" as const,
+                          optionId: autoApprovedOptionId,
+                        },
+                      };
+                    }
                   }
-                }
-                const requestId = ApprovalRequestId.make(crypto.randomUUID());
-                const runtimeRequestId = RuntimeRequestId.make(requestId);
-                const decision = yield* Deferred.make<ProviderApprovalDecision>();
-                pendingApprovals.set(requestId, {
-                  decision,
-                  kind: permissionRequest.kind,
-                });
-                yield* offerRuntimeEvent(
-                  makeAcpRequestOpenedEvent({
-                    stamp: yield* makeEventStamp(),
-                    provider: PROVIDER,
-                    threadId: input.threadId,
-                    turnId: ctx?.activeTurnId,
-                    requestId: runtimeRequestId,
-                    permissionRequest,
-                    detail:
-                      permissionRequest.detail ??
-                      encodeJsonStringForDiagnostics(params)?.slice(0, 2000) ??
-                      "[unserializable params]",
-                    args: params,
-                    source: "acp.jsonrpc",
-                    method: "session/request_permission",
-                    rawPayload: params,
-                  }),
-                );
-                const resolved = yield* Deferred.await(decision);
-                pendingApprovals.delete(requestId);
-                yield* offerRuntimeEvent(
-                  makeAcpRequestResolvedEvent({
-                    stamp: yield* makeEventStamp(),
-                    provider: PROVIDER,
-                    threadId: input.threadId,
-                    turnId: ctx?.activeTurnId,
-                    requestId: runtimeRequestId,
-                    permissionRequest,
-                    decision: resolved,
-                  }),
-                );
-                if (resolved === "cancel") {
-                  return { outcome: { outcome: "cancelled" as const } };
-                }
-                const optionId = acpPermissionOutcome(resolved, params.options);
-                return optionId === undefined
-                  ? { outcome: { outcome: "cancelled" as const } }
-                  : { outcome: { outcome: "selected" as const, optionId } };
-              }),
+                  const requestId = ApprovalRequestId.make(yield* randomUUIDv4);
+                  const runtimeRequestId = RuntimeRequestId.make(requestId);
+                  const decision = yield* Deferred.make<ProviderApprovalDecision>();
+                  pendingApprovals.set(requestId, {
+                    decision,
+                    kind: permissionRequest.kind,
+                  });
+                  yield* offerRuntimeEvent(
+                    makeAcpRequestOpenedEvent({
+                      stamp: yield* makeEventStamp(),
+                      provider: PROVIDER,
+                      threadId: input.threadId,
+                      turnId: ctx?.activeTurnId,
+                      requestId: runtimeRequestId,
+                      permissionRequest,
+                      detail:
+                        permissionRequest.detail ??
+                        encodeJsonStringForDiagnostics(params)?.slice(0, 2000) ??
+                        "[unserializable params]",
+                      args: params,
+                      source: "acp.jsonrpc",
+                      method: "session/request_permission",
+                      rawPayload: params,
+                    }),
+                  );
+                  const resolved = yield* Deferred.await(decision);
+                  pendingApprovals.delete(requestId);
+                  yield* offerRuntimeEvent(
+                    makeAcpRequestResolvedEvent({
+                      stamp: yield* makeEventStamp(),
+                      provider: PROVIDER,
+                      threadId: input.threadId,
+                      turnId: ctx?.activeTurnId,
+                      requestId: runtimeRequestId,
+                      permissionRequest,
+                      decision: resolved,
+                    }),
+                  );
+                  if (resolved === "cancel") {
+                    return { outcome: { outcome: "cancelled" as const } };
+                  }
+                  const optionId = acpPermissionOutcome(resolved, params.options);
+                  return optionId === undefined
+                    ? { outcome: { outcome: "cancelled" as const } }
+                    : { outcome: { outcome: "selected" as const, optionId } };
+                }),
+              ),
             );
             return yield* acp.start();
           }).pipe(
@@ -920,7 +957,10 @@ export function makeAcpProviderAdapter<Settings>(
                 }
               }),
             ),
-          ).pipe(Effect.forkChild);
+          ).pipe(
+            Effect.catchCause(() => Effect.void),
+            Effect.forkChild,
+          );
 
           ctx.notificationFiber = nf;
           sessions.set(input.threadId, ctx);
@@ -955,7 +995,7 @@ export function makeAcpProviderAdapter<Settings>(
     const sendTurn: ProviderAdapterShape<ProviderAdapterError>["sendTurn"] = (input) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(input.threadId);
-        const turnId = TurnId.make(crypto.randomUUID());
+        const turnId = TurnId.make(yield* randomUUIDv4);
         const turnModelSelection =
           input.modelSelection?.instanceId === boundInstanceId ? input.modelSelection : undefined;
         const model = turnModelSelection?.model ?? ctx.session.model;
@@ -1176,6 +1216,7 @@ export function makeAcpProviderAdapter<Settings>(
 
     yield* Effect.addFinalizer(() =>
       Effect.forEach(sessions.values(), stopSessionInternal, { discard: true }).pipe(
+        Effect.ignore,
         Effect.tap(() => PubSub.shutdown(runtimeEventPubSub)),
         Effect.tap(() => managedNativeEventLogger?.close() ?? Effect.void),
       ),

@@ -226,30 +226,30 @@ export const makeTextGenerationFromRegistry = (
   registry: ProviderInstanceRegistryShape,
 ): TextGenerationShape =>
   TextGeneration.of({
-  generateCommitMessage: (input) =>
-    resolveTextGenerationTarget(registry, "generateCommitMessage", input.modelSelection).pipe(
-      Effect.flatMap(({ textGeneration, modelSelection }) =>
-        textGeneration.generateCommitMessage({ ...input, modelSelection }),
+    generateCommitMessage: (input) =>
+      resolveTextGenerationTarget(registry, "generateCommitMessage", input.modelSelection).pipe(
+        Effect.flatMap(({ textGeneration, modelSelection }) =>
+          textGeneration.generateCommitMessage({ ...input, modelSelection }),
+        ),
       ),
-    ),
-  generatePrContent: (input) =>
-    resolveTextGenerationTarget(registry, "generatePrContent", input.modelSelection).pipe(
-      Effect.flatMap(({ textGeneration, modelSelection }) =>
-        textGeneration.generatePrContent({ ...input, modelSelection }),
+    generatePrContent: (input) =>
+      resolveTextGenerationTarget(registry, "generatePrContent", input.modelSelection).pipe(
+        Effect.flatMap(({ textGeneration, modelSelection }) =>
+          textGeneration.generatePrContent({ ...input, modelSelection }),
+        ),
       ),
-    ),
-  generateBranchName: (input) =>
-    resolveTextGenerationTarget(registry, "generateBranchName", input.modelSelection).pipe(
-      Effect.flatMap(({ textGeneration, modelSelection }) =>
-        textGeneration.generateBranchName({ ...input, modelSelection }),
+    generateBranchName: (input) =>
+      resolveTextGenerationTarget(registry, "generateBranchName", input.modelSelection).pipe(
+        Effect.flatMap(({ textGeneration, modelSelection }) =>
+          textGeneration.generateBranchName({ ...input, modelSelection }),
+        ),
       ),
-    ),
-  generateThreadTitle: (input) =>
-    resolveTextGenerationTarget(registry, "generateThreadTitle", input.modelSelection).pipe(
-      Effect.flatMap(({ textGeneration, modelSelection }) =>
-        textGeneration.generateThreadTitle({ ...input, modelSelection }),
+    generateThreadTitle: (input) =>
+      resolveTextGenerationTarget(registry, "generateThreadTitle", input.modelSelection).pipe(
+        Effect.flatMap(({ textGeneration, modelSelection }) =>
+          textGeneration.generateThreadTitle({ ...input, modelSelection }),
+        ),
       ),
-    ),
   });
 
 export const make = Effect.gen(function* () {

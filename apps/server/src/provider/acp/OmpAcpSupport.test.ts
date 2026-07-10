@@ -1,5 +1,6 @@
 import * as Effect from "effect/Effect";
 import type * as EffectAcpSchema from "effect-acp/schema";
+import { it as effectIt } from "@effect/vitest";
 import { describe, expect, it } from "vitest";
 
 import { applyOmpAcpModelSelection, buildOmpAcpSpawnInput } from "./OmpAcpSupport.ts";
@@ -42,7 +43,7 @@ describe("buildOmpAcpSpawnInput", () => {
 });
 
 describe("applyOmpAcpModelSelection", () => {
-  it("sets the exact model before applying options advertised by that model", async () => {
+  effectIt.effect("sets the exact model before applying options advertised by that model", () => {
     const calls: Array<
       | { readonly type: "model"; readonly value: string }
       | { readonly type: "config"; readonly configId: string; readonly value: string | boolean }
@@ -81,22 +82,24 @@ describe("applyOmpAcpModelSelection", () => {
         }),
     };
 
-    await Effect.runPromise(
-      applyOmpAcpModelSelection({
-        runtime,
-        model: "openai-codex/gpt-5.5",
-        selections: [
-          { id: "thinking", value: "high" },
-          { id: "stale-option", value: true },
-          { id: "model", value: "must-not-be-replayed" },
-        ],
-        mapError: ({ cause }) => cause.message,
-      }),
+    return applyOmpAcpModelSelection({
+      runtime,
+      model: "openai-codex/gpt-5.5",
+      selections: [
+        { id: "thinking", value: "high" },
+        { id: "stale-option", value: true },
+        { id: "model", value: "must-not-be-replayed" },
+      ],
+      mapError: ({ cause }) => cause.message,
+    }).pipe(
+      Effect.tap(() =>
+        Effect.sync(() => {
+          expect(calls).toEqual([
+            { type: "model", value: "openai-codex/gpt-5.5" },
+            { type: "config", configId: "thinking", value: "high" },
+          ]);
+        }),
+      ),
     );
-
-    expect(calls).toEqual([
-      { type: "model", value: "openai-codex/gpt-5.5" },
-      { type: "config", configId: "thinking", value: "high" },
-    ]);
   });
 });
