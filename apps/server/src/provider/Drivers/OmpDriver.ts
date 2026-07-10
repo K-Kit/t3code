@@ -2,6 +2,7 @@
  * OmpDriver — provider driver for the Oh My Pi (`omp`) ACP runtime.
  */
 import { OmpSettings, ProviderDriverKind, type ServerProvider } from "@t3tools/contracts";
+import * as Crypto from "effect/Crypto";
 import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as FileSystem from "effect/FileSystem";
@@ -60,6 +61,7 @@ const UPDATE = makePackageManagedProviderMaintenanceResolver({
 
 export type OmpDriverEnv =
   | ChildProcessSpawner.ChildProcessSpawner
+  | Crypto.Crypto
   | FileSystem.FileSystem
   | HttpClient.HttpClient
   | Path.Path

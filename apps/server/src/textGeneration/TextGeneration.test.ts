@@ -21,9 +21,7 @@ import {
   type TextGenerationShape,
 } from "./TextGeneration.ts";
 
-const makeStubTextGeneration = (
-  overrides: Partial<TextGenerationShape>,
-): TextGenerationShape =>
+const makeStubTextGeneration = (overrides: Partial<TextGenerationShape>): TextGenerationShape =>
   TextGeneration.of({
     generateCommitMessage: () =>
       Effect.die("generateCommitMessage stub not configured for this test"),

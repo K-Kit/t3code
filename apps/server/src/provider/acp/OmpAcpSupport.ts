@@ -9,18 +9,13 @@ import * as Scope from "effect/Scope";
 import { ChildProcessSpawner } from "effect/unstable/process";
 import type * as EffectAcpErrors from "effect-acp/errors";
 
-import {
-  AcpSessionRuntime,
-  type AcpSessionRuntimeOptions,
-  type AcpSessionRuntimeShape,
-  type AcpSpawnInput,
-} from "./AcpSessionRuntime.ts";
+import * as AcpSessionRuntime from "./AcpSessionRuntime.ts";
 import { findSessionConfigOption } from "./AcpRuntimeModel.ts";
 
 type OmpAcpRuntimeSettings = Pick<OmpSettings, "binaryPath" | "profile">;
 
 export interface OmpAcpRuntimeInput extends Omit<
-  AcpSessionRuntimeOptions,
+  AcpSessionRuntime.AcpSessionRuntimeOptions,
   "authMethodId" | "clientCapabilities" | "spawn"
 > {
   readonly childProcessSpawner: ChildProcessSpawner.ChildProcessSpawner["Service"];
@@ -57,7 +52,7 @@ export function buildOmpAcpSpawnInput(
   cwd: string,
   runtimeMode: RuntimeMode = "full-access",
   environment?: NodeJS.ProcessEnv,
-): AcpSpawnInput {
+): AcpSessionRuntime.AcpSpawnInput {
   const profile = ompSettings?.profile?.trim();
   return {
     command: ompSettings?.binaryPath || "omp",
@@ -69,7 +64,11 @@ export function buildOmpAcpSpawnInput(
 
 export const makeOmpAcpRuntime = (
   input: OmpAcpRuntimeInput,
-): Effect.Effect<AcpSessionRuntimeShape, EffectAcpErrors.AcpError, Scope.Scope> =>
+): Effect.Effect<
+  AcpSessionRuntime.AcpSessionRuntime["Service"],
+  EffectAcpErrors.AcpError,
+  Scope.Scope
+> =>
   Effect.gen(function* () {
     const acpContext = yield* Layer.build(
       AcpSessionRuntime.layer({
@@ -90,11 +89,13 @@ export const makeOmpAcpRuntime = (
         ),
       ),
     );
-    return yield* Effect.service(AcpSessionRuntime).pipe(Effect.provide(acpContext));
+    return yield* Effect.service(AcpSessionRuntime.AcpSessionRuntime).pipe(
+      Effect.provide(acpContext),
+    );
   });
 
 interface OmpAcpModelSelectionRuntime {
-  readonly getConfigOptions: AcpSessionRuntimeShape["getConfigOptions"];
+  readonly getConfigOptions: AcpSessionRuntime.AcpSessionRuntime["Service"]["getConfigOptions"];
   readonly setConfigOption: (
     configId: string,
     value: string | boolean,

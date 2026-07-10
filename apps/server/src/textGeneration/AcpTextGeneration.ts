@@ -9,7 +9,7 @@ import * as Scope from "effect/Scope";
 import { ChildProcessSpawner } from "effect/unstable/process";
 import type * as EffectAcpErrors from "effect-acp/errors";
 
-import type { AcpSessionRuntimeShape } from "../provider/acp/AcpSessionRuntime.ts";
+import type * as AcpSessionRuntime from "../provider/acp/AcpSessionRuntime.ts";
 import type { ThreadTitleGenerationResult, TextGenerationShape } from "./TextGeneration.ts";
 import {
   buildBranchNamePrompt,
@@ -35,7 +35,7 @@ interface AcpTextGenerationRuntimeInput {
 }
 
 interface AcpTextGenerationConfigureInput {
-  readonly runtime: AcpSessionRuntimeShape;
+  readonly runtime: AcpSessionRuntime.AcpSessionRuntime["Service"];
   readonly modelSelection: ModelSelection;
   readonly operation: AcpTextGenerationOperation;
 }
@@ -50,7 +50,11 @@ export interface AcpTextGenerationOptions {
   readonly timeoutMs: number;
   readonly makeRuntime: (
     input: AcpTextGenerationRuntimeInput,
-  ) => Effect.Effect<AcpSessionRuntimeShape, EffectAcpErrors.AcpError, Scope.Scope>;
+  ) => Effect.Effect<
+    AcpSessionRuntime.AcpSessionRuntime["Service"],
+    EffectAcpErrors.AcpError,
+    Scope.Scope
+  >;
   /** Apply provider-specific mode, model, and option configuration after start. */
   readonly configureRuntime: (
     input: AcpTextGenerationConfigureInput,
