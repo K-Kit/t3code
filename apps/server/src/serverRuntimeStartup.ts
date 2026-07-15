@@ -7,6 +7,7 @@ import {
   ProviderInstanceId,
   ThreadId,
 } from "@t3tools/contracts";
+import { resolveTailscaleHttpsBaseUrl } from "@t3tools/tailscale";
 import * as Console from "effect/Console";
 import * as Context from "effect/Context";
 import * as Crypto from "effect/Crypto";
@@ -257,7 +258,19 @@ const resolveStartupBrowserTarget = Effect.gen(function* () {
     serverConfig.host && !isWildcardHost(serverConfig.host)
       ? `http://${formatHostForUrl(serverConfig.host)}:${serverConfig.port}`
       : localUrl;
-  const baseTarget = serverConfig.devUrl?.toString() ?? bindUrl;
+  const servePublicBaseUrl = serverConfig.tailscaleServeEnabled
+    ? yield* resolveTailscaleHttpsBaseUrl({
+        servePort: serverConfig.tailscaleServePort,
+        ...(serverConfig.tailscaleServeService
+          ? { service: serverConfig.tailscaleServeService }
+          : {}),
+      }).pipe(Effect.orElseSucceed(() => null))
+    : null;
+  // Prefer the Tailscale HTTPS origin for pairing links. Keep Vite's local
+  // --dev-url for asset proxying, not as the browser-facing base URL.
+  const baseTarget =
+    servePublicBaseUrl ??
+    (serverConfig.tailscaleServeWeb ? bindUrl : (serverConfig.devUrl?.toString() ?? bindUrl));
   return yield* Effect.succeed(serverConfig.mode === "desktop" ? baseTarget : undefined).pipe(
     Effect.flatMap((target) =>
       target ? Effect.succeed(target) : serverAuth.issueStartupPairingUrl(baseTarget),

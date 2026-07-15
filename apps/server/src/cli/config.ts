@@ -67,9 +67,21 @@ export const tailscaleServeFlag = Flag.boolean("tailscale-serve").pipe(
   ),
   Flag.optional,
 );
+export const tailscaleServeWebFlag = Flag.boolean("tailscale-serve-web").pipe(
+  Flag.withDescription(
+    "Enable Tailscale Serve and proxy the Vite dev URL instead of the backend listener.",
+  ),
+  Flag.optional,
+);
 export const tailscaleServePortFlag = Flag.integer("tailscale-serve-port").pipe(
   Flag.withSchema(PortSchema),
   Flag.withDescription("HTTPS port for Tailscale Serve when --tailscale-serve is enabled."),
+  Flag.optional,
+);
+export const tailscaleServeServiceFlag = Flag.string("tailscale-serve-service").pipe(
+  Flag.withDescription(
+    "Tailscale Service name for Serve (for example svc:t3). Exposes https://<name>.<tailnet>.ts.net/.",
+  ),
   Flag.optional,
 );
 
@@ -124,7 +136,15 @@ const EnvServerConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
+  tailscaleServeWeb: Config.boolean("T3CODE_TAILSCALE_SERVE_WEB").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
   tailscaleServePort: Config.port("T3CODE_TAILSCALE_SERVE_PORT").pipe(
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  tailscaleServeService: Config.string("T3CODE_TAILSCALE_SERVE_SERVICE").pipe(
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
@@ -142,7 +162,9 @@ export interface CliServerFlags {
   readonly autoBootstrapProjectFromCwd: Option.Option<boolean>;
   readonly logWebSocketEvents: Option.Option<boolean>;
   readonly tailscaleServeEnabled: Option.Option<boolean>;
+  readonly tailscaleServeWeb: Option.Option<boolean>;
   readonly tailscaleServePort: Option.Option<number>;
+  readonly tailscaleServeService: Option.Option<string>;
 }
 
 export interface CliAuthLocationFlags {
@@ -176,7 +198,9 @@ export const sharedServerCommandFlags = {
   autoBootstrapProjectFromCwd: autoBootstrapProjectFromCwdFlag,
   logWebSocketEvents: logWebSocketEventsFlag,
   tailscaleServeEnabled: tailscaleServeFlag,
+  tailscaleServeWeb: tailscaleServeWebFlag,
   tailscaleServePort: tailscaleServePortFlag,
+  tailscaleServeService: tailscaleServeServiceFlag,
 } as const;
 
 export const authLocationFlags = sharedServerLocationFlags;
@@ -221,7 +245,9 @@ export const resolveServerConfig = (
       autoBootstrapProjectFromCwd: flags.autoBootstrapProjectFromCwd ?? Option.none(),
       logWebSocketEvents: flags.logWebSocketEvents ?? Option.none(),
       tailscaleServeEnabled: flags.tailscaleServeEnabled ?? Option.none(),
+      tailscaleServeWeb: flags.tailscaleServeWeb ?? Option.none(),
       tailscaleServePort: flags.tailscaleServePort ?? Option.none(),
+      tailscaleServeService: flags.tailscaleServeService ?? Option.none(),
     } satisfies CliServerFlags;
     const bootstrapFd = Option.getOrUndefined(normalizedFlags.bootstrapFd) ?? env.bootstrapFd;
     const bootstrapEnvelope =
@@ -306,14 +332,23 @@ export const resolveServerConfig = (
       ),
       () => Boolean(devUrl),
     );
-    const tailscaleServeEnabled = Option.getOrElse(
+    const tailscaleServeWeb = Option.getOrElse(
       resolveOptionPrecedence(
-        normalizedFlags.tailscaleServeEnabled,
-        Option.fromUndefinedOr(env.tailscaleServeEnabled),
-        Option.fromUndefinedOr(bootstrap?.tailscaleServeEnabled),
+        normalizedFlags.tailscaleServeWeb,
+        Option.fromUndefinedOr(env.tailscaleServeWeb),
       ),
       () => false,
     );
+    const tailscaleServeEnabled =
+      tailscaleServeWeb ||
+      Option.getOrElse(
+        resolveOptionPrecedence(
+          normalizedFlags.tailscaleServeEnabled,
+          Option.fromUndefinedOr(env.tailscaleServeEnabled),
+          Option.fromUndefinedOr(bootstrap?.tailscaleServeEnabled),
+        ),
+        () => false,
+      );
     const tailscaleServePort = Option.getOrElse(
       resolveOptionPrecedence(
         normalizedFlags.tailscaleServePort,
@@ -321,6 +356,12 @@ export const resolveServerConfig = (
         Option.fromUndefinedOr(bootstrap?.tailscaleServePort),
       ),
       () => 443,
+    );
+    const tailscaleServeService = Option.getOrUndefined(
+      resolveOptionPrecedence(
+        normalizedFlags.tailscaleServeService,
+        Option.fromUndefinedOr(env.tailscaleServeService),
+      ),
     );
     const staticDir = devUrl ? undefined : yield* ServerConfig.resolveStaticDir();
     const host = Option.getOrElse(
@@ -365,7 +406,9 @@ export const resolveServerConfig = (
       autoBootstrapProjectFromCwd,
       logWebSocketEvents,
       tailscaleServeEnabled,
+      tailscaleServeWeb,
       tailscaleServePort,
+      tailscaleServeService,
     };
 
     return config;
@@ -388,7 +431,9 @@ export const resolveCliAuthConfig = (
       autoBootstrapProjectFromCwd: Option.none(),
       logWebSocketEvents: Option.none(),
       tailscaleServeEnabled: Option.none(),
+      tailscaleServeWeb: Option.none(),
       tailscaleServePort: Option.none(),
+      tailscaleServeService: Option.none(),
     },
     cliLogLevel,
   );

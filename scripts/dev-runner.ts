@@ -227,6 +227,7 @@ interface CreateDevRunnerEnvInput {
   readonly host: string | undefined;
   readonly port: number | undefined;
   readonly devUrl: URL | undefined;
+  readonly tailscaleServeWeb: boolean | undefined;
 }
 
 export function createDevRunnerEnv({
@@ -241,26 +242,45 @@ export function createDevRunnerEnv({
   host,
   port,
   devUrl,
+  tailscaleServeWeb,
 }: CreateDevRunnerEnvInput): Effect.Effect<NodeJS.ProcessEnv, never, Path.Path> {
   return Effect.gen(function* () {
     const serverPort = port ?? BASE_SERVER_PORT + serverOffset;
     const webPort = BASE_WEB_PORT + webOffset;
     const resolvedBaseDir = yield* resolveBaseDir(t3Home);
     const isDesktopMode = mode === "dev:desktop";
+    const isTailscaleServeWeb = !isDesktopMode && tailscaleServeWeb === true;
+    const loopbackBackendHttpUrl = `http://${DESKTOP_DEV_LOOPBACK_HOST}:${serverPort}`;
 
+    const defaultDevServerUrl = `http://${
+      isDesktopMode || isTailscaleServeWeb ? DESKTOP_DEV_LOOPBACK_HOST : "localhost"
+    }:${webPort}`;
     const output: NodeJS.ProcessEnv = {
       ...baseEnv,
       PORT: String(webPort),
-      VITE_DEV_SERVER_URL:
-        devUrl?.toString() ??
-        `http://${isDesktopMode ? DESKTOP_DEV_LOOPBACK_HOST : "localhost"}:${webPort}`,
+      VITE_DEV_SERVER_URL: isTailscaleServeWeb
+        ? // Local Vite listener only. Never point this at the MagicDNS/Serve URL.
+          defaultDevServerUrl
+        : (devUrl?.toString() ?? defaultDevServerUrl),
       T3CODE_HOME: resolvedBaseDir,
     };
 
     if (!isDesktopMode) {
       output.T3CODE_PORT = String(serverPort);
-      output.VITE_HTTP_URL = `http://localhost:${serverPort}`;
-      output.VITE_WS_URL = `ws://localhost:${serverPort}`;
+      if (isTailscaleServeWeb) {
+        // Browser uses window origin (Tailscale HTTPS). Vite proxies API/WS to loopback.
+        delete output.VITE_HTTP_URL;
+        delete output.VITE_WS_URL;
+        output.VITE_DEV_PROXY_TARGET = loopbackBackendHttpUrl;
+        output.T3CODE_TAILSCALE_SERVE = "1";
+        output.T3CODE_TAILSCALE_SERVE_WEB = "1";
+        output.HOST = DESKTOP_DEV_LOOPBACK_HOST;
+      } else {
+        output.VITE_HTTP_URL = `http://localhost:${serverPort}`;
+        output.VITE_WS_URL = `ws://localhost:${serverPort}`;
+        delete output.VITE_DEV_PROXY_TARGET;
+        delete output.T3CODE_TAILSCALE_SERVE_WEB;
+      }
     } else {
       output.T3CODE_PORT = String(serverPort);
       output.VITE_HTTP_URL = `http://${DESKTOP_DEV_LOOPBACK_HOST}:${serverPort}`;
@@ -268,6 +288,8 @@ export function createDevRunnerEnv({
       delete output.T3CODE_MODE;
       delete output.T3CODE_NO_BROWSER;
       delete output.T3CODE_HOST;
+      delete output.VITE_DEV_PROXY_TARGET;
+      delete output.T3CODE_TAILSCALE_SERVE_WEB;
     }
 
     if (!isDesktopMode && host !== undefined) {
@@ -475,6 +497,7 @@ interface DevRunnerCliInput {
   readonly host: string | undefined;
   readonly port: number | undefined;
   readonly devUrl: URL | undefined;
+  readonly tailscaleServeWeb: boolean | undefined;
   readonly dryRun: boolean;
   readonly runArgs: ReadonlyArray<string>;
 }
@@ -513,6 +536,7 @@ export function runDevRunnerWithInput(input: DevRunnerCliInput) {
       host: input.host,
       port: input.port,
       devUrl: input.devUrl,
+      tailscaleServeWeb: input.tailscaleServeWeb,
     });
 
     const selectionSuffix =
@@ -620,6 +644,12 @@ const devRunnerCli = Command.make("dev-runner", {
     ),
     Flag.optional,
     Flag.map(Option.getOrUndefined),
+  ),
+  tailscaleServeWeb: Flag.boolean("tailscale-serve-web").pipe(
+    Flag.withDescription(
+      "Expose the Vite UI over Tailscale Serve HTTPS (forwards to T3CODE_TAILSCALE_SERVE_WEB).",
+    ),
+    Flag.withFallbackConfig(optionalBooleanConfig("T3CODE_TAILSCALE_SERVE_WEB")),
   ),
   dryRun: Flag.boolean("dry-run").pipe(
     Flag.withDescription("Resolve mode/ports/env and print, but do not spawn Vite+."),

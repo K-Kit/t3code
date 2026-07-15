@@ -297,22 +297,32 @@ export const ensureTailscaleServe = (input: {
   readonly localPort: number;
   readonly servePort?: number;
   readonly localHost?: string;
+  readonly service?: string;
 }): Effect.Effect<void, TailscaleCommandError, ChildProcessSpawner.ChildProcessSpawner> => {
   const servePort = input.servePort ?? DEFAULT_TAILSCALE_SERVE_PORT;
   const localHost = input.localHost ?? "127.0.0.1";
-  const args = ["serve", "--bg", `--https=${servePort}`, `http://${localHost}:${input.localPort}`];
+  const serviceArgs = input.service ? [`--service=${input.service}`] : [];
+  const args = [
+    "serve",
+    ...serviceArgs,
+    "--bg",
+    `--https=${servePort}`,
+    `http://${localHost}:${input.localPort}`,
+  ];
   return runTailscaleCommand(args, TAILSCALE_SERVE_TIMEOUT);
 };
 
 export const disableTailscaleServe = (
   input: {
     readonly servePort?: number;
+    readonly service?: string;
   } = {},
 ): Effect.Effect<void, TailscaleCommandError, ChildProcessSpawner.ChildProcessSpawner> =>
   Effect.gen(function* () {
     const servePort = input.servePort ?? DEFAULT_TAILSCALE_SERVE_PORT;
+    const serviceArgs = input.service ? [`--service=${input.service}`] : [];
     return yield* runTailscaleCommand(
-      ["serve", `--https=${servePort}`, "off"],
+      ["serve", ...serviceArgs, `--https=${servePort}`, "off"],
       TAILSCALE_SERVE_TIMEOUT,
     );
   });
@@ -335,9 +345,27 @@ export const probeTailscaleHttpsEndpoint = (input: {
     });
   }).pipe(Effect.orElseSucceed(() => false));
 
+export function resolveTailscaleServiceDnsName(input: {
+  readonly service: string;
+  readonly magicDnsName: string;
+}): string | null {
+  const serviceName = input.service.replace(/^svc:/, "").trim();
+  if (serviceName.length === 0) {
+    return null;
+  }
+
+  const suffix = input.magicDnsName.split(".").slice(1).join(".");
+  if (suffix.length === 0) {
+    return null;
+  }
+
+  return `${serviceName}.${suffix}`;
+}
+
 export const resolveTailscaleHttpsBaseUrl = (
   input: {
     readonly servePort?: number;
+    readonly service?: string;
   } = {},
 ): Effect.Effect<
   string | null,
@@ -345,12 +373,24 @@ export const resolveTailscaleHttpsBaseUrl = (
   ChildProcessSpawner.ChildProcessSpawner
 > =>
   readTailscaleStatus.pipe(
-    Effect.map((status) =>
-      status.magicDnsName
-        ? buildTailscaleHttpsBaseUrl({
+    Effect.map((status) => {
+      if (!status.magicDnsName) {
+        return null;
+      }
+
+      const magicDnsName = input.service
+        ? resolveTailscaleServiceDnsName({
+            service: input.service,
             magicDnsName: status.magicDnsName,
-            ...(input.servePort === undefined ? {} : { servePort: input.servePort }),
           })
-        : null,
-    ),
+        : status.magicDnsName;
+      if (!magicDnsName) {
+        return null;
+      }
+
+      return buildTailscaleHttpsBaseUrl({
+        magicDnsName,
+        ...(input.servePort === undefined ? {} : { servePort: input.servePort }),
+      });
+    }),
   );

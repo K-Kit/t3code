@@ -5,11 +5,13 @@
   "scripts": {
     "prepare": "effect-tsgo patch && vp config --no-agent",
     "dev": "node scripts/dev-runner.ts dev",
+    "dev:kpop": "T3CODE_TAILSCALE_SERVE_SERVICE=svc:t3 node scripts/dev-runner.ts dev --no-browser --tailscale-serve-web --port 5469",
     "dev:server": "node scripts/dev-runner.ts dev:server",
     "dev:web": "node scripts/dev-runner.ts dev:web",
     "dev:marketing": "vp run --filter @t3tools/marketing dev",
     "dev:desktop": "node scripts/dev-runner.ts dev:desktop",
     "start": "vp run --filter t3 start",
+    "start:kpop": "T3CODE_TAILSCALE_SERVE_SERVICE=svc:t3 vp run --filter t3 start --dev-url https://t3.tail99012d.ts.net --no-browser --tailscale-serve-web",
     "start:desktop": "vp run --filter @t3tools/desktop start",
     "start:marketing": "vp run --filter @t3tools/marketing preview",
     "start:mock-update-server": "node scripts/mock-update-server.ts",

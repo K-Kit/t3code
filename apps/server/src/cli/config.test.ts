@@ -74,7 +74,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
       ).pipe(
@@ -117,7 +119,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: false,
         logWebSocketEvents: true,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
     }),
   );
@@ -140,7 +144,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.some(true),
           logWebSocketEvents: Option.some(true),
           tailscaleServeEnabled: Option.some(true),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.some(8443),
+          tailscaleServeService: Option.none(),
         },
         Option.some("Debug"),
       ).pipe(
@@ -183,6 +189,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: true,
         logWebSocketEvents: true,
         tailscaleServeEnabled: true,
+        tailscaleServeWeb: false,
         tailscaleServePort: 8443,
       });
     }),
@@ -214,7 +221,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.some(false),
           logWebSocketEvents: Option.some(false),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
       ).pipe(
@@ -252,7 +261,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: false,
         logWebSocketEvents: false,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
     }),
   );
@@ -289,7 +300,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
       ).pipe(
@@ -326,7 +339,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: false,
         logWebSocketEvents: false,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
       assert.equal(join(baseDir, "userdata"), resolved.stateDir);
     }),
@@ -352,7 +367,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
       ).pipe(
@@ -411,7 +428,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.some("Debug"),
       ).pipe(
@@ -451,7 +470,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: true,
         logWebSocketEvents: true,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
     }),
   );
@@ -487,7 +508,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
       ).pipe(
@@ -520,7 +543,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: false,
         logWebSocketEvents: false,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
     }),
   );
@@ -544,7 +569,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
           autoBootstrapProjectFromCwd: Option.none(),
           logWebSocketEvents: Option.none(),
           tailscaleServeEnabled: Option.none(),
+          tailscaleServeWeb: Option.none(),
           tailscaleServePort: Option.none(),
+          tailscaleServeService: Option.none(),
         },
         Option.none(),
         {
@@ -583,7 +610,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         autoBootstrapProjectFromCwd: false,
         logWebSocketEvents: false,
         tailscaleServeEnabled: false,
+        tailscaleServeWeb: false,
         tailscaleServePort: 443,
+        tailscaleServeService: undefined,
       });
     }),
   );

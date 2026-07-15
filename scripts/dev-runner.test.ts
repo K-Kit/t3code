@@ -58,6 +58,7 @@ const devServerInput = {
   host: undefined,
   port: 13_773,
   devUrl: undefined,
+  tailscaleServeWeb: undefined,
   dryRun: false,
   runArgs: ["--inspect", "secret-token-value"],
 } as const;
@@ -142,6 +143,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: undefined,
           port: undefined,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_HOME, path.resolve(NodeOS.homedir(), ".t3"));
@@ -163,6 +165,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: "0.0.0.0",
           port: 4222,
           devUrl: new URL("http://localhost:7331"),
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_HOME, path.resolve("/tmp/custom-t3"));
@@ -193,6 +196,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: undefined,
           port: undefined,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_MODE, "web");
@@ -216,6 +220,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: undefined,
           port: undefined,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_LOG_WS_EVENTS, "0");
@@ -237,6 +242,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: undefined,
           port: undefined,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_HOME, path.resolve("/tmp/my-t3"));
@@ -265,6 +271,7 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: "127.0.0.1",
           port: 4222,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_HOME, path.resolve("/tmp/my-t3"));
@@ -294,11 +301,46 @@ it.layer(NodeServices.layer)("dev-runner", (it) => {
           host: undefined,
           port: undefined,
           devUrl: undefined,
+          tailscaleServeWeb: undefined,
         });
 
         assert.equal(env.T3CODE_PORT, "13773");
         assert.equal(env.VITE_HTTP_URL, "http://localhost:13773");
         assert.equal(env.VITE_WS_URL, "ws://localhost:13773");
+      }),
+    );
+
+    it.effect("configures Tailscale Serve web mode for same-origin Vite proxying", () =>
+      Effect.gen(function* () {
+        const env = yield* createDevRunnerEnv({
+          mode: "dev",
+          baseEnv: {
+            VITE_HTTP_URL: "http://localhost:9999",
+            VITE_WS_URL: "ws://localhost:9999",
+            T3CODE_TAILSCALE_SERVE: "0",
+          },
+          serverOffset: 0,
+          webOffset: 0,
+          t3Home: undefined,
+          noBrowser: true,
+          autoBootstrapProjectFromCwd: undefined,
+          logWebSocketEvents: undefined,
+          host: undefined,
+          port: undefined,
+          devUrl: undefined,
+          tailscaleServeWeb: true,
+        });
+
+        assert.equal(env.T3CODE_PORT, "13773");
+        assert.equal(env.PORT, "5733");
+        assert.equal(env.HOST, "127.0.0.1");
+        assert.equal(env.T3CODE_TAILSCALE_SERVE, "1");
+        assert.equal(env.T3CODE_TAILSCALE_SERVE_WEB, "1");
+        assert.equal(env.VITE_DEV_PROXY_TARGET, "http://127.0.0.1:13773");
+        assert.equal(env.VITE_HTTP_URL, undefined);
+        assert.equal(env.VITE_WS_URL, undefined);
+        assert.equal(env.VITE_DEV_SERVER_URL, "http://127.0.0.1:5733");
+        assert.equal(env.T3CODE_NO_BROWSER, "1");
       }),
     );
   });

@@ -343,6 +343,34 @@ const RuntimeServicesLive = ServerRuntimeStartup.layer.pipe(
   Layer.provideMerge(RuntimeDependenciesLive),
 );
 
+export function resolveTailscaleServeLocalPort(input: {
+  readonly backendPort: number;
+  readonly tailscaleServeWeb: boolean;
+  readonly devUrl: URL | undefined;
+}): number | null {
+  if (!input.tailscaleServeWeb) {
+    return input.backendPort;
+  }
+
+  if (!input.devUrl) {
+    return null;
+  }
+
+  if (input.devUrl.port.length > 0) {
+    return Number(input.devUrl.port);
+  }
+
+  if (input.devUrl.protocol === "https:") {
+    return 443;
+  }
+
+  if (input.devUrl.protocol === "http:") {
+    return 80;
+  }
+
+  return null;
+}
+
 export const makeRoutesLayer = Layer.mergeAll(
   Layer.mergeAll(
     HttpApiBuilder.layer(EnvironmentHttpApi).pipe(
@@ -404,17 +432,35 @@ export const makeServerLayer = Layer.unwrap(
                 return null;
               }
 
-              const localPort = address.port;
+              const localPort = resolveTailscaleServeLocalPort({
+                backendPort: address.port,
+                tailscaleServeWeb: config.tailscaleServeWeb,
+                devUrl: config.devUrl,
+              });
+              if (localPort === null) {
+                yield* Effect.logWarning(
+                  "Tailscale Serve web mode requires VITE_DEV_SERVER_URL; skipping Serve setup",
+                );
+                return null;
+              }
+
               return yield* ensureTailscaleServe({
                 localPort,
                 servePort: config.tailscaleServePort,
                 localHost: "127.0.0.1",
+                ...(config.tailscaleServeService ? { service: config.tailscaleServeService } : {}),
               }).pipe(
-                Effect.as({ localPort, servePort: config.tailscaleServePort }),
+                Effect.as({
+                  localPort,
+                  servePort: config.tailscaleServePort,
+                  service: config.tailscaleServeService,
+                }),
                 Effect.tap(() =>
                   Effect.logInfo("Tailscale Serve configured", {
                     localPort,
                     servePort: config.tailscaleServePort,
+                    service: config.tailscaleServeService,
+                    target: config.tailscaleServeWeb ? "vite-dev" : "backend",
                   }),
                 ),
                 Effect.catch((cause) =>
@@ -422,13 +468,17 @@ export const makeServerLayer = Layer.unwrap(
                     cause,
                     localPort,
                     servePort: config.tailscaleServePort,
+                    service: config.tailscaleServeService,
                   }).pipe(Effect.as(null)),
                 ),
               );
             }),
             (configured) =>
               configured
-                ? disableTailscaleServe({ servePort: configured.servePort }).pipe(
+                ? disableTailscaleServe({
+                    servePort: configured.servePort,
+                    ...(configured.service ? { service: configured.service } : {}),
+                  }).pipe(
                     Effect.tap(() =>
                       Effect.logInfo("Tailscale Serve disabled", {
                         servePort: configured.servePort,

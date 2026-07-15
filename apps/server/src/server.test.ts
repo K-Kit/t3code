@@ -380,7 +380,9 @@ const buildAppUnderTest = (options?: {
       autoBootstrapProjectFromCwd: false,
       logWebSocketEvents: false,
       tailscaleServeEnabled: false,
+      tailscaleServeWeb: false,
       tailscaleServePort: 443,
+      tailscaleServeService: undefined,
       ...options?.config,
     };
     const layerConfig = ServerConfig.layer(config);

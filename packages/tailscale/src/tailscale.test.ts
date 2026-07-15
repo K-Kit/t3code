@@ -17,6 +17,7 @@ import {
   parseTailscaleMagicDnsName,
   parseTailscaleStatus,
   readTailscaleStatus,
+  resolveTailscaleServiceDnsName,
   TAILSCALE_STATUS_TIMEOUT,
   TailscaleCommandExitError,
   TailscaleCommandSpawnError,
@@ -85,6 +86,25 @@ describe("tailscale", () => {
       assert.equal(isTailscaleIpv4Address("100.127.255.254"), true);
       assert.equal(isTailscaleIpv4Address("100.128.0.1"), false);
       assert.equal(isTailscaleIpv4Address("192.168.1.44"), false);
+    }),
+  );
+
+  it.effect("derives service MagicDNS names from the node MagicDNS suffix", () =>
+    Effect.sync(() => {
+      assert.equal(
+        resolveTailscaleServiceDnsName({
+          service: "svc:t3",
+          magicDnsName: "kpop.tail99012d.ts.net",
+        }),
+        "t3.tail99012d.ts.net",
+      );
+      assert.equal(
+        resolveTailscaleServiceDnsName({
+          service: "t3",
+          magicDnsName: "kpop.tail99012d.ts.net",
+        }),
+        "t3.tail99012d.ts.net",
+      );
     }),
   );
 
@@ -232,6 +252,26 @@ describe("tailscale", () => {
     return ensureTailscaleServe({ localPort: 13773, servePort: 8443 }).pipe(Effect.provide(layer));
   });
 
+  it.effect("configures tailscale serve for a named Tailscale Service", () => {
+    const layer = mockSpawnerLayer((command, args) => {
+      assert.equal(command, "tailscale");
+      assert.deepEqual(args, [
+        "serve",
+        "--service=svc:t3",
+        "--bg",
+        "--https=443",
+        "http://127.0.0.1:5733",
+      ]);
+      return {};
+    });
+
+    return ensureTailscaleServe({
+      localPort: 5733,
+      servePort: 443,
+      service: "svc:t3",
+    }).pipe(Effect.provide(layer));
+  });
+
   it.effect("retains tailscale serve exit diagnostics", () => {
     const layer = mockSpawnerLayer(() => ({
       code: 1,
@@ -274,5 +314,15 @@ describe("tailscale", () => {
         { command: "tailscale", args: ["serve", "--https=8443", "off"] },
       ]);
     });
+  });
+
+  it.effect("disables a named Tailscale Service serve proxy", () => {
+    const layer = mockSpawnerLayer((command, args) => {
+      assert.equal(command, "tailscale");
+      assert.deepEqual(args, ["serve", "--service=svc:t3", "--https=443", "off"]);
+      return {};
+    });
+
+    return disableTailscaleServe({ servePort: 443, service: "svc:t3" }).pipe(Effect.provide(layer));
   });
 });

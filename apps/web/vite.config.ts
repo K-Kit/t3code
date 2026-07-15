@@ -8,6 +8,11 @@ import { defineConfig } from "vite-plus";
 import pkg from "./package.json" with { type: "json" };
 
 import { loadRepoEnv } from "../../scripts/lib/public-config";
+import {
+  buildDevServerHmr,
+  buildDevServerProxy,
+  resolveDevProxyTarget,
+} from "./src/vite.dev-server";
 
 const repoEnv = loadRepoEnv();
 Object.assign(process.env, repoEnv);
@@ -15,6 +20,9 @@ Object.assign(process.env, repoEnv);
 const port = Number(process.env.PORT ?? 5733);
 const host = process.env.HOST?.trim() || "localhost";
 const configuredWsUrl = process.env.VITE_WS_URL?.trim();
+const configuredDevProxyTarget = process.env.VITE_DEV_PROXY_TARGET?.trim();
+const tailscaleServeWebEnv = process.env.T3CODE_TAILSCALE_SERVE_WEB?.trim().toLowerCase();
+const tailscaleServeWeb = tailscaleServeWebEnv === "1" || tailscaleServeWebEnv === "true";
 const configuredRelayUrl = repoEnv.VITE_T3CODE_RELAY_URL?.trim() || "";
 const configuredClerkPublishableKey = repoEnv.VITE_CLERK_PUBLISHABLE_KEY?.trim() || "";
 const configuredClerkJwtTemplate = repoEnv.VITE_CLERK_JWT_TEMPLATE?.trim() || "";
@@ -64,28 +72,10 @@ const unitTestProject = {
   },
 } satisfies TestProjectInlineConfiguration;
 
-function resolveDevProxyTarget(wsUrl: string | undefined): string | undefined {
-  if (!wsUrl) {
-    return undefined;
-  }
-
-  try {
-    const url = new URL(wsUrl);
-    if (url.protocol === "ws:") {
-      url.protocol = "http:";
-    } else if (url.protocol === "wss:") {
-      url.protocol = "https:";
-    }
-    url.pathname = "";
-    url.search = "";
-    url.hash = "";
-    return url.toString();
-  } catch {
-    return undefined;
-  }
-}
-
-const devProxyTarget = resolveDevProxyTarget(configuredWsUrl);
+const resolvedDevProxyTarget =
+  configuredDevProxyTarget || resolveDevProxyTarget(configuredWsUrl) || undefined;
+const devProxy = buildDevServerProxy(resolvedDevProxyTarget);
+const devHmr = buildDevServerHmr({ host, port, tailscaleServeWeb });
 
 export default defineConfig(() => {
   return {
@@ -141,32 +131,10 @@ export default defineConfig(() => {
       host,
       port,
       strictPort: true,
-      ...(devProxyTarget
-        ? {
-            proxy: {
-              "/.well-known": {
-                target: devProxyTarget,
-                changeOrigin: true,
-              },
-              "/api": {
-                target: devProxyTarget,
-                changeOrigin: true,
-              },
-              "/attachments": {
-                target: devProxyTarget,
-                changeOrigin: true,
-              },
-            },
-          }
-        : {}),
-      hmr: {
-        // Explicit config so Vite's HMR WebSocket connects reliably
-        // inside Electron's BrowserWindow. Vite 8 uses console.debug for
-        // connection logs — enable "Verbose" in DevTools to see them.
-        protocol: "ws",
-        host,
-        clientPort: port,
-      },
+      // Tailscale Serve forwards the MagicDNS Host header; allow it in remote-dev mode.
+      ...(tailscaleServeWeb ? { allowedHosts: true as const } : {}),
+      ...(devProxy ? { proxy: { ...devProxy } } : {}),
+      hmr: devHmr,
     },
     build: {
       outDir: "dist",
