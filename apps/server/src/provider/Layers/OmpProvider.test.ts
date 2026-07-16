@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildOmpCliArgs, buildOmpDiscoveredModels, parseOmpModelsJson } from "./OmpProvider.ts";
+import {
+  buildOmpCliArgs,
+  buildOmpDiscoveredModels,
+  parseOmpModelsJson,
+  partitionOmpAvailableCommands,
+} from "./OmpProvider.ts";
 
 describe("OmpProvider", () => {
   it("parses OMP's machine-readable model inventory", () => {
@@ -74,5 +79,36 @@ describe("OmpProvider", () => {
       "--json",
     ]);
     expect(buildOmpCliArgs({ profile: "" }, ["acp"])).toEqual(["acp"]);
+  });
+
+  it("splits ACP available commands into composer slash commands and skills", () => {
+    expect(
+      partitionOmpAvailableCommands([
+        { name: "compact", description: "Compact the conversation", input: { hint: "[focus]" } },
+        { name: "context", description: "" },
+        { name: "compact", description: "duplicate ignored" },
+        { name: "  ", description: "blank names dropped" },
+        { name: "skill:code-review", description: "Review the current diff" },
+        { name: "skill:code-review", description: "duplicate skill ignored" },
+        { name: "skill:", description: "empty skill name dropped" },
+      ]),
+    ).toEqual({
+      slashCommands: [
+        {
+          name: "compact",
+          description: "Compact the conversation",
+          input: { hint: "[focus]" },
+        },
+        { name: "context" },
+      ],
+      skills: [
+        {
+          name: "code-review",
+          description: "Review the current diff",
+          path: "skill:code-review",
+          enabled: true,
+        },
+      ],
+    });
   });
 });

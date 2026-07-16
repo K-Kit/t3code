@@ -3,7 +3,11 @@ import type * as EffectAcpSchema from "effect-acp/schema";
 import { it as effectIt } from "@effect/vitest";
 import { describe, expect, it } from "vitest";
 
-import { applyOmpAcpModelSelection, buildOmpAcpSpawnInput } from "./OmpAcpSupport.ts";
+import {
+  applyOmpAcpModelSelection,
+  buildOmpAcpSpawnInput,
+  rewriteOmpSkillInvocations,
+} from "./OmpAcpSupport.ts";
 
 describe("buildOmpAcpSpawnInput", () => {
   it("maps T3 runtime modes to explicit OMP approval behavior", () => {
@@ -39,6 +43,39 @@ describe("buildOmpAcpSpawnInput", () => {
       cwd: "/tmp/project",
       env: environment,
     });
+  });
+});
+
+describe("rewriteOmpSkillInvocations", () => {
+  const availableCommands = [
+    { name: "compact" },
+    { name: "skill:code-review" },
+    { name: "skill:deep-research" },
+  ];
+
+  it("rewrites advertised $skill tokens into OMP /skill: command syntax", () => {
+    expect(rewriteOmpSkillInvocations("$code-review the diff", availableCommands)).toBe(
+      "/skill:code-review the diff",
+    );
+    expect(rewriteOmpSkillInvocations("please run $deep-research", availableCommands)).toBe(
+      "please run /skill:deep-research",
+    );
+    expect(rewriteOmpSkillInvocations("$skill:code-review now", availableCommands)).toBe(
+      "/skill:code-review now",
+    );
+  });
+
+  it("leaves tokens without a matching skill command untouched", () => {
+    expect(rewriteOmpSkillInvocations("$PATH is unset", availableCommands)).toBe("$PATH is unset");
+    expect(rewriteOmpSkillInvocations("$compact is not a skill", availableCommands)).toBe(
+      "$compact is not a skill",
+    );
+    expect(rewriteOmpSkillInvocations("costs $100 today", availableCommands)).toBe(
+      "costs $100 today",
+    );
+    expect(rewriteOmpSkillInvocations("$code-review the diff", [{ name: "compact" }])).toBe(
+      "$code-review the diff",
+    );
   });
 });
 

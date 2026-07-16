@@ -97,6 +97,130 @@ it.effect("OMP adapter starts a scoped ACP session with profile and runtime poli
   ),
 );
 
+it.effect("OMP adapter rewrites skill tokens and embeds mentioned files into ACP prompts", () =>
+  Effect.scoped(
+    Effect.gen(function* () {
+      const tempDir = yield* Effect.promise(() =>
+        NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-prompt-")),
+      );
+      const requestLogPath = NodePath.join(tempDir, "requests.jsonl");
+      yield* Effect.promise(() => NodeFSP.writeFile(requestLogPath, "", "utf8"));
+      const mentionedPath = NodePath.join(tempDir, "notes.txt");
+      yield* Effect.promise(() => NodeFSP.writeFile(mentionedPath, "remember the milk\n", "utf8"));
+      const binaryPath = yield* Effect.promise(() =>
+        makeMockOmpWrapper({
+          environment: {
+            T3_ACP_REQUEST_LOG_PATH: requestLogPath,
+            // @effect-diagnostics-next-line preferSchemaOverJson:off
+            T3_ACP_AVAILABLE_COMMANDS_JSON: JSON.stringify([
+              { name: "compact", description: "Compact the conversation" },
+              { name: "skill:test-notes", description: "Summarize notes" },
+            ]),
+          },
+        }),
+      );
+      const adapter = yield* makeOmpAdapter(decodeOmpSettings({ binaryPath, enabled: true }));
+      const threadId = ThreadId.make("omp-prompt-rewrite");
+
+      yield* adapter.startSession({
+        threadId,
+        provider: ProviderDriverKind.make("omp"),
+        providerInstanceId: ProviderInstanceId.make("omp"),
+        cwd: tempDir,
+        runtimeMode: "full-access",
+        modelSelection: {
+          instanceId: ProviderInstanceId.make("omp"),
+          model: "default",
+        },
+      });
+      yield* adapter.sendTurn({
+        threadId,
+        input: "$test-notes summarize @notes.txt please",
+        attachments: [],
+      });
+
+      const promptRequests = (yield* Effect.promise(() => NodeFSP.readFile(requestLogPath, "utf8")))
+        .split("\n")
+        .filter(Boolean)
+        .map((line) => JSON.parse(line) as { method?: string; params?: { prompt?: unknown } })
+        .filter((message) => message.method === "session/prompt");
+      assert.equal(promptRequests.length, 1);
+      const prompt = promptRequests[0]?.params?.prompt as Array<Record<string, unknown>>;
+      assert.deepStrictEqual(prompt[0], {
+        type: "text",
+        text: "/skill:test-notes summarize @notes.txt please",
+      });
+      const resource = prompt[1] as {
+        type: string;
+        resource: { uri: string; text: string };
+      };
+      assert.equal(resource.type, "resource");
+      assert.equal(resource.resource.text, "remember the milk\n");
+      assert.isTrue(resource.resource.uri.startsWith("file://"));
+      assert.isTrue(resource.resource.uri.endsWith("/notes.txt"));
+
+      yield* adapter.stopSession(threadId);
+    }).pipe(Effect.provide(testLayer)),
+  ),
+);
+
+// `it.live`: the first-turn wait for `available_commands_update` races a
+// real-clock timeout against the delayed notification below.
+it.live("OMP adapter waits for a late command list before rewriting the first turn", () =>
+  Effect.scoped(
+    Effect.gen(function* () {
+      const tempDir = yield* Effect.promise(() =>
+        NodeFSP.mkdtemp(NodePath.join(NodeOS.tmpdir(), "omp-late-commands-")),
+      );
+      const requestLogPath = NodePath.join(tempDir, "requests.jsonl");
+      yield* Effect.promise(() => NodeFSP.writeFile(requestLogPath, "", "utf8"));
+      const binaryPath = yield* Effect.promise(() =>
+        makeMockOmpWrapper({
+          environment: {
+            T3_ACP_REQUEST_LOG_PATH: requestLogPath,
+            T3_ACP_AVAILABLE_COMMANDS_DELAY_MS: "300",
+            // @effect-diagnostics-next-line preferSchemaOverJson:off
+            T3_ACP_AVAILABLE_COMMANDS_JSON: JSON.stringify([
+              { name: "skill:test-notes", description: "Summarize notes" },
+            ]),
+          },
+        }),
+      );
+      const adapter = yield* makeOmpAdapter(decodeOmpSettings({ binaryPath, enabled: true }));
+      const threadId = ThreadId.make("omp-late-commands");
+
+      yield* adapter.startSession({
+        threadId,
+        provider: ProviderDriverKind.make("omp"),
+        providerInstanceId: ProviderInstanceId.make("omp"),
+        cwd: tempDir,
+        runtimeMode: "full-access",
+        modelSelection: {
+          instanceId: ProviderInstanceId.make("omp"),
+          model: "default",
+        },
+      });
+      yield* adapter.sendTurn({ threadId, input: "$test-notes go", attachments: [] });
+
+      const promptTexts = (yield* Effect.promise(() => NodeFSP.readFile(requestLogPath, "utf8")))
+        .split("\n")
+        .filter(Boolean)
+        .map(
+          (line) =>
+            JSON.parse(line) as {
+              method?: string;
+              params?: { prompt?: Array<{ type: string; text?: string }> };
+            },
+        )
+        .filter((message) => message.method === "session/prompt")
+        .map((message) => message.params?.prompt?.[0]?.text);
+      assert.deepStrictEqual(promptTexts, ["/skill:test-notes go"]);
+
+      yield* adapter.stopSession(threadId);
+    }).pipe(Effect.provide(testLayer)),
+  ),
+);
+
 it.effect("OMP adapter bridges standard ACP form elicitation to provider user input", () =>
   Effect.scoped(
     Effect.gen(function* () {

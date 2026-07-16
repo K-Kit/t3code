@@ -187,6 +187,21 @@ export class AcpSessionRuntime extends Context.Service<
     /** Latest configuration options observed from session setup and configuration writes. */
     readonly getConfigOptions: Effect.Effect<ReadonlyArray<EffectAcpSchema.SessionConfigOption>>;
     /**
+     * Latest commands advertised by the agent for the active session via
+     * `available_commands_update`. Empty until the runtime has started and
+     * the agent has published a command list.
+     * @see https://agentclientprotocol.com/protocol/schema#session/update
+     */
+    readonly getAvailableCommands: Effect.Effect<ReadonlyArray<EffectAcpSchema.AvailableCommand>>;
+    /**
+     * Resolves once the agent has published its first
+     * `available_commands_update` (even an empty one). Agents like OMP send
+     * this right after `session/new` responds, so callers that depend on the
+     * command list must synchronize on this instead of polling. Bound waits
+     * with a timeout — agents that never publish commands leave this pending.
+     */
+    readonly awaitFirstAvailableCommandsUpdate: Effect.Effect<void>;
+    /**
      * Sends a prompt turn to the active session.
      * @see https://agentclientprotocol.com/protocol/schema#session/prompt
      */
@@ -276,6 +291,10 @@ export const make = (
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
     const runtimeScope = yield* Scope.Scope;
     const eventQueue = yield* Queue.unbounded<AcpSessionRuntimeEvent>();
+    const availableCommandsBySessionRef = yield* Ref.make<
+      ReadonlyMap<string, ReadonlyArray<EffectAcpSchema.AvailableCommand>>
+    >(new Map());
+    const availableCommandsReceivedDeferred = yield* Deferred.make<void>();
     const modeStateRef = yield* Ref.make<AcpSessionModeState | undefined>(undefined);
     const toolCallsRef = yield* Ref.make(new Map<string, AcpToolCallState>());
     const assistantSegmentRef = yield* Ref.make<AcpAssistantSegmentState>({ nextSegmentIndex: 0 });
@@ -358,6 +377,18 @@ export const make = (
 
     yield* acp.handleSessionUpdate((notification) =>
       Effect.gen(function* () {
+        // Command availability is session state, not turn traffic: capture it
+        // before the load-replay and startup gates so updates emitted during
+        // `session/new` / `session/load` (as OMP does) are not dropped.
+        if (notification.update.sessionUpdate === "available_commands_update") {
+          const availableCommands = notification.update.availableCommands;
+          yield* Ref.update(availableCommandsBySessionRef, (current) => {
+            const next = new Map(current);
+            next.set(notification.sessionId, availableCommands);
+            return next;
+          });
+          yield* Deferred.succeed(availableCommandsReceivedDeferred, void 0);
+        }
         const gate = yield* Ref.get(sessionLoadGateRef);
         if (Option.isSome(gate) && gate.value.active) {
           const lastActivityAtMillis = yield* Clock.currentTimeMillis;
@@ -704,6 +735,15 @@ export const make = (
       }),
       getModeState: Ref.get(modeStateRef),
       getConfigOptions: Ref.get(configOptionsRef),
+      getAvailableCommands: Effect.gen(function* () {
+        const state = yield* Ref.get(startStateRef);
+        if (state._tag !== "Started") {
+          return [];
+        }
+        const bySession = yield* Ref.get(availableCommandsBySessionRef);
+        return bySession.get(state.result.sessionId) ?? [];
+      }),
+      awaitFirstAvailableCommandsUpdate: Deferred.await(availableCommandsReceivedDeferred),
       prompt: (payload) =>
         promptSerializationSemaphore.withPermit(
           Effect.gen(function* () {

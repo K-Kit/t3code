@@ -48,6 +48,8 @@ const permissionOptionIds = {
 const emitElicitation = process.env.T3_ACP_EMIT_ELICITATION === "1";
 const emitUnsupportedElicitation = process.env.T3_ACP_EMIT_UNSUPPORTED_ELICITATION === "1";
 const extraModelId = process.env.T3_ACP_EXTRA_MODEL_ID?.trim();
+const availableCommandsJson = process.env.T3_ACP_AVAILABLE_COMMANDS_JSON;
+const availableCommandsDelayMs = Number(process.env.T3_ACP_AVAILABLE_COMMANDS_DELAY_MS ?? "0");
 const sessionId = "mock-session-1";
 
 let currentModeId = "ask";
@@ -314,11 +316,35 @@ const program = Effect.gen(function* () {
   yield* agent.handleAuthenticate(() => Effect.succeed({}));
 
   yield* agent.handleCreateSession(() =>
-    Effect.succeed({
-      sessionId,
-      modes: modeState(),
-      models: modelState(),
-      configOptions: configOptions(),
+    Effect.gen(function* () {
+      if (availableCommandsJson) {
+        // Mirrors OMP: the command list is published around `session/new`,
+        // racing the RPC response (set a delay to land after it).
+        const emitAvailableCommands = Effect.sync(() => {
+          writeJsonRpcNotification("session/update", {
+            sessionId,
+            update: {
+              sessionUpdate: "available_commands_update",
+              // @effect-diagnostics-next-line preferSchemaOverJson:off
+              availableCommands: JSON.parse(availableCommandsJson),
+            },
+          });
+        });
+        if (Number.isFinite(availableCommandsDelayMs) && availableCommandsDelayMs > 0) {
+          yield* emitAvailableCommands.pipe(
+            Effect.delay(availableCommandsDelayMs),
+            Effect.forkDetach,
+          );
+        } else {
+          yield* emitAvailableCommands;
+        }
+      }
+      return {
+        sessionId,
+        modes: modeState(),
+        models: modelState(),
+        configOptions: configOptions(),
+      };
     }),
   );
 

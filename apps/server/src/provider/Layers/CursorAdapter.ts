@@ -39,6 +39,8 @@ import * as SynchronizedRef from "effect/SynchronizedRef";
 import { ChildProcessSpawner } from "effect/unstable/process";
 import type * as EffectAcpSchema from "effect-acp/schema";
 
+import { collectComposerInlineTokens } from "@t3tools/shared/composerInlineTokens";
+
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
 import { ServerConfig } from "../../config.ts";
 import {
@@ -83,6 +85,8 @@ const encodeUnknownJsonStringExit = Schema.encodeUnknownExit(Schema.UnknownFromJ
 
 const PROVIDER = ProviderDriverKind.make("cursor");
 const ACP_RESUME_VERSION = 1 as const;
+const MAX_MENTION_RESOURCE_BYTES = 262_144;
+const FIRST_AVAILABLE_COMMANDS_TIMEOUT_MS = 2_000;
 const ACP_PLAN_MODE_ALIASES = ["plan", "architect"];
 const ACP_IMPLEMENT_MODE_ALIASES = ["code", "agent", "default", "chat", "implement"];
 const ACP_APPROVAL_MODE_ALIASES = ["ask"];
@@ -160,6 +164,21 @@ export interface AcpProviderAdapterDefinition<Settings> {
     input: AcpProviderModelSelectionInput,
   ) => Effect.Effect<void, ProviderAdapterError>;
   readonly resolveModelId: (model: string | null | undefined) => string;
+  /**
+   * Rewrites outgoing prompt text using the commands the live session
+   * advertised via `available_commands_update` (e.g. OMP executes composer
+   * `$skill` tokens only through its `/skill:<name>` command syntax).
+   */
+  readonly rewritePromptText?: (input: {
+    readonly text: string;
+    readonly availableCommands: ReadonlyArray<EffectAcpSchema.AvailableCommand>;
+  }) => string;
+  /**
+   * Embeds `@path` mentions from the prompt as ACP `resource` content
+   * blocks. Needed for agents that do not expand `@path` text themselves
+   * over ACP and instead expect the client to attach mentioned files.
+   */
+  readonly embedMentionedFiles?: boolean;
 }
 
 interface PendingApproval {
@@ -220,6 +239,21 @@ function parseAcpResume(raw: unknown): { sessionId: string } | undefined {
   if (raw.schemaVersion !== ACP_RESUME_VERSION) return undefined;
   if (typeof raw.sessionId !== "string" || !raw.sessionId.trim()) return undefined;
   return { sessionId: raw.sessionId.trim() };
+}
+
+function uniqueMentionPaths(text: string): ReadonlyArray<string> {
+  const paths: Array<string> = [];
+  const seen = new Set<string>();
+  // The composer's inline-token grammar requires a trailing boundary, but
+  // outgoing prompt text is trimmed — pad so a final `@path` still matches.
+  for (const token of collectComposerInlineTokens(`${text} `)) {
+    if (token.type !== "mention") continue;
+    const value = token.value.trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    paths.push(value);
+  }
+  return paths;
 }
 
 function normalizeModeSearchText(mode: AcpSessionMode): string {
@@ -992,6 +1026,43 @@ export function makeAcpProviderAdapter<Settings>(
         }).pipe(Effect.scoped),
       );
 
+    /**
+     * Read each `@path` mention as an embedded ACP `resource` block so the
+     * agent receives the mentioned file contents. Unresolvable, oversized,
+     * and binary targets are skipped — the mention text still travels in the
+     * prompt, so the agent can fall back to its own tools.
+     */
+    const buildMentionResourceBlocks = (input: {
+      readonly text: string;
+      readonly cwd: string | undefined;
+    }): Effect.Effect<Array<EffectAcpSchema.ContentBlock>> =>
+      Effect.gen(function* () {
+        const blocks: Array<EffectAcpSchema.ContentBlock> = [];
+        for (const mentionPath of uniqueMentionPaths(input.text)) {
+          const absolutePath = path.isAbsolute(mentionPath)
+            ? mentionPath
+            : input.cwd
+              ? path.resolve(input.cwd, mentionPath)
+              : undefined;
+          if (!absolutePath) continue;
+          const stat = yield* fileSystem.stat(absolutePath).pipe(Effect.option);
+          if (Option.isNone(stat) || stat.value.type !== "File") continue;
+          if (Number(stat.value.size) > MAX_MENTION_RESOURCE_BYTES) continue;
+          const bytes = yield* fileSystem.readFile(absolutePath).pipe(Effect.option);
+          if (Option.isNone(bytes) || bytes.value.includes(0)) continue;
+          const uri = yield* path.toFileUrl(absolutePath).pipe(Effect.option);
+          if (Option.isNone(uri)) continue;
+          blocks.push({
+            type: "resource",
+            resource: {
+              uri: uri.value.toString(),
+              text: new TextDecoder().decode(bytes.value),
+            },
+          });
+        }
+        return blocks;
+      });
+
     const sendTurn: ProviderAdapterShape<ProviderAdapterError>["sendTurn"] = (input) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(input.threadId);
@@ -1039,8 +1110,33 @@ export function makeAcpProviderAdapter<Settings>(
         });
 
         const promptParts: Array<EffectAcpSchema.ContentBlock> = [];
-        if (input.input?.trim()) {
-          promptParts.push({ type: "text", text: input.input.trim() });
+        const trimmedInput = input.input?.trim() ?? "";
+        let promptText = trimmedInput;
+        if (trimmedInput.length > 0 && definition.rewritePromptText) {
+          if (trimmedInput.includes("$")) {
+            // The agent publishes its command list asynchronously after
+            // `session/new` responds, so a turn sent right after session
+            // start could otherwise race it and skip the rewrite. Bounded:
+            // an agent that never publishes commands cannot stall the turn.
+            yield* ctx.acp.awaitFirstAvailableCommandsUpdate.pipe(
+              Effect.timeoutOption(FIRST_AVAILABLE_COMMANDS_TIMEOUT_MS),
+            );
+          }
+          promptText = definition.rewritePromptText({
+            text: trimmedInput,
+            availableCommands: yield* ctx.acp.getAvailableCommands,
+          });
+        }
+        if (promptText) {
+          promptParts.push({ type: "text", text: promptText });
+          if (definition.embedMentionedFiles) {
+            promptParts.push(
+              ...(yield* buildMentionResourceBlocks({
+                text: promptText,
+                cwd: ctx.session.cwd,
+              })),
+            );
+          }
         }
         if (input.attachments && input.attachments.length > 0) {
           for (const attachment of input.attachments) {

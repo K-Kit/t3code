@@ -1,8 +1,12 @@
+import * as NodeOS from "node:os";
+
 import {
   ProviderDriverKind,
   type ModelCapabilities,
   type OmpSettings,
   type ServerProviderModel,
+  type ServerProviderSkill,
+  type ServerProviderSlashCommand,
 } from "@t3tools/contracts";
 import { createModelCapabilities } from "@t3tools/shared/model";
 import { compareSemverVersions } from "@t3tools/shared/semver";
@@ -12,7 +16,9 @@ import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Result from "effect/Result";
 import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import type * as EffectAcpSchema from "effect-acp/schema";
 
+import { makeOmpAcpRuntime, OMP_SKILL_COMMAND_PREFIX } from "../acp/OmpAcpSupport.ts";
 import {
   buildServerProvider,
   collectStreamAsString,
@@ -31,6 +37,7 @@ const OMP_PRESENTATION = {
 } as const;
 const OMP_VERSION_TIMEOUT_MS = 5_000;
 const OMP_MODELS_TIMEOUT_MS = 20_000;
+const OMP_COMMANDS_TIMEOUT_MS = 15_000;
 const MINIMUM_OMP_ACP_VERSION = "15.0.0";
 
 const EMPTY_CAPABILITIES: ModelCapabilities = createModelCapabilities({
@@ -136,6 +143,93 @@ export function buildOmpDiscoveredModels(
   }
   return discovered;
 }
+
+export interface OmpComposerCommands {
+  readonly slashCommands: ReadonlyArray<ServerProviderSlashCommand>;
+  readonly skills: ReadonlyArray<ServerProviderSkill>;
+}
+
+const EMPTY_OMP_COMPOSER_COMMANDS: OmpComposerCommands = {
+  slashCommands: [],
+  skills: [],
+};
+
+/**
+ * Split OMP's ACP `available_commands_update` list into the provider
+ * snapshot's composer surfaces: `skill:*` entries feed the `$` skill menu
+ * while every other command feeds the `/` menu.
+ */
+export function partitionOmpAvailableCommands(
+  commands: ReadonlyArray<
+    Pick<EffectAcpSchema.AvailableCommand, "name" | "description" | "input">
+  >,
+): OmpComposerCommands {
+  const slashCommands: Array<ServerProviderSlashCommand> = [];
+  const skills: Array<ServerProviderSkill> = [];
+  const seenCommandNames = new Set<string>();
+  const seenSkillNames = new Set<string>();
+  for (const command of commands) {
+    const name = command.name.trim();
+    if (!name) continue;
+    const description = nonEmptyString(command.description);
+    if (name.startsWith(OMP_SKILL_COMMAND_PREFIX)) {
+      const skillName = name.slice(OMP_SKILL_COMMAND_PREFIX.length).trim();
+      if (!skillName || seenSkillNames.has(skillName)) continue;
+      seenSkillNames.add(skillName);
+      skills.push({
+        name: skillName,
+        // OMP does not report skill file locations over ACP; the command
+        // name is the stable invocation identity the UI can show instead.
+        path: name,
+        enabled: true,
+        ...(description ? { description } : {}),
+      });
+      continue;
+    }
+    if (seenCommandNames.has(name)) continue;
+    seenCommandNames.add(name);
+    const hint = nonEmptyString(command.input?.hint);
+    slashCommands.push({
+      name,
+      ...(description ? { description } : {}),
+      ...(hint ? { input: { hint } } : {}),
+    });
+  }
+  return { slashCommands, skills };
+}
+
+/**
+ * Discover the commands and skills OMP advertises over ACP by running a
+ * short-lived `omp acp` handshake. OMP publishes
+ * `available_commands_update` right after `session/new` responds, so this
+ * normally resolves in well under a second. Failures are non-fatal: the
+ * snapshot simply omits composer commands.
+ */
+const discoverOmpComposerCommands = (
+  settings: OmpSettings,
+  environment: NodeJS.ProcessEnv,
+): Effect.Effect<OmpComposerCommands, never, ChildProcessSpawner.ChildProcessSpawner> =>
+  Effect.gen(function* () {
+    const childProcessSpawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+    const runtime = yield* makeOmpAcpRuntime({
+      ompSettings: settings,
+      environment,
+      childProcessSpawner,
+      cwd: NodeOS.tmpdir(),
+      clientInfo: { name: "t3-code-probe", version: "0.0.0" },
+    });
+    yield* runtime.start();
+    yield* runtime.awaitFirstAvailableCommandsUpdate;
+    return partitionOmpAvailableCommands(yield* runtime.getAvailableCommands);
+  }).pipe(
+    Effect.scoped,
+    Effect.timeout(OMP_COMMANDS_TIMEOUT_MS),
+    Effect.catchCause((cause) =>
+      Effect.logDebug("OMP composer command discovery failed", cause).pipe(
+        Effect.as(EMPTY_OMP_COMPOSER_COMMANDS),
+      ),
+    ),
+  );
 
 export function buildOmpCliArgs(
   settings: Pick<OmpSettings, "profile">,
@@ -333,11 +427,16 @@ export const checkOmpProviderStatus = Effect.fn("checkOmpProviderStatus")(functi
     EMPTY_CAPABILITIES,
   );
   const hasDiscoveredModel = discoveredModels.length > 0;
+  const composerCommands = hasDiscoveredModel
+    ? yield* discoverOmpComposerCommands(settings, environment)
+    : EMPTY_OMP_COMPOSER_COMMANDS;
   return buildServerProvider({
     presentation: OMP_PRESENTATION,
     enabled: true,
     checkedAt,
     models,
+    slashCommands: composerCommands.slashCommands,
+    skills: composerCommands.skills,
     probe: {
       installed: true,
       version,

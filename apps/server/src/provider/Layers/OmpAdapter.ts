@@ -10,7 +10,11 @@ import { type OmpSettings, ProviderDriverKind, ProviderInstanceId } from "@t3too
 import * as Effect from "effect/Effect";
 
 import { mapAcpToAdapterError } from "../acp/AcpAdapterSupport.ts";
-import { applyOmpAcpModelSelection, makeOmpAcpRuntime } from "../acp/OmpAcpSupport.ts";
+import {
+  applyOmpAcpModelSelection,
+  makeOmpAcpRuntime,
+  rewriteOmpSkillInvocations,
+} from "../acp/OmpAcpSupport.ts";
 import type { OmpAdapterShape } from "../Services/OmpAdapter.ts";
 import { makeAcpProviderAdapter, type AcpProviderAdapterLiveOptions } from "./CursorAdapter.ts";
 
@@ -54,5 +58,10 @@ export function makeOmpAdapter(ompSettings: OmpSettings, options?: OmpAdapterLiv
           mapAcpToAdapterError(PROVIDER, threadId, "session/set_config_option", cause),
       }),
     resolveModelId: (model) => model?.trim() || "default",
+    // OMP executes skills via `/skill:<name>` and does not expand `@path`
+    // prompt text over ACP, so composer tokens are translated client-side.
+    rewritePromptText: ({ text, availableCommands }) =>
+      rewriteOmpSkillInvocations(text, availableCommands),
+    embedMentionedFiles: true,
   }).pipe(Effect.map((adapter) => adapter satisfies OmpAdapterShape));
 }

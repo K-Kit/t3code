@@ -8,11 +8,47 @@ import * as Layer from "effect/Layer";
 import * as Scope from "effect/Scope";
 import { ChildProcessSpawner } from "effect/unstable/process";
 import type * as EffectAcpErrors from "effect-acp/errors";
+import type * as EffectAcpSchema from "effect-acp/schema";
 
 import * as AcpSessionRuntime from "./AcpSessionRuntime.ts";
 import { findSessionConfigOption } from "./AcpRuntimeModel.ts";
 
 type OmpAcpRuntimeSettings = Pick<OmpSettings, "binaryPath" | "profile">;
+
+export const OMP_SKILL_COMMAND_PREFIX = "skill:";
+
+/**
+ * Composer skill tokens (`$name`) follow the shared inline-token grammar; OMP
+ * only executes skills through its `/skill:<name>` command syntax.
+ */
+const OMP_SKILL_TOKEN_REGEX = /(^|\s)\$([A-Za-z][A-Za-z0-9:_-]*)(?=\s|$)/g;
+
+/**
+ * Rewrite composer `$name` skill tokens into OMP's `/skill:name` command
+ * syntax. Only tokens that resolve to a `skill:*` command advertised by the
+ * live session are rewritten, so ordinary `$WORD` text passes through.
+ */
+export function rewriteOmpSkillInvocations(
+  text: string,
+  availableCommands: ReadonlyArray<Pick<EffectAcpSchema.AvailableCommand, "name">>,
+): string {
+  const skillCommandNames = new Set<string>();
+  for (const command of availableCommands) {
+    const name = command.name.trim();
+    if (name.startsWith(OMP_SKILL_COMMAND_PREFIX)) {
+      skillCommandNames.add(name);
+    }
+  }
+  if (skillCommandNames.size === 0) {
+    return text;
+  }
+  return text.replace(OMP_SKILL_TOKEN_REGEX, (match, prefix: string, token: string) => {
+    const commandName = token.startsWith(OMP_SKILL_COMMAND_PREFIX)
+      ? token
+      : `${OMP_SKILL_COMMAND_PREFIX}${token}`;
+    return skillCommandNames.has(commandName) ? `${prefix}/${commandName}` : match;
+  });
+}
 
 export interface OmpAcpRuntimeInput extends Omit<
   AcpSessionRuntime.AcpSessionRuntimeOptions,
