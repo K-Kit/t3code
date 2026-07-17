@@ -1214,7 +1214,6 @@ export function makeAcpProviderAdapter<Settings>(
           resumeCursor: ctx.session.resumeCursor,
         };
       });
-
     const interruptTurn: ProviderAdapterShape<ProviderAdapterError>["interruptTurn"] = (threadId) =>
       Effect.gen(function* () {
         const ctx = yield* requireSession(threadId);

@@ -49,7 +49,6 @@ export function rewriteOmpSkillInvocations(
     return skillCommandNames.has(commandName) ? `${prefix}/${commandName}` : match;
   });
 }
-
 export interface OmpAcpRuntimeInput extends Omit<
   AcpSessionRuntime.AcpSessionRuntimeOptions,
   "authMethodId" | "clientCapabilities" | "spawn"
