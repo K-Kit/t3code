@@ -112,4 +112,23 @@ it.layer(NodeServices.layer)("EnvironmentAuthPolicy.layer", (it) => {
       ),
     ),
   );
+
+  it.effect("uses remote-reachable policy when Tailscale Serve exposes a loopback listener", () =>
+    Effect.gen(function* () {
+      const policy = yield* EnvironmentAuthPolicy.EnvironmentAuthPolicy;
+      const descriptor = yield* policy.getDescriptor();
+
+      expect(descriptor.policy).toBe("remote-reachable");
+      expect(descriptor.bootstrapMethods).toEqual(["one-time-token"]);
+    }).pipe(
+      Effect.provide(
+        makeEnvironmentAuthPolicyLayer({
+          mode: "web",
+          host: "127.0.0.1",
+          tailscaleServeEnabled: true,
+          tailscaleServeWeb: true,
+        }),
+      ),
+    ),
+  );
 });

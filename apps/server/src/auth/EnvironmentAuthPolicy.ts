@@ -16,7 +16,10 @@ export class EnvironmentAuthPolicy extends Context.Service<
 
 export const make = Effect.gen(function* () {
   const config = yield* ServerConfig.ServerConfig;
-  const isRemoteReachable = isWildcardHost(config.host) || !isLoopbackHost(config.host);
+  // Tailscale Serve (and Serve-web) expose a loopback listener over the Tailnet,
+  // so remote pairing must be allowed even when the process binds to 127.0.0.1.
+  const isRemoteReachable =
+    config.tailscaleServeEnabled || isWildcardHost(config.host) || !isLoopbackHost(config.host);
 
   const policy =
     config.mode === "desktop"
