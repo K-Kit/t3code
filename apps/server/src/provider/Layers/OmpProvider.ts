@@ -160,9 +160,7 @@ const EMPTY_OMP_COMPOSER_COMMANDS: OmpComposerCommands = {
  * while every other command feeds the `/` menu.
  */
 export function partitionOmpAvailableCommands(
-  commands: ReadonlyArray<
-    Pick<EffectAcpSchema.AvailableCommand, "name" | "description" | "input">
-  >,
+  commands: ReadonlyArray<Pick<EffectAcpSchema.AvailableCommand, "name" | "description" | "input">>,
 ): OmpComposerCommands {
   const slashCommands: Array<ServerProviderSlashCommand> = [];
   const skills: Array<ServerProviderSkill> = [];

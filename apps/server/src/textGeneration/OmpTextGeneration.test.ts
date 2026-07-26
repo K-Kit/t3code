@@ -10,7 +10,7 @@ import { OmpSettings, ProviderInstanceId } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
-import { expect } from "vitest";
+import { expect } from "@effect/vitest";
 
 import { ServerConfig } from "../config.ts";
 import { makeOmpTextGeneration } from "./OmpTextGeneration.ts";
