@@ -1190,6 +1190,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsModule.layerTest(), Te
                   grok: { enabled: false },
                   opencode: { enabled: false },
                   omp: { enabled: false },
+                  pi: { enabled: false },
                 },
               }),
             ),
@@ -1375,6 +1376,9 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsModule.layerTest(), Te
                     omp: {
                       enabled: false,
                     },
+                    pi: {
+                      enabled: false,
+                    },
                   },
                 }),
               ),
@@ -1445,6 +1449,7 @@ it.layer(Layer.mergeAll(NodeServices.layer, ServerSettingsModule.layerTest(), Te
                 "grok",
                 "omp",
                 "opencode",
+                "pi",
               ]);
               assert.strictEqual(cursorProvider?.enabled, false);
               assert.strictEqual(cursorProvider?.status, "disabled");

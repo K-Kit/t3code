@@ -7,12 +7,10 @@ import {
   squashAtomCommandFailure,
 } from "@t3tools/client-runtime/state/runtime";
 import {
-  DEFAULT_MODEL,
   type DesktopWslState,
   type EnvironmentId,
   type FilesystemBrowseResult,
   type ProjectId,
-  ProviderInstanceId,
   type SourceControlDiscoveryResult,
   type SourceControlProviderKind,
   type SourceControlRepositoryInfo,
@@ -82,6 +80,7 @@ import {
 import { isTerminalFocused } from "../lib/terminalFocus";
 import { getLatestThreadForProject } from "../lib/threadSort";
 import { cn, isMacPlatform, isWindowsPlatform, newProjectId } from "../lib/utils";
+import { resolveNewWorkModelSelection } from "../newWorkModelSelection";
 import { selectThreadTerminalUiState, useTerminalUiStateStore } from "../terminalUiStateStore";
 import { buildThreadRouteParams, resolveThreadRouteTarget } from "../threadRoutes";
 import {
@@ -1156,10 +1155,12 @@ function OpenCommandPaletteDialog(props: {
           title: inferProjectTitleFromPath(cwd),
           workspaceRoot: cwd,
           createWorkspaceRootIfMissing: true,
-          defaultModelSelection: {
-            instanceId: ProviderInstanceId.make("codex"),
-            model: DEFAULT_MODEL,
-          },
+          defaultModelSelection: resolveNewWorkModelSelection({
+            providers:
+              environments.find((environment) => environment.environmentId === input.environmentId)
+                ?.serverConfig?.providers ?? [],
+            existingSelection: null,
+          }),
         },
       });
       if (createResult._tag === "Failure") {
@@ -1200,6 +1201,7 @@ function OpenCommandPaletteDialog(props: {
       setOpen,
       clientSettings.sidebarThreadSortOrder,
       threads,
+      environments,
     ],
   );
 

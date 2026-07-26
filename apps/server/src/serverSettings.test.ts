@@ -334,8 +334,10 @@ it.layer(NodeServices.layer)("server settings", (it) => {
           codex: { enabled: false },
           claudeAgent: { enabled: false },
           cursor: { enabled: false },
+          grok: { enabled: false },
           opencode: { enabled: false },
           omp: { enabled: true },
+          pi: { enabled: false },
         },
         textGenerationModelSelection: {
           instanceId: ProviderInstanceId.make("codex"),
