@@ -1,7 +1,7 @@
 import * as Effect from "effect/Effect";
 import type * as EffectAcpSchema from "effect-acp/schema";
-import { it as effectIt } from "@effect/vitest";
-import { describe, expect, it } from "@effect/vitest";
+import { describe, expect, it, it as effectIt } from "@effect/vitest";
+
 import {
   applyOmpAcpModelSelection,
   buildOmpAcpSpawnInput,
@@ -77,7 +77,6 @@ describe("rewriteOmpSkillInvocations", () => {
     );
   });
 });
-
 describe("applyOmpAcpModelSelection", () => {
   effectIt.effect("sets the exact model before applying options advertised by that model", () => {
     const calls: Array<

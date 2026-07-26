@@ -42,7 +42,7 @@ async function makeMockOmpWrapper(input?: {
   const script = `#!/bin/sh
 ${exports}
 ${argvLog}
-exec bun ${JSON.stringify(mockAgentPath)} "$@"
+exec ${JSON.stringify(process.execPath)} ${JSON.stringify(mockAgentPath)} "$@"
 `;
   await NodeFSP.writeFile(wrapperPath, script, "utf8");
   await NodeFSP.chmod(wrapperPath, 0o755);
@@ -220,7 +220,6 @@ it.live("OMP adapter waits for a late command list before rewriting the first tu
     }).pipe(Effect.provide(testLayer)),
   ),
 );
-
 it.effect("OMP adapter bridges standard ACP form elicitation to provider user input", () =>
   Effect.scoped(
     Effect.gen(function* () {

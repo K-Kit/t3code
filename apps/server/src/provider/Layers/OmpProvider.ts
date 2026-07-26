@@ -1,5 +1,4 @@
 import * as NodeOS from "node:os";
-
 import {
   ProviderDriverKind,
   type ModelCapabilities,
@@ -228,7 +227,6 @@ const discoverOmpComposerCommands = (
       ),
     ),
   );
-
 export function buildOmpCliArgs(
   settings: Pick<OmpSettings, "profile">,
   args: ReadonlyArray<string>,

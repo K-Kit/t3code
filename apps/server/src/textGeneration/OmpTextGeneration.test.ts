@@ -5,12 +5,11 @@ import * as NodePath from "node:path";
 import * as NodeURL from "node:url";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
-import { it } from "@effect/vitest";
+import { expect, it } from "@effect/vitest";
 import { OmpSettings, ProviderInstanceId } from "@t3tools/contracts";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Schema from "effect/Schema";
-import { expect } from "@effect/vitest";
 
 import { ServerConfig } from "../config.ts";
 import { makeOmpTextGeneration } from "./OmpTextGeneration.ts";
@@ -48,7 +47,7 @@ function makeOmpWrapper(dir: string, env: Record<string, string>): string {
       '  printf "%s\\n" "unexpected args: $*" >&2',
       "  exit 11",
       "fi",
-      `exec bun ${JSON.stringify(mockAgentPath)}`,
+      `exec ${JSON.stringify(process.execPath)} ${JSON.stringify(mockAgentPath)}`,
       "",
     ].join("\n"),
     "utf8",
