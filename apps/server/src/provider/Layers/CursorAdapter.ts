@@ -43,6 +43,7 @@ import { collectComposerInlineTokens } from "@t3tools/shared/composerInlineToken
 
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
 import { ServerConfig } from "../../config.ts";
+import * as McpProviderSession from "../../mcp/McpProviderSession.ts";
 import {
   ProviderAdapterProcessError,
   ProviderAdapterRequestError,
@@ -133,6 +134,7 @@ interface AcpProviderRuntimeFactoryInput<Settings> {
     AcpSessionRuntime.AcpSessionRuntimeOptions,
     "requestLogger" | "protocolLogging"
   >;
+  readonly mcpServers?: ReadonlyArray<EffectAcpSchema.McpServer>;
 }
 
 interface AcpProviderModelSelectionInput {
@@ -611,6 +613,7 @@ export function makeAcpProviderAdapter<Settings>(
             ? yield* options.resolveSettings
             : definition.settings;
 
+          const mcpSession = McpProviderSession.readMcpProviderSession(input.threadId);
           const acp = yield* definition
             .makeRuntime({
               settings: effectiveSettings,
@@ -621,8 +624,26 @@ export function makeAcpProviderAdapter<Settings>(
               ...(resumeSessionId ? { resumeSessionId } : {}),
               clientInfo: { name: "t3-code", version: "0.0.0" },
               nativeLoggers: acpNativeLoggers,
+              ...(mcpSession
+                ? {
+                    mcpServers: [
+                      {
+                        type: "http" as const,
+                        name: "t3-code",
+                        url: mcpSession.endpoint,
+                        headers: [
+                          {
+                            name: "Authorization",
+                            value: mcpSession.authorizationHeader,
+                          },
+                        ],
+                      },
+                    ],
+                  }
+                : {}),
             })
             .pipe(
+              Effect.provideService(Crypto.Crypto, crypto),
               Effect.provideService(Scope.Scope, sessionScope),
               Effect.mapError(
                 (cause) =>
@@ -1357,6 +1378,7 @@ export function makeCursorAdapter(
       resumeSessionId,
       clientInfo,
       nativeLoggers,
+      mcpServers,
     }) =>
       makeCursorAcpRuntime({
         cursorSettings: settings,
@@ -1365,6 +1387,7 @@ export function makeCursorAdapter(
         cwd,
         ...(resumeSessionId ? { resumeSessionId } : {}),
         clientInfo,
+        ...(mcpServers ? { mcpServers } : {}),
         ...nativeLoggers,
       }),
     applyModelSelection: ({ runtime, threadId, model, selections }) =>

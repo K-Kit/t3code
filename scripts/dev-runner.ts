@@ -221,7 +221,7 @@ interface CreateDevRunnerEnvInput {
   readonly serverOffset: number;
   readonly webOffset: number;
   readonly t3Home: string | undefined;
-  readonly noBrowser: boolean | undefined;
+  readonly browser: boolean | undefined;
   readonly autoBootstrapProjectFromCwd: boolean | undefined;
   readonly logWebSocketEvents: boolean | undefined;
   readonly host: string | undefined;
@@ -236,7 +236,7 @@ export function createDevRunnerEnv({
   serverOffset,
   webOffset,
   t3Home,
-  noBrowser,
+  browser,
   autoBootstrapProjectFromCwd,
   logWebSocketEvents,
   host,
@@ -247,7 +247,8 @@ export function createDevRunnerEnv({
   return Effect.gen(function* () {
     const serverPort = port ?? BASE_SERVER_PORT + serverOffset;
     const webPort = BASE_WEB_PORT + webOffset;
-    const resolvedBaseDir = yield* resolveBaseDir(t3Home);
+    const configuredBaseDir = t3Home?.trim() || baseEnv.T3CODE_HOME?.trim() || undefined;
+    const resolvedBaseDir = yield* resolveBaseDir(configuredBaseDir);
     const isDesktopMode = mode === "dev:desktop";
     const isTailscaleServeWeb = !isDesktopMode && tailscaleServeWeb === true;
     const loopbackBackendHttpUrl = `http://${DESKTOP_DEV_LOOPBACK_HOST}:${serverPort}`;
@@ -262,8 +263,13 @@ export function createDevRunnerEnv({
         ? // Local Vite listener only. Never point this at the MagicDNS/Serve URL.
           defaultDevServerUrl
         : (devUrl?.toString() ?? defaultDevServerUrl),
-      T3CODE_HOME: resolvedBaseDir,
     };
+
+    if (configuredBaseDir !== undefined) {
+      output.T3CODE_HOME = resolvedBaseDir;
+    } else {
+      delete output.T3CODE_HOME;
+    }
 
     if (!isDesktopMode) {
       output.T3CODE_PORT = String(serverPort);
@@ -296,10 +302,8 @@ export function createDevRunnerEnv({
       output.T3CODE_HOST = host;
     }
 
-    if (!isDesktopMode && noBrowser !== undefined) {
-      output.T3CODE_NO_BROWSER = noBrowser ? "1" : "0";
-    } else if (!isDesktopMode) {
-      delete output.T3CODE_NO_BROWSER;
+    if (!isDesktopMode) {
+      output.T3CODE_NO_BROWSER = browser === true ? "0" : "1";
     }
 
     if (autoBootstrapProjectFromCwd !== undefined) {
@@ -491,7 +495,7 @@ export function resolveModePortOffsets<R = NetService.NetService>({
 interface DevRunnerCliInput {
   readonly mode: DevMode;
   readonly t3Home: string | undefined;
-  readonly noBrowser: boolean | undefined;
+  readonly browser: boolean | undefined;
   readonly autoBootstrapProjectFromCwd: boolean | undefined;
   readonly logWebSocketEvents: boolean | undefined;
   readonly host: string | undefined;
@@ -530,7 +534,7 @@ export function runDevRunnerWithInput(input: DevRunnerCliInput) {
       serverOffset,
       webOffset,
       t3Home: input.t3Home,
-      noBrowser: input.noBrowser,
+      browser: input.browser,
       autoBootstrapProjectFromCwd: input.autoBootstrapProjectFromCwd,
       logWebSocketEvents: input.logWebSocketEvents,
       host: input.host,
@@ -543,9 +547,10 @@ export function runDevRunnerWithInput(input: DevRunnerCliInput) {
       serverOffset !== offset || webOffset !== offset
         ? ` selectedOffset(server=${serverOffset},web=${webOffset})`
         : "";
+    const baseDir = env.T3CODE_HOME ?? (yield* DEFAULT_T3_HOME);
 
     yield* Effect.logInfo(
-      `[dev-runner] mode=${input.mode} source=${source}${selectionSuffix} serverPort=${String(env.T3CODE_PORT)} webPort=${String(env.PORT)} baseDir=${String(env.T3CODE_HOME)}`,
+      `[dev-runner] mode=${input.mode} source=${source}${selectionSuffix} serverPort=${String(env.T3CODE_PORT)} webPort=${String(env.PORT)} baseDir=${baseDir}`,
     );
 
     if (input.dryRun) {
@@ -610,12 +615,13 @@ const devRunnerCli = Command.make("dev-runner", {
     Argument.withDescription("Development mode to run."),
   ),
   t3Home: Flag.string("home-dir").pipe(
-    Flag.withDescription("Base directory for all T3 Code data (equivalent to T3CODE_HOME)."),
+    Flag.withDescription(
+      "Explicit T3 Code data directory; runtime state is stored under userdata (equivalent to T3CODE_HOME).",
+    ),
     Flag.withFallbackConfig(optionalStringConfig("T3CODE_HOME")),
   ),
-  noBrowser: Flag.boolean("no-browser").pipe(
-    Flag.withDescription("Browser auto-open toggle (equivalent to T3CODE_NO_BROWSER)."),
-    Flag.withFallbackConfig(optionalBooleanConfig("T3CODE_NO_BROWSER")),
+  browser: Flag.boolean("browser").pipe(
+    Flag.withDescription("Open a browser automatically (disabled by default for web dev)."),
   ),
   autoBootstrapProjectFromCwd: Flag.boolean("auto-bootstrap-project-from-cwd").pipe(
     Flag.withDescription(
