@@ -1,3 +1,7 @@
+model = "gpt-5.6-sol"
+model_context_window = 372000
+model_reasoning_effort = "high"
+plan_mode_reasoning_effort = "xhigh"
 [mcp_servers.xcodebuildmcp]
 enabled = true
 required = false
@@ -7,3 +11,6 @@ startup_timeout_sec = 20.0
 
 [mcp_servers.xcodebuildmcp.env]
 XCODEBUILDMCP_ENABLED_WORKFLOWS = "simulator,ui-automation,debugging,logging"
+
+[features.multi_agent_v2]
+max_concurrent_threads_per_session = 16

@@ -1,5 +1,4 @@
 import {
-  ProviderDriverKind,
   type ModelCapabilities,
   type PiSettings,
   type ServerProviderModel,
@@ -25,7 +24,6 @@ import {
   type ServerProviderDraft,
 } from "../providerSnapshot.ts";
 
-const PROVIDER = ProviderDriverKind.make("pi");
 const PI_PRESENTATION = {
   displayName: "Pi",
   showInteractionModeToggle: true,
@@ -271,12 +269,7 @@ const discoverPiModels = (
 export const makePendingPiProvider = (settings: PiSettings): Effect.Effect<ServerProviderDraft> =>
   Effect.gen(function* () {
     const checkedAt = DateTime.formatIso(yield* DateTime.now);
-    const models = providerModelsFromSettings(
-      [],
-      PROVIDER,
-      settings.customModels,
-      EMPTY_CAPABILITIES,
-    );
+    const models = providerModelsFromSettings([], settings.customModels, EMPTY_CAPABILITIES);
     return buildServerProvider({
       presentation: PI_PRESENTATION,
       enabled: settings.enabled,
@@ -306,12 +299,7 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
   environment: NodeJS.ProcessEnv = process.env,
 ): Effect.fn.Return<ServerProviderDraft, never, ChildProcessSpawner.ChildProcessSpawner> {
   const checkedAt = DateTime.formatIso(yield* DateTime.now);
-  const fallbackModels = providerModelsFromSettings(
-    [],
-    PROVIDER,
-    settings.customModels,
-    EMPTY_CAPABILITIES,
-  );
+  const fallbackModels = providerModelsFromSettings([], settings.customModels, EMPTY_CAPABILITIES);
   const buildFailure = (input: {
     readonly installed: boolean;
     readonly version?: string | null;
@@ -440,7 +428,6 @@ export const checkPiProviderStatus = Effect.fn("checkPiProviderStatus")(function
   const discoveredModels = buildPiDiscoveredModels(parsed.models);
   const models = providerModelsFromSettings(
     discoveredModels,
-    PROVIDER,
     settings.customModels,
     EMPTY_CAPABILITIES,
   );

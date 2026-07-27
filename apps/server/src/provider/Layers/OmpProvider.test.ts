@@ -1,13 +1,36 @@
+import { OmpSettings } from "@t3tools/contracts";
 import { describe, expect, it } from "@effect/vitest";
+import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 
 import {
   buildOmpCliArgs,
   buildOmpDiscoveredModels,
+  makePendingOmpProvider,
   parseOmpModelsJson,
   partitionOmpAvailableCommands,
 } from "./OmpProvider.ts";
 
+const decodeOmpSettings = Schema.decodeSync(OmpSettings);
+
 describe("OmpProvider", () => {
+  it.effect("keeps pending custom models canonical and RPC-encodable", () =>
+    Effect.gen(function* () {
+      const snapshot = yield* makePendingOmpProvider(
+        decodeOmpSettings({ customModels: ["local/custom"] }),
+      );
+
+      expect(snapshot.models).toEqual([
+        {
+          slug: "local/custom",
+          name: "local/custom",
+          isCustom: true,
+          capabilities: { optionDescriptors: [] },
+        },
+      ]);
+    }),
+  );
+
   it("parses OMP's machine-readable model inventory", () => {
     const parsed = parseOmpModelsJson(
       JSON.stringify({
