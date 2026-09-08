@@ -982,7 +982,7 @@ const ComposerFooterModeControls = memo(function ComposerFooterModeControls(prop
             />
           )}
           <span className="sr-only sm:not-sr-only">
-            {props.interactionMode === "plan" ? "Plan" : "Build"}
+            {props.interactionMode === "plan" ? "Plan" : "Work"}
           </span>
         </TooltipTrigger>
         <TooltipPopup side="top">{interactionModeTooltip}</TooltipPopup>
@@ -5440,7 +5440,7 @@ export const ChatComposer = memo(function ChatComposer(props: ChatComposerProps)
                         : showPlanFollowUpPrompt && activeProposedPlan
                           ? "Add feedback to refine the plan, or leave this blank to implement it"
                           : projectSelectionRequired
-                            ? "Choose a project above to start a thread"
+                            ? "Choose a workspace above to start a chat"
                             : noProviderAvailable
                               ? "Enable a provider in Settings to send a message"
                               : phase === "disconnected"

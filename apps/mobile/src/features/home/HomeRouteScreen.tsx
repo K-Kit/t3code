@@ -2,7 +2,9 @@ import * as Arr from "effect/Array";
 import * as Order from "effect/Order";
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useMemo, useState } from "react";
-import { Platform, useWindowDimensions } from "react-native";
+import { Platform, Pressable, View, useWindowDimensions } from "react-native";
+import { AppText as Text } from "../../components/AppText";
+import { DocumentsScreen } from "../documents/DocumentsScreen";
 
 import { NativeHeaderToolbar, NativeStackScreenOptions } from "../../native/StackHeader";
 import { useProjects, useThreadShells } from "../../state/entities";
@@ -25,7 +27,7 @@ import { getConnectionAwareBrandHeaderOptions } from "./WorkspaceConnectionTitle
 
 /* ─── Route screen ───────────────────────────────────────────────────── */
 
-export function HomeRouteScreen() {
+function ChatHomeRouteScreen() {
   const { width: windowWidth } = useWindowDimensions();
   const { layout } = useAdaptiveWorkspaceLayout();
   const projects = useProjects();
@@ -250,5 +252,33 @@ export function HomeRouteScreen() {
         />
       </>
     </AndroidHomeFabLayout>
+  );
+}
+export function HomeRouteScreen() {
+  const [section, setSection] = useState<"chats" | "documents">("chats");
+  return (
+    <View className="flex-1 bg-background">
+      <View className="flex-row gap-2 border-b border-input-border px-4 py-2">
+        {(["chats", "documents"] as const).map((item) => (
+          <Pressable
+            key={item}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: section === item }}
+            onPress={() => setSection(item)}
+            className={`min-h-12 justify-center rounded-lg px-4 ${section === item ? "bg-input" : ""}`}
+          >
+            <Text className="text-sm font-medium">{item === "chats" ? "Chats" : "Documents"}</Text>
+          </Pressable>
+        ))}
+      </View>
+      {section === "chats" ? (
+        <ChatHomeRouteScreen />
+      ) : (
+        <>
+          <NativeStackScreenOptions options={{ headerShown: false }} />
+          <DocumentsScreen />
+        </>
+      )}
+    </View>
   );
 }

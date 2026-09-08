@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as UsageRouteImport } from './routes/usage'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PreferencesRouteImport } from './routes/preferences'
 import { Route as PairRouteImport } from './routes/pair'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as ChatRouteImport } from './routes/_chat'
@@ -28,7 +29,11 @@ import { Route as SettingsArchivedRouteImport } from './routes/settings.archived
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as ProjectsProjectKeyRouteImport } from './routes/projects.$projectKey'
 import { Route as ConnectCallbackRouteImport } from './routes/connect_.callback'
+import { Route as ChatResearchRouteImport } from './routes/_chat.research'
 import { Route as ChatPullRequestsRouteImport } from './routes/_chat.pull-requests'
+import { Route as ChatFilesRouteImport } from './routes/_chat.files'
+import { Route as ChatDocumentsRouteImport } from './routes/_chat.documents'
+import { Route as ChatAppsRouteImport } from './routes/_chat.apps'
 import { Route as ChatDraftDraftIdRouteImport } from './routes/_chat.draft.$draftId'
 import { Route as ChatEnvironmentIdThreadIdRouteImport } from './routes/_chat.$environmentId.$threadId'
 
@@ -45,6 +50,11 @@ const UsageRoute = UsageRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreferencesRoute = PreferencesRouteImport.update({
+  id: '/preferences',
+  path: '/preferences',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PairRoute = PairRouteImport.update({
@@ -126,9 +136,29 @@ const ConnectCallbackRoute = ConnectCallbackRouteImport.update({
   path: '/connect/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatResearchRoute = ChatResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => ChatRoute,
+} as any)
 const ChatPullRequestsRoute = ChatPullRequestsRouteImport.update({
   id: '/pull-requests',
   path: '/pull-requests',
+  getParentRoute: () => ChatRoute,
+} as any)
+const ChatFilesRoute = ChatFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => ChatRoute,
+} as any)
+const ChatDocumentsRoute = ChatDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => ChatRoute,
+} as any)
+const ChatAppsRoute = ChatAppsRouteImport.update({
+  id: '/apps',
+  path: '/apps',
   getParentRoute: () => ChatRoute,
 } as any)
 const ChatDraftDraftIdRoute = ChatDraftDraftIdRouteImport.update({
@@ -147,10 +177,15 @@ export interface FileRoutesByFullPath {
   '/': typeof ChatIndexRoute
   '/connect': typeof ConnectRoute
   '/pair': typeof PairRoute
+  '/preferences': typeof PreferencesRoute
   '/settings': typeof SettingsRouteWithChildren
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
+  '/apps': typeof ChatAppsRoute
+  '/documents': typeof ChatDocumentsRoute
+  '/files': typeof ChatFilesRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/research': typeof ChatResearchRoute
   '/connect/callback': typeof ConnectCallbackRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -169,10 +204,15 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
   '/pair': typeof PairRoute
+  '/preferences': typeof PreferencesRoute
   '/settings': typeof SettingsRouteWithChildren
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
+  '/apps': typeof ChatAppsRoute
+  '/documents': typeof ChatDocumentsRoute
+  '/files': typeof ChatFilesRoute
   '/pull-requests': typeof ChatPullRequestsRoute
+  '/research': typeof ChatResearchRoute
   '/connect/callback': typeof ConnectCallbackRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -194,10 +234,15 @@ export interface FileRoutesById {
   '/_chat': typeof ChatRouteWithChildren
   '/connect': typeof ConnectRoute
   '/pair': typeof PairRoute
+  '/preferences': typeof PreferencesRoute
   '/settings': typeof SettingsRouteWithChildren
   '/usage': typeof UsageRoute
   '/welcome': typeof WelcomeRoute
+  '/_chat/apps': typeof ChatAppsRoute
+  '/_chat/documents': typeof ChatDocumentsRoute
+  '/_chat/files': typeof ChatFilesRoute
   '/_chat/pull-requests': typeof ChatPullRequestsRoute
+  '/_chat/research': typeof ChatResearchRoute
   '/connect_/callback': typeof ConnectCallbackRoute
   '/projects/$projectKey': typeof ProjectsProjectKeyRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -220,10 +265,15 @@ export interface FileRouteTypes {
     | '/'
     | '/connect'
     | '/pair'
+    | '/preferences'
     | '/settings'
     | '/usage'
     | '/welcome'
+    | '/apps'
+    | '/documents'
+    | '/files'
     | '/pull-requests'
+    | '/research'
     | '/connect/callback'
     | '/projects/$projectKey'
     | '/settings/appearance'
@@ -242,10 +292,15 @@ export interface FileRouteTypes {
   to:
     | '/connect'
     | '/pair'
+    | '/preferences'
     | '/settings'
     | '/usage'
     | '/welcome'
+    | '/apps'
+    | '/documents'
+    | '/files'
     | '/pull-requests'
+    | '/research'
     | '/connect/callback'
     | '/projects/$projectKey'
     | '/settings/appearance'
@@ -266,10 +321,15 @@ export interface FileRouteTypes {
     | '/_chat'
     | '/connect'
     | '/pair'
+    | '/preferences'
     | '/settings'
     | '/usage'
     | '/welcome'
+    | '/_chat/apps'
+    | '/_chat/documents'
+    | '/_chat/files'
     | '/_chat/pull-requests'
+    | '/_chat/research'
     | '/connect_/callback'
     | '/projects/$projectKey'
     | '/settings/appearance'
@@ -291,6 +351,7 @@ export interface RootRouteChildren {
   ChatRoute: typeof ChatRouteWithChildren
   ConnectRoute: typeof ConnectRoute
   PairRoute: typeof PairRoute
+  PreferencesRoute: typeof PreferencesRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   UsageRoute: typeof UsageRoute
   WelcomeRoute: typeof WelcomeRoute
@@ -319,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preferences': {
+      id: '/preferences'
+      path: '/preferences'
+      fullPath: '/preferences'
+      preLoaderRoute: typeof PreferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pair': {
@@ -433,11 +501,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnectCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_chat/research': {
+      id: '/_chat/research'
+      path: '/research'
+      fullPath: '/research'
+      preLoaderRoute: typeof ChatResearchRouteImport
+      parentRoute: typeof ChatRoute
+    }
     '/_chat/pull-requests': {
       id: '/_chat/pull-requests'
       path: '/pull-requests'
       fullPath: '/pull-requests'
       preLoaderRoute: typeof ChatPullRequestsRouteImport
+      parentRoute: typeof ChatRoute
+    }
+    '/_chat/files': {
+      id: '/_chat/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof ChatFilesRouteImport
+      parentRoute: typeof ChatRoute
+    }
+    '/_chat/documents': {
+      id: '/_chat/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof ChatDocumentsRouteImport
+      parentRoute: typeof ChatRoute
+    }
+    '/_chat/apps': {
+      id: '/_chat/apps'
+      path: '/apps'
+      fullPath: '/apps'
+      preLoaderRoute: typeof ChatAppsRouteImport
       parentRoute: typeof ChatRoute
     }
     '/_chat/draft/$draftId': {
@@ -458,14 +554,22 @@ declare module '@tanstack/react-router' {
 }
 
 interface ChatRouteChildren {
+  ChatAppsRoute: typeof ChatAppsRoute
+  ChatDocumentsRoute: typeof ChatDocumentsRoute
+  ChatFilesRoute: typeof ChatFilesRoute
   ChatPullRequestsRoute: typeof ChatPullRequestsRoute
+  ChatResearchRoute: typeof ChatResearchRoute
   ChatIndexRoute: typeof ChatIndexRoute
   ChatEnvironmentIdThreadIdRoute: typeof ChatEnvironmentIdThreadIdRoute
   ChatDraftDraftIdRoute: typeof ChatDraftDraftIdRoute
 }
 
 const ChatRouteChildren: ChatRouteChildren = {
+  ChatAppsRoute: ChatAppsRoute,
+  ChatDocumentsRoute: ChatDocumentsRoute,
+  ChatFilesRoute: ChatFilesRoute,
   ChatPullRequestsRoute: ChatPullRequestsRoute,
+  ChatResearchRoute: ChatResearchRoute,
   ChatIndexRoute: ChatIndexRoute,
   ChatEnvironmentIdThreadIdRoute: ChatEnvironmentIdThreadIdRoute,
   ChatDraftDraftIdRoute: ChatDraftDraftIdRoute,
@@ -507,6 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChatRoute: ChatRouteWithChildren,
   ConnectRoute: ConnectRoute,
   PairRoute: PairRoute,
+  PreferencesRoute: PreferencesRoute,
   SettingsRoute: SettingsRouteWithChildren,
   UsageRoute: UsageRoute,
   WelcomeRoute: WelcomeRoute,

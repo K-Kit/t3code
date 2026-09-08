@@ -1,3 +1,4 @@
+import { useWorkspaceSelection } from "../state/workspaceSelection";
 import { useAtomValue } from "@effect/atom-react";
 import {
   scopedProjectKey,
@@ -444,6 +445,7 @@ export function useNewThreadHandler() {
 }
 
 export function useHandleNewThread() {
+  const selection = useWorkspaceSelection();
   const projectOrder = useUiStateStore((store) => store.projectOrder);
   const routeTarget = useParams({
     strict: false,
@@ -472,12 +474,17 @@ export function useHandleNewThread() {
     });
   }, [projectOrder, projects]);
   const handleNewThread = useNewThreadHandler();
+  const selectedProject =
+    orderedProjects.find(
+      (project) =>
+        project.environmentId === selection.environmentId && project.id === selection.projectId,
+    ) ?? orderedProjects[0];
 
   return {
     activeDraftThread,
     activeThread,
-    defaultProjectRef: orderedProjects[0]
-      ? scopeProjectRef(orderedProjects[0].environmentId, orderedProjects[0].id)
+    defaultProjectRef: selectedProject
+      ? scopeProjectRef(selectedProject.environmentId, selectedProject.id)
       : null,
     handleNewThread,
     routeThreadRef,

@@ -1,121 +1,37 @@
-# T3 Code
+# Workspace
 
-T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
+Workspace is a general-purpose work assistant based on [T3 Code](https://github.com/pingdotgg/t3code). Have ongoing conversations, research ideas, plan projects, work with files, and create documents using your own AI accounts. Chats are the starting point; documents are one part of the workspace.
 
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, and Google Antigravity. If they're set up on your computer, T3 Code can control them.
+- Prepare research requests with source URLs, public-web search preferences, result formats, and explicitly selected connected apps.
+- Browse a live Codex app catalog with availability status, pagination, and connection links.
+- Keep persistent chats grouped by workspace, search past conversations, and revisit archived chats.
+- Start with a question or a task, choose an AI account, and use the tools available through that provider.
+- Browse workspace files and discuss a file or saved document in a new chat.
+- Import Word documents, text-bearing PDFs, Markdown and UTF-8 text.
+- Edit headings, lists, emphasis, links and simple tables with automatic saving.
+- Review AI proposals before applying them. Codex and Claude use your configured accounts.
+- Keep document history, restore earlier versions, and recover archived or trashed documents.
+- Export Word, PDF, Markdown, text, or the unchanged original file.
+- Connect remotely through the existing environment and pairing system.
+- Use the mobile companion for chats and document tasks, with a shared workspace and provider runtime.
 
-## "Wait, what are you selling me?"
+This is an early implementation, not feature parity with established work assistants. Codex app discovery and runtime status are available through Apps, with connection-management links owned by the provider. In-app OAuth management, recurring automations, and team collaboration are not implemented. Native-device and release validation are still required. Office import preserves supported content, not complex page layouts; scanned PDFs require OCR elsewhere. Desktop/mobile retain upstream artwork pending a dedicated visual identity. Signed installers, app-store releases, cloud accounts and update feeds need app-owned configuration.
 
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
+## Run from source
 
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork and build the editor that you want.
+Use Node 24.13.1 or a compatible Node 24 release and Vite+:
 
-## Installation
-
-> [!WARNING]
-> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, and Antigravity. Install and authenticate at least one provider before use:
->
-> - Codex: install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`
-> - Claude: install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`
-> - Cursor: install [Cursor CLI](https://cursor.com/cli) and run `agent login`
-> - Grok Build: install [Grok Build CLI](https://x.ai/cli) and run `grok login`
-> - OpenCode: install [OpenCode](https://opencode.ai) and run `opencode auth login`
-> - Antigravity: enable it in Settings, then use **Install Antigravity** and **Sign in with Google**. No CLI is required.
-
-### Try it out (install-free)
-
-The easiest way to test T3 Code is to run the server in your terminal (requires Node.js 22.16+, 23.11+, or 24.10+):
-
-```bash
-npx t3@latest
-```
-
-This will launch T3 Code's backend on your machine as well as the local web app to control your agents.
-
-Tip: Use `npx t3@latest --help` for the full CLI reference.
-
-### Desktop app
-
-Install the latest version of the desktop app from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), or from your favorite package registry:
-
-#### Windows (`winget`)
-
-```bash
-winget install T3Tools.T3Code
-```
-
-#### macOS (Homebrew)
-
-```bash
-brew install --cask t3-code
-```
-
-#### Arch Linux (AUR)
-
-Stable:
-
-```bash
-yay -S t3code-bin
-```
-
-Nightly:
-
-```bash
-yay -S t3code-nightly-bin
-```
-
-The AUR packaging is maintained in this repository under [`packaging/aur`](./packaging/aur).
-
-## Some notes
-
-We are very very early in this project. Expect bugs.
-
-We are (mostly) not accepting contributions yet. Small fixes may be considered. Big features will not be.
-
-## Documentation
-
-Full docs live in [docs/](./docs). There's no docs site yet.
-
-- [Install and first run](./docs/user/install.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Keyboard shortcuts](./docs/user/keybindings.md)
-- [Project settings](./docs/user/project-settings.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Keeping app and server in sync](./docs/user/updating.md)
-- [Source control integrations](./docs/user/source-control.md)
-- Multiple accounts: [Codex](./docs/user/providers-codex.md) · [Claude](./docs/user/providers-claude.md)
-- [Run T3 Code as a background service](./docs/user/background-service.md)
-
-Building from source? Start at [docs/internals/overview.md](./docs/internals/overview.md).
-
-## If you REALLY want to contribute still.... read this first
-
-### Install `vp`
-
-T3 Code uses Vite+ so you'll need to install the global `vp` command-line tool.
-
-#### macOS / Linux
-
-```bash
-curl -fsSL https://vite.plus | bash
-```
-
-#### Windows
-
-```bash
-irm https://vite.plus/ps1 | iex
-```
-
-Checkout their getting started guide for more information: https://viteplus.dev/guide/
-
-### Install dependencies
-
-```bash
+```sh
 vp i
+vp run dev
 ```
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before reporting a bug or opening a PR.
+Open the pairing URL printed by the development runner. In a worktree, development state stays under that worktree's `.t3`. Keep the server running while using a remote client.
 
-Have a feature request? Start an [Ideas discussion](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
+If Vite+ is installed only as a project dependency, use `pnpm exec vp` in place of `vp`.
 
-Need support? Join the [Discord](https://discord.gg/jn4EGJjrvv).
+The production server and desktop app default to `~/.workspace`; explicit data-directory options still take precedence. Never point this fork at an active T3 Code database. Desktop and mobile use separate app IDs and URL schemes, and inherited automatic updates and telemetry are disabled by default.
+
+Create a workspace on the home screen and start a chat. Configure accounts under **Settings → AI accounts**. Each chat has its own model picker; **Settings → Writing model** controls document drafting. Use **Files** for working files and **Documents** for managed documents with version history.
+
+See [Working with documents](docs/user/document-workspace.md) for format limits and recovery behavior. Contributor constraints remain in [AGENTS.md](AGENTS.md). The original T3 Code architecture remains documented under [docs/internals](docs/internals).

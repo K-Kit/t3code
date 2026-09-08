@@ -24,6 +24,7 @@ import { DesktopAppActivationCoordinator } from "../components/desktop/DesktopAp
 import { ProviderUpdateLaunchNotification } from "../components/ProviderUpdateLaunchNotification";
 import { SlowRpcRequestToastCoordinator } from "../components/SlowRpcRequestToastCoordinator";
 import { ThemeEditorHost } from "../components/settings/ThemeEditorHost";
+import { DocumentSettingsNavigation } from "../components/settings/DocumentSettingsNavigation";
 import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import { useDefaultThemeAdoption } from "../hooks/useDefaultTheme";
 import { useEnvironmentThemeSync } from "../hooks/useEnvironmentTheme";
@@ -154,7 +155,18 @@ function RootRouteView() {
     );
   }
 
-  const appShell = (
+  const isDocumentWorkspace =
+    pathname === "/" ||
+    pathname === "/documents" ||
+    pathname === "/files" ||
+    pathname === "/research" ||
+    pathname === "/apps" ||
+    pathname === "/preferences";
+  const appShell = isDocumentWorkspace ? (
+    <CommandPalette>
+      <Outlet />
+    </CommandPalette>
+  ) : (
     <CommandPalette>
       <AppSidebarLayout>
         <Outlet />
@@ -175,8 +187,8 @@ function RootRouteView() {
         <GlassAppearanceSync />
         <FontAppearanceSync />
         <FirstRunGate
-          enabled={primaryEnvironmentAuthenticated}
-          hostedStatic={authGateState.status === "hosted-static"}
+          enabled={primaryEnvironmentAuthenticated && !isDocumentWorkspace}
+          hostedStatic={authGateState.status === "hosted-static" && !isDocumentWorkspace}
         >
           {primaryEnvironmentAuthenticated ? <AuthenticatedTracingBootstrap /> : null}
           {primaryEnvironmentAuthenticated ? <DesktopAppActivationCoordinator /> : null}
@@ -187,10 +199,15 @@ function RootRouteView() {
           <SlowRpcRequestToastCoordinator />
           <HostedStaticEnvironmentBootstrap />
           {primaryEnvironmentAuthenticated ? (
-            <EventRouter skipInitialBootstrapNavigation={returningFromWelcomeRef.current} />
+            <EventRouter
+              skipInitialBootstrapNavigation={
+                isDocumentWorkspace || returningFromWelcomeRef.current
+              }
+            />
           ) : null}
           {primaryEnvironmentAuthenticated ? <PlanAgentSelectionHeal /> : null}
           {primaryEnvironmentAuthenticated ? <ProviderUpdateLaunchNotification /> : null}
+          {isDocumentWorkspace ? <DocumentSettingsNavigation /> : null}
           {appShell}
           {/* Above the router: a theme draft is judged by walking the app, so the
               editor has to survive navigation away from settings. */}

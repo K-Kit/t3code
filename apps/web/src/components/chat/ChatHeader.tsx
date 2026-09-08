@@ -55,6 +55,7 @@ interface ChatHeaderProps {
   /** Drafts have no server thread yet, so the title carries no action menu. */
   isServerThread: boolean;
   activeProjectName: string | undefined;
+  showGitActions: boolean;
   activeProjectCwd: string | null;
   activeProjectFaviconPath: string | null;
   activeProjectIcon: import("@t3tools/contracts").ProjectIconOverride | null;
@@ -127,6 +128,7 @@ export const ChatHeader = memo(function ChatHeader({
   activeThreadTitle,
   isServerThread,
   activeProjectName,
+  showGitActions,
   activeProjectCwd,
   activeProjectFaviconPath,
   activeProjectIcon,
@@ -321,7 +323,7 @@ export const ChatHeader = memo(function ChatHeader({
       onContextMenu={handleHeaderContextMenu}
     >
       <WorkspaceBreadcrumb
-        ariaLabel="Thread breadcrumb"
+        ariaLabel="Chat breadcrumb"
         className="flex-1 overflow-clip [overflow-clip-margin:2px]"
       >
         {/* The project always leads the header: knowing which project a
@@ -335,7 +337,7 @@ export const ChatHeader = memo(function ChatHeader({
                   render={
                     <button
                       type="button"
-                      aria-label={`New thread in ${activeProjectName}`}
+                      aria-label={`New chat in ${activeProjectName}`}
                       onClick={onNewThreadInProject}
                       className="inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                     />
@@ -351,7 +353,7 @@ export const ChatHeader = memo(function ChatHeader({
                   />
                   <span className="max-w-40 truncate">{activeProjectName}</span>
                 </TooltipTrigger>
-                <TooltipPopup side="top">New thread in {activeProjectName}</TooltipPopup>
+                <TooltipPopup side="top">New chat in {activeProjectName}</TooltipPopup>
               </Tooltip>
             </WorkspaceBreadcrumbItem>
             <WorkspaceBreadcrumbSeparator />
@@ -361,7 +363,7 @@ export const ChatHeader = memo(function ChatHeader({
           {renamingTitle !== null ? (
             <input
               autoFocus
-              aria-label="Thread title"
+              aria-label="Chat title"
               className="min-w-0 flex-1 rounded-sm bg-transparent text-sm font-medium text-foreground outline-none ring-1 ring-ring/50 focus:ring-ring"
               defaultValue={renamingTitle}
               onBlur={(event) => {
@@ -419,7 +421,7 @@ export const ChatHeader = memo(function ChatHeader({
           "[[data-panel-animations=true]_&]:motion-safe:transition-[padding-right] [[data-panel-animations=true]_&]:motion-safe:[transition-duration:var(--panel-animation-duration)] [[data-panel-animations=true]_&]:motion-safe:ease-out",
         )}
       >
-        {activeProjectScripts && (
+        {showGitActions && activeProjectScripts && (
           <ProjectScriptsControl
             scripts={activeProjectScripts}
             fileScripts={fileScripts}
@@ -431,7 +433,7 @@ export const ChatHeader = memo(function ChatHeader({
             onDeleteScript={onDeleteProjectScript}
           />
         )}
-        {showOpenInPicker && (
+        {showGitActions && showOpenInPicker && (
           <OpenInPicker
             environmentId={activeThreadEnvironmentId}
             keybindings={keybindings}
@@ -439,7 +441,7 @@ export const ChatHeader = memo(function ChatHeader({
             openInCwd={openInCwd}
           />
         )}
-        {activeProjectName && (
+        {showGitActions && activeProjectName && (
           <GitActionsControl
             gitCwd={gitCwd}
             activeThreadRef={scopeThreadRef(activeThreadEnvironmentId, activeThreadId)}

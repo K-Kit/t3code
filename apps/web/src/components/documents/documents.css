@@ -1,0 +1,71 @@
+.workspace-prose {
+  max-width: 48rem;
+  min-height: 18rem;
+  margin-inline: auto;
+  font-size: 1rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.workspace-prose[aria-readonly="true"] {
+  min-height: 0;
+}
+.workspace-prose p {
+  margin-block: 0.75rem;
+}
+.workspace-prose h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  font-weight: 600;
+  margin-block: 1.5rem 1rem;
+}
+.workspace-prose h2 {
+  font-size: 1.5rem;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-block: 1.5rem 0.75rem;
+}
+.workspace-prose h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-block: 1rem 0.5rem;
+}
+.workspace-prose ul {
+  list-style: disc;
+  padding-inline-start: 1.5rem;
+}
+.workspace-prose ol {
+  list-style: decimal;
+  padding-inline-start: 1.5rem;
+}
+.workspace-prose blockquote {
+  border-inline-start: 3px solid var(--border);
+  padding-inline-start: 1rem;
+}
+.workspace-prose a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.workspace-prose table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  margin-block: 1rem;
+}
+.workspace-prose th,
+.workspace-prose td {
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  vertical-align: top;
+}
+.workspace-prose th {
+  background: var(--muted);
+  font-weight: 600;
+  text-align: start;
+}
+.workspace-prose .selectedCell {
+  background: var(--accent);
+}
+.workspace-prose:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}

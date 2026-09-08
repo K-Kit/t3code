@@ -1699,7 +1699,7 @@ function OpenCommandPaletteDialog(props: {
     title: "Open settings",
     icon: <SettingsIcon className={ITEM_ICON_CLASS} />,
     run: async () => {
-      await navigate({ to: "/settings" });
+      await navigate({ to: "/preferences", search: { section: "accounts" } });
     },
   });
 

@@ -36,6 +36,7 @@ interface FileBrowserPanelProps {
   selectedPathRevealId: number;
   onOpenFile: (relativePath: string) => void;
   onRefreshSelectedFile?: () => void;
+  onDiscussFile?: (relativePath: string) => void;
   workspaceMutationId: string | null;
 }
 
@@ -100,6 +101,7 @@ export default function FileBrowserPanel({
   selectedPathRevealId,
   onOpenFile,
   onRefreshSelectedFile,
+  onDiscussFile,
   workspaceMutationId,
 }: FileBrowserPanelProps) {
   const { resolvedTheme } = useTheme();
@@ -172,6 +174,10 @@ export default function FileBrowserPanel({
         return;
       }
       if (clicked === "add-to-chat") {
+        if (onDiscussFile) {
+          onDiscussFile(relativePath);
+          return;
+        }
         const composer = composerRef?.current;
         if (!composer) {
           toastManager.add({

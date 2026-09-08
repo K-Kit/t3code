@@ -7860,9 +7860,12 @@ export default function ChatView(props: ChatViewProps) {
             activeThreadEnvironmentId={activeThread.environmentId}
             activeThreadId={activeThread.id}
             {...(routeKind === "draft" && draftId ? { draftId } : {})}
-            activeThreadTitle={activeThread.title}
+            activeThreadTitle={
+              activeThread.title === "New thread" ? "New chat" : activeThread.title
+            }
             isServerThread={isServerThread}
             activeProjectName={activeProject?.title}
+            showGitActions={isGitRepo}
             activeProjectCwd={activeProject?.workspaceRoot ?? null}
             activeProjectFaviconPath={activeProject?.faviconPath ?? null}
             activeProjectIcon={activeProject?.projectIcon ?? null}

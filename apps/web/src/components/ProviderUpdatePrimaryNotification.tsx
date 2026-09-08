@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "@effect/atom-react";
 import { DownloadIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -103,6 +103,9 @@ function addProviderUpdateToast(input: {
  */
 export function ProviderUpdatePrimaryNotification() {
   const navigate = useNavigate();
+  const documentSettings = useLocation({
+    select: (location) => location.pathname === "/" || location.pathname === "/preferences",
+  });
   const providers = useAtomValue(primaryServerProvidersAtom);
   const primaryEnvironment = usePrimaryEnvironment();
   const updateProvider = useAtomCommand(serverEnvironment.updateProvider, {
@@ -150,9 +153,13 @@ export function ProviderUpdatePrimaryNotification() {
       ) {
         activeToastRef.current = null;
       }
-      void navigate({ to: "/settings/providers" });
+      void navigate(
+        documentSettings
+          ? { to: "/preferences", search: { section: "accounts" } }
+          : { to: "/settings/providers" },
+      );
     },
-    [navigate],
+    [documentSettings, navigate],
   );
 
   useEffect(() => {

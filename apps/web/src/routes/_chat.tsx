@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { Outlet, createFileRoute, redirect, useLocation } from "@tanstack/react-router";
 import { useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo } from "react";
 
@@ -175,9 +175,12 @@ function ChatRouteGlobalShortcuts() {
 }
 
 function ChatRouteLayout() {
+  const documentWorkspace = useLocation({
+    select: (location) => location.pathname === "/documents",
+  });
   return (
     <>
-      <ChatRouteGlobalShortcuts />
+      {!documentWorkspace && <ChatRouteGlobalShortcuts />}
       <Outlet />
     </>
   );

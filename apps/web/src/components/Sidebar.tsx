@@ -4203,9 +4203,9 @@ export default function Sidebar() {
     updateThreadJumpHintsVisibility(shouldShowJumpHintsNow);
   }, [shouldShowJumpHintsNow, updateThreadJumpHintsVisibility]);
 
-  // New thread defaults to the project you're in (active thread's project,
+  // New chat defaults to the project you're in (active thread's project,
   // falling back to the top project) — same resolution the command palette
-  // uses. The command palette already offers a "New thread in..." submenu
+  // uses. The command palette already offers a "New chat in..." submenu
   // for multi-project setups.
   const handleNewThreadClick = useCallback(
     (event?: ReactMouseEvent) => {
@@ -4229,7 +4229,7 @@ export default function Sidebar() {
   );
 
   // The button mirrors chat.new: in multi-project setups both route through
-  // the command palette's "New thread in..." picker, and in single-project
+  // the command palette's "New chat in..." picker, and in single-project
   // setups both create immediately. In multi-project setups the label is only
   // the picker's shortcut: falling back to chat.newLocal would advertise the
   // same shortcut for both the picker and direct create. In single-project
@@ -4264,7 +4264,7 @@ export default function Sidebar() {
                   }}
                   onKeyDown={handleThreadSearchKeyDown}
                   placeholder="Search"
-                  aria-label="Search threads"
+                  aria-label="Search chats"
                   role="combobox"
                   aria-autocomplete="list"
                   aria-expanded={isSearchingThreads && threadSearchResults.length > 0}
@@ -4306,7 +4306,7 @@ export default function Sidebar() {
                         className="relative focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
                         onClick={handleNewThreadClick}
                         disabled={projects.length === 0}
-                        aria-label="New thread"
+                        aria-label="New chat"
                       />
                     }
                   >
@@ -4321,20 +4321,20 @@ export default function Sidebar() {
                       <span className="flex flex-col gap-0.5">
                         <span>
                           {newThreadShortcutLabel
-                            ? `New thread (${newThreadShortcutLabel})`
-                            : "New thread"}
+                            ? `New chat (${newThreadShortcutLabel})`
+                            : "New chat"}
                         </span>
                         <span className="text-muted-foreground">
-                          New thread in current project: Shift+click
+                          New chat in current project: Shift+click
                           {newThreadInProjectShortcutLabel
                             ? ` (${newThreadInProjectShortcutLabel})`
                             : ""}
                         </span>
                       </span>
                     ) : newThreadShortcutLabel ? (
-                      `New thread (${newThreadShortcutLabel})`
+                      `New chat (${newThreadShortcutLabel})`
                     ) : (
-                      "New thread"
+                      "New chat"
                     )}
                   </TooltipPopup>
                 </Tooltip>
@@ -4369,7 +4369,7 @@ export default function Sidebar() {
                   <ComboboxTrigger
                     render={
                       <SidebarMenuButton
-                        aria-label="Filter threads by project"
+                        aria-label="Filter chats by workspace"
                         className="min-w-0 flex-1 ps-[calc(var(--sidebar-row-content-inset)-1px)] focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
                       />
                     }
@@ -4910,7 +4910,7 @@ export default function Sidebar() {
               ) : scopedProjectGroup ? (
                 `No threads in ${scopedProjectGroup.displayName} yet`
               ) : (
-                "No threads yet"
+                "No chats yet"
               )}
             </div>
           ) : null}

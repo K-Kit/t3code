@@ -208,7 +208,7 @@ export function AppSidebarLayout({ children }: { children: ReactNode }) {
       if (action === "open-settings") {
         const isSettingsRoute = /^\/settings(\/|$)/.test(pathname);
         if (!isSettingsRoute) {
-          void navigate({ to: "/settings" });
+          void navigate({ to: "/preferences", search: { section: "accounts" } });
         }
       }
     });

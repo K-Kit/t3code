@@ -11,7 +11,7 @@ import { Link, useCanGoBack, useLocation, useNavigate } from "@tanstack/react-ro
 import { useEnvironmentIdentificationMode } from "../../hooks/useSettings";
 import { cn } from "../../lib/utils";
 import { useEnvironments } from "../../state/environments";
-import { T3Wordmark } from "../T3Wordmark";
+import { WorkspaceNavigation } from "../workspace/WorkspaceNavigation";
 import {
   resolveEnvironmentIdentificationPillLabel,
   resolveSidebarStageBackdropVariant,
@@ -51,40 +51,45 @@ export const SidebarChromeHeader = memo(function SidebarChromeHeader({
       : null;
 
   return (
-    <SidebarHeader
-      className={cn(
-        "@container/sidebar-header relative h-[var(--workspace-topbar-height)] shrink-0 flex-row items-center px-3 py-0 md:px-0",
-        isElectron && "drag-region",
-      )}
-    >
-      {backdropVariant ? <SidebarStageBackdrop variant={backdropVariant} /> : null}
-      <SidebarTrigger
+    <>
+      <SidebarHeader
         className={cn(
-          "relative z-10 md:hidden",
-          backdropVariant &&
-            "focus-visible:ring-white/90 [&_svg]:stroke-white/90! [&_svg]:opacity-100! [&_svg]:hover:stroke-white! [:hover,[data-pressed]]:bg-white/15",
-          backdropVariant && resolveSidebarStageFocusRingOffsetClass(backdropVariant),
+          "@container/sidebar-header relative h-[var(--workspace-topbar-height)] shrink-0 flex-row items-center px-3 py-0 md:px-0",
+          isElectron && "drag-region",
         )}
-      />
-      <SidebarBrand onBackdrop={backdropVariant !== null} />
-      {pillLabel ? (
-        <Badge
-          className="relative z-10 ml-1 hidden rounded-full px-1.5 text-muted-foreground @[15rem]/sidebar-header:inline-flex"
-          data-environment-identification="pill"
-          size="sm"
-          variant="secondary"
-        >
-          {pillLabel}
-        </Badge>
-      ) : null}
-    </SidebarHeader>
+      >
+        {backdropVariant ? <SidebarStageBackdrop variant={backdropVariant} /> : null}
+        <SidebarTrigger
+          className={cn(
+            "relative z-10 md:hidden",
+            backdropVariant &&
+              "focus-visible:ring-white/90 [&_svg]:stroke-white/90! [&_svg]:opacity-100! [&_svg]:hover:stroke-white! [:hover,[data-pressed]]:bg-white/15",
+            backdropVariant && resolveSidebarStageFocusRingOffsetClass(backdropVariant),
+          )}
+        />
+        <SidebarBrand onBackdrop={backdropVariant !== null} />
+        {pillLabel ? (
+          <Badge
+            className="relative z-10 ml-1 hidden rounded-full px-1.5 text-muted-foreground @[15rem]/sidebar-header:inline-flex"
+            data-environment-identification="pill"
+            size="sm"
+            variant="secondary"
+          >
+            {pillLabel}
+          </Badge>
+        ) : null}
+      </SidebarHeader>
+      <div className="shrink-0 border-b border-sidebar-border px-2 py-2">
+        <WorkspaceNavigation />
+      </div>
+    </>
   );
 });
 
 function SidebarBrand({ onBackdrop }: { onBackdrop: boolean }) {
   return (
     <Link
-      aria-label="Go to threads"
+      aria-label="Go to Workspace"
       className={cn(
         "relative z-10 ml-[var(--workspace-titlebar-content-left)] hidden h-7 w-fit min-w-0 shrink-0 items-center overflow-hidden rounded-md outline-hidden ring-ring focus-visible:ring-2 md:flex",
         onBackdrop ? "text-white" : "text-foreground",
@@ -92,14 +97,13 @@ function SidebarBrand({ onBackdrop }: { onBackdrop: boolean }) {
       to="/"
     >
       <span className="inline-flex min-w-0 items-baseline gap-1">
-        <T3Wordmark aria-label="T3" className="h-2.5 w-auto shrink-0" />
         <span
           className={cn(
             "truncate text-sm font-medium tracking-tight",
             onBackdrop ? "text-white/70" : "text-muted-foreground",
           )}
         >
-          Code
+          Workspace
         </span>
       </span>
     </Link>
@@ -167,7 +171,7 @@ export const SidebarUtilityMenu = memo(function SidebarUtilityMenu() {
   }, [closeMobileSidebar, navigate]);
   const handleSettingsClick = useCallback(() => {
     closeMobileSidebar();
-    void navigate({ to: "/settings" });
+    void navigate({ to: "/preferences", search: { section: "accounts" } });
   }, [closeMobileSidebar, navigate]);
 
   const handleUsageClick = useCallback(() => {

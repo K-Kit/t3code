@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { DownloadIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -57,6 +57,9 @@ const SETTLING_GRACE_MS = 30_000;
 
 function ProviderUpdateEnvironmentsNotification() {
   const navigate = useNavigate();
+  const documentSettings = useLocation({
+    select: (location) => location.pathname === "/" || location.pathname === "/preferences",
+  });
   const { groups, isAnySettling } = useLocalEnvironmentUpdateGroups();
   const { dismissedNotificationKeys, dismissNotificationKey } =
     useDismissedProviderUpdateNotificationKeys();
@@ -113,8 +116,12 @@ function ProviderUpdateEnvironmentsNotification() {
       toastManager.close(active.toastId);
       activeToastRef.current = null;
     }
-    void navigate({ to: "/settings/providers" });
-  }, [navigate]);
+    void navigate(
+      documentSettings
+        ? { to: "/preferences", search: { section: "accounts" } }
+        : { to: "/settings/providers" },
+    );
+  }, [documentSettings, navigate]);
 
   useEffect(() => {
     // Whether a fresh prompt can actually be shown for the current update set.
