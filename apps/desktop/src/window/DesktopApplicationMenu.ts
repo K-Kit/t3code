@@ -188,8 +188,9 @@ export const make = Effect.gen(function* () {
         label: "View",
         submenu: [
           { role: "reload" },
-          { role: "forceReload" },
-          { role: "toggleDevTools" },
+          ...(environment.isDevelopment
+            ? [{ role: "forceReload" as const }, { role: "toggleDevTools" as const }]
+            : []),
           { type: "separator" },
           /*
             Not the zoom roles: those act on the focused webContents, so with
