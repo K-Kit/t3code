@@ -9,8 +9,11 @@ import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
+import * as Path from "effect/Path";
 
 import * as ProcessRunner from "../processRunner.ts";
+import { ServerConfig } from "../config.ts";
+import { managedWorkspaceRoot } from "../vcs/managedWorkspace.ts";
 
 const DEFAULT_REPOSITORY_IDENTITY_CACHE_CAPACITY = 512;
 const DEFAULT_POSITIVE_CACHE_TTL = Duration.minutes(1);
@@ -91,7 +94,7 @@ function buildRepositoryIdentity(input: {
 }
 
 const resolveRepositoryIdentityCacheKey = Effect.fn("RepositoryIdentityResolver.resolveCacheKey")(
-  function* (cwd: string) {
+  function* (cwd: string, discoveryCeiling: string | null) {
     const processRunner = yield* ProcessRunner.ProcessRunner;
 
     // git is a real executable on every platform — no cmd.exe shell mode, which
@@ -100,6 +103,9 @@ const resolveRepositoryIdentityCacheKey = Effect.fn("RepositoryIdentityResolver.
       .run({
         command: "git",
         args: ["-C", cwd, "rev-parse", "--show-toplevel"],
+        ...(discoveryCeiling !== null
+          ? { env: { GIT_CEILING_DIRECTORIES: discoveryCeiling } }
+          : {}),
         timeoutBehavior: "timedOutResult",
       })
       .pipe(Effect.option);
@@ -137,13 +143,18 @@ export const make = Effect.fn("RepositoryIdentityResolver.make")(function* (
   options: RepositoryIdentityResolverOptions = {},
 ) {
   const processRunner = yield* ProcessRunner.ProcessRunner;
+  const { stateDir } = yield* ServerConfig;
+  const path = yield* Path.Path;
   const cacheCapacity = options.cacheCapacity ?? DEFAULT_REPOSITORY_IDENTITY_CACHE_CAPACITY;
 
   const repositoryRootCache = yield* Cache.makeWith<string, string | null>(
-    (cwd) =>
-      resolveRepositoryIdentityCacheKey(cwd).pipe(
-        Effect.provideService(ProcessRunner.ProcessRunner, processRunner),
-      ),
+    (cwd) => {
+      const workspaceRoot = managedWorkspaceRoot(path, stateDir, cwd);
+      return resolveRepositoryIdentityCacheKey(
+        cwd,
+        workspaceRoot !== null ? path.dirname(workspaceRoot) : null,
+      ).pipe(Effect.provideService(ProcessRunner.ProcessRunner, processRunner));
+    },
     {
       capacity: cacheCapacity,
       timeToLive: Exit.match({

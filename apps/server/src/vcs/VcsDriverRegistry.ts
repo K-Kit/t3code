@@ -4,12 +4,15 @@ import * as Duration from "effect/Duration";
 import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Layer from "effect/Layer";
+import * as Path from "effect/Path";
 
 import type { VcsDriverKind, VcsError, VcsRepositoryIdentity } from "@t3tools/contracts";
 import { VcsUnsupportedOperationError } from "@t3tools/contracts";
 import * as GitVcsDriver from "./GitVcsDriver.ts";
 import * as VcsProjectConfig from "./VcsProjectConfig.ts";
 import * as VcsDriver from "./VcsDriver.ts";
+import { ServerConfig } from "../config.ts";
+import { managedWorkspaceRoot } from "./managedWorkspace.ts";
 
 const DETECTION_CACHE_CAPACITY = 2_048;
 const DETECTION_CACHE_TTL = Duration.seconds(2);
@@ -61,6 +64,8 @@ function parseDetectionCacheKey(key: string): {
 }
 
 export const make = Effect.gen(function* () {
+  const { stateDir } = yield* ServerConfig;
+  const path = yield* Path.Path;
   const projectConfig = yield* VcsProjectConfig.VcsProjectConfig;
   const git = yield* GitVcsDriver.makeVcsDriver;
   const drivers: Partial<Record<VcsDriverKind, VcsDriver.VcsDriver["Service"]>> = {
@@ -89,6 +94,13 @@ export const make = Effect.gen(function* () {
     const repository = yield* driver.detectRepository(cwd);
     if (!repository) {
       return null;
+    }
+    const workspaceRoot = managedWorkspaceRoot(path, stateDir, cwd);
+    if (workspaceRoot !== null) {
+      const relative = path.relative(workspaceRoot, repository.rootPath);
+      if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+        return null;
+      }
     }
     return {
       kind,

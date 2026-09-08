@@ -12,6 +12,7 @@ import { TestClock } from "effect/testing";
 
 import * as ProcessRunner from "../processRunner.ts";
 import * as RepositoryIdentityResolver from "./RepositoryIdentityResolver.ts";
+import * as ServerConfig from "../config.ts";
 
 const normalizePathSeparators = (value: string) => value.replaceAll("\\", "/");
 const normalizeResolvedPath = (value: string) => normalizePathSeparators(value);
@@ -37,7 +38,37 @@ const makeRepositoryIdentityResolverTestLayer = (options: {
     }),
   ).pipe(Layer.provide(ProcessRunner.layer));
 
-it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
+const TestLayer = ServerConfig.layerTest(process.cwd(), {
+  prefix: "repository-identity-server-",
+}).pipe(Layer.provideMerge(NodeServices.layer));
+
+it.layer(TestLayer)("RepositoryIdentityResolverLive", (it) => {
+  it.effect("keeps managed workspaces separate from an ancestor repository identity", () =>
+    Effect.gen(function* () {
+      const config = yield* ServerConfig.ServerConfig;
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const resolver = yield* RepositoryIdentityResolver.RepositoryIdentityResolver;
+      const workspace = path.join(config.stateDir, "workspaces", "workspace-planning");
+      const otherWorkspace = path.join(config.stateDir, "workspaces", "workspace-research");
+      const ordinary = path.join(config.baseDir, "packages", "web");
+      yield* fs.makeDirectory(workspace, { recursive: true });
+      yield* fs.makeDirectory(otherWorkspace, { recursive: true });
+      yield* fs.makeDirectory(ordinary, { recursive: true });
+      yield* git(config.baseDir, ["init"]);
+      yield* git(config.baseDir, ["remote", "add", "origin", "https://github.com/acme/parent.git"]);
+
+      expect((yield* resolver.resolve(ordinary))?.canonicalKey).toBe("github.com/acme/parent");
+      expect(yield* resolver.resolve(workspace)).toBeNull();
+      expect(yield* resolver.resolve(otherWorkspace)).toBeNull();
+
+      yield* git(workspace, ["init"]);
+      yield* git(workspace, ["remote", "add", "origin", "https://github.com/acme/planning.git"]);
+      expect((yield* resolver.resolve(workspace))?.canonicalKey).toBe("github.com/acme/planning");
+      expect(yield* resolver.resolve(otherWorkspace, { refresh: true })).toBeNull();
+    }).pipe(Effect.provide(RepositoryIdentityResolver.layer)),
+  );
+
   it.effect("refreshes the Git root only when requested", () => {
     const calls: Array<ReadonlyArray<string>> = [];
     let rootPath = "/repo";

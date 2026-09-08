@@ -1576,6 +1576,7 @@ describe("OrchestrationEngine", () => {
         Layer.provide(OrchestrationCommandReceiptRepositoryLive),
         Layer.provide(RepositoryIdentityResolver.layer),
         Layer.provide(SqlitePersistenceMemory),
+        Layer.provide(ServerConfig.layerTest(process.cwd(), { prefix: "engine-identity-" })),
         Layer.provide(NodeServices.layer),
       ),
     );
@@ -1725,6 +1726,7 @@ describe("OrchestrationEngine", () => {
         Layer.provide(OrchestrationCommandReceiptRepositoryLive),
         Layer.provide(RepositoryIdentityResolver.layer),
         Layer.provide(SqlitePersistenceMemory),
+        Layer.provide(ServerConfig.layerTest(process.cwd(), { prefix: "engine-identity-" })),
         Layer.provide(NodeServices.layer),
       ),
     );

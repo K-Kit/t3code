@@ -2,11 +2,19 @@ import { assert, it, describe } from "@effect/vitest";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import * as FileSystem from "effect/FileSystem";
+import * as Path from "effect/Path";
 import { ChildProcessSpawner } from "effect/unstable/process";
 
 import * as VcsProcess from "./VcsProcess.ts";
 import * as VcsProjectConfig from "./VcsProjectConfig.ts";
 import * as VcsDriverRegistry from "./VcsDriverRegistry.ts";
+import * as GitVcsDriver from "./GitVcsDriver.ts";
+import * as ServerConfig from "../config.ts";
+
+const ServerConfigLayer = ServerConfig.layerTest(process.cwd(), {
+  prefix: "vcs-registry-test-",
+}).pipe(Layer.provide(NodeServices.layer));
 
 const processOutput = (stdout: string): VcsProcess.VcsProcessOutput => ({
   exitCode: ChildProcessSpawner.ExitCode(0),
@@ -20,8 +28,53 @@ const normalizeGitArgs = (args: ReadonlyArray<string>): ReadonlyArray<string> =>
   args[0] === "-C" && args.length >= 2 ? args.slice(2) : args;
 
 describe("VcsDriverRegistry", () => {
+  it.effect("managed workspaces do not inherit an ancestor Git repository", () =>
+    Effect.gen(function* () {
+      const config = yield* ServerConfig.ServerConfig;
+      const fs = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      const registry = yield* VcsDriverRegistry.VcsDriverRegistry;
+      const git = yield* GitVcsDriver.make;
+      const workspace = path.join(config.stateDir, "workspaces", "workspace-test");
+      const nested = path.join(workspace, "files");
+      const ordinary = path.join(config.baseDir, "ordinary-project");
+      yield* fs.makeDirectory(nested, { recursive: true });
+      yield* fs.makeDirectory(ordinary);
+      yield* git.execute({ operation: "test.init", cwd: config.baseDir, args: ["init"] });
+
+      assert.equal(
+        (yield* registry.detect({ cwd: ordinary }))?.repository.rootPath,
+        config.baseDir,
+      );
+      assert.equal(yield* registry.detect({ cwd: workspace }), null);
+      assert.equal(yield* registry.detect({ cwd: nested, requestedKind: "git" }), null);
+      assert.isFalse((yield* git.statusDetailsLocal(workspace)).isRepo);
+      const attempt = yield* git.execute({
+        operation: "test.parent-config-write",
+        cwd: nested,
+        args: ["config", "--local", "workspace.boundary", "unexpected"],
+        allowNonZeroExit: true,
+      });
+      assert.notEqual(attempt.exitCode, 0);
+
+      yield* git.execute({ operation: "test.init-workspace", cwd: workspace, args: ["init"] });
+      assert.equal((yield* registry.detect({ cwd: nested }))?.repository.rootPath, workspace);
+    }).pipe(
+      Effect.provide(
+        VcsDriverRegistry.layer.pipe(
+          Layer.provide(VcsProcess.layer),
+          Layer.provideMerge(
+            ServerConfig.layerTest(process.cwd(), { prefix: "managed-workspace-vcs-" }),
+          ),
+          Layer.provideMerge(NodeServices.layer),
+        ),
+      ),
+    ),
+  );
+
   it.effect("routes directly by VCS driver kind for non-repository workflows", () => {
     const layer = Layer.effect(VcsDriverRegistry.VcsDriverRegistry, VcsDriverRegistry.make).pipe(
+      Layer.provide(ServerConfigLayer),
       Layer.provide(NodeServices.layer),
       Layer.provide(
         Layer.mock(VcsProjectConfig.VcsProjectConfig)({
@@ -46,6 +99,7 @@ describe("VcsDriverRegistry", () => {
   it.effect("caches repository detection for repeated resolves in the same cwd and kind", () => {
     const calls: VcsProcess.VcsProcessInput[] = [];
     const layer = Layer.effect(VcsDriverRegistry.VcsDriverRegistry, VcsDriverRegistry.make).pipe(
+      Layer.provide(ServerConfigLayer),
       Layer.provide(NodeServices.layer),
       Layer.provide(
         Layer.mock(VcsProjectConfig.VcsProjectConfig)({
@@ -96,6 +150,7 @@ describe("VcsDriverRegistry", () => {
   it.effect("detects a repository created after a negative lookup", () => {
     let insideWorkTreeChecks = 0;
     const layer = Layer.effect(VcsDriverRegistry.VcsDriverRegistry, VcsDriverRegistry.make).pipe(
+      Layer.provide(ServerConfigLayer),
       Layer.provide(NodeServices.layer),
       Layer.provide(
         Layer.mock(VcsProjectConfig.VcsProjectConfig)({
