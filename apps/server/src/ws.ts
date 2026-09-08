@@ -138,6 +138,18 @@ import * as ResourceTelemetry from "./resourceTelemetry/ResourceTelemetry.ts";
 import * as HostResources from "./resourceTelemetry/HostResources.ts";
 import * as AnalyticsService from "./telemetry/AnalyticsService.ts";
 import * as UsageLimitSources from "./usage/UsageLimitSources.ts";
+import { DocumentStore } from "./documents/DocumentStore.ts";
+import { DocumentJobs } from "./documents/DocumentJobs.ts";
+import { sourceExcerpt } from "./documents/DocumentSources.ts";
+import type {
+  DocumentGenerateInput,
+  DocumentImportInput,
+  DocumentExportInput,
+} from "@t3tools/contracts";
+import { generateDocument } from "./documents/DocumentGeneration.ts";
+import { importDocument, exportDocument } from "./documents/DocumentTransfer.ts";
+import { ConnectedAppsError, DocumentError } from "@t3tools/contracts";
+import * as Path from "effect/Path";
 import * as UsageService from "./usage/UsageService.ts";
 import * as TraceDiagnostics from "./diagnostics/TraceDiagnostics.ts";
 import * as PullRequestService from "./pullRequest/PullRequestService.ts";
@@ -470,6 +482,8 @@ const makeWsRpcLayer = (
   clientOrigin: OrchestrationClientOrigin,
   clientAnalyticsProps: Readonly<Record<string, unknown>>,
   previewAutomationBroker: PreviewAutomationBroker.PreviewAutomationBroker["Service"],
+  documentStore: DocumentStore["Service"],
+  documentJobs: DocumentJobs["Service"],
 ) =>
   WsRpcGroup.toLayer(
     Effect.gen(function* () {
@@ -528,11 +542,33 @@ const makeWsRpcLayer = (
       const providerInstallation = yield* makeProviderInstallation();
       const serverUpdate = yield* ServerSelfUpdate.ServerSelfUpdate;
       const config = yield* ServerConfig.ServerConfig;
+      const path = yield* Path.Path;
       const lifecycleEvents = yield* ServerLifecycleEvents.ServerLifecycleEvents;
       const serverSettings = yield* ServerSettings.ServerSettingsService;
       const startup = yield* ServerRuntimeStartup.ServerRuntimeStartup;
       const workspaceEntries = yield* WorkspaceEntries.WorkspaceEntries;
       const workspaceFileSystem = yield* WorkspaceFileSystem.WorkspaceFileSystem;
+      const withDocumentProject = <A, E, R>(
+        input: { readonly projectId: ProjectId },
+        action: Effect.Effect<A, E, R>,
+      ) =>
+        Effect.gen(function* () {
+          const project = yield* projectionSnapshotQuery.getProjectShellById(input.projectId).pipe(
+            Effect.mapError(
+              () =>
+                new DocumentError({
+                  reason: "storage",
+                  message: "Could not read this workspace.",
+                }),
+            ),
+          );
+          if (Option.isNone(project))
+            return yield* new DocumentError({
+              reason: "not-found",
+              message: "Workspace not found.",
+            });
+          return yield* action;
+        });
       const canReplayPersistedRange = Effect.fnUntraced(function* (
         afterSequence: number,
         headSequence: number,
@@ -1286,6 +1322,8 @@ const makeWsRpcLayer = (
                 }),
             threadResumeCompletionMarker: true,
             threadSnapshotPagination: true,
+            documentWorkspaceVersion: 1,
+            connectedAppsVersion: 1,
           };
         });
 
@@ -1294,7 +1332,149 @@ const makeWsRpcLayer = (
           .refreshStatus(cwd)
           .pipe(Effect.ignoreCause({ log: true }), Effect.forkDetach, Effect.asVoid);
 
+      const runImport = (input: typeof DocumentImportInput.Type) =>
+        documentJobs.run(
+          input.commandId,
+          { _tag: "import", input },
+          importDocument(input).pipe(Effect.provideService(DocumentStore, documentStore)),
+        );
+      const runGeneration = (input: typeof DocumentGenerateInput.Type) =>
+        documentJobs.run(
+          input.commandId,
+          { _tag: "generate", input },
+          generateDocument(input).pipe(Effect.provideService(DocumentStore, documentStore)),
+        );
+      const runExport = Effect.fn("documentExportJob")(function* (
+        input: typeof DocumentExportInput.Type,
+      ) {
+        const commandId =
+          input.commandId ??
+          CommandId.make(
+            yield* crypto.randomUUIDv4.pipe(
+              Effect.mapError(
+                () =>
+                  new DocumentError({
+                    reason: "storage",
+                    message: "Could not prepare the export.",
+                  }),
+              ),
+            ),
+          );
+        return yield* documentJobs.run(
+          commandId,
+          { _tag: "export", input: { ...input, commandId } },
+          exportDocument(input).pipe(Effect.provideService(DocumentStore, documentStore)),
+        );
+      });
       return WsRpcGroup.of({
+        "documents.sourceExcerpt": (input) =>
+          observeRpcEffect(
+            "documents.sourceExcerpt",
+            withDocumentProject(input, sourceExcerpt(input)).pipe(
+              Effect.provideService(DocumentStore, documentStore),
+            ),
+          ),
+        "documents.jobs": (input) =>
+          observeRpcEffect(
+            "documents.jobs",
+            withDocumentProject(input, documentJobs.list(input.projectId)),
+          ),
+        "documents.cancelJob": (input) =>
+          observeRpcEffect(
+            "documents.cancelJob",
+            withDocumentProject(input, documentJobs.cancel(input.projectId, input.jobId)),
+          ),
+        "documents.retryJob": (input) =>
+          observeRpcEffect(
+            "documents.retryJob",
+            withDocumentProject(
+              input,
+              Effect.gen(function* () {
+                const request = yield* documentJobs.request(input.projectId, input.jobId);
+                switch (request._tag) {
+                  case "import":
+                    return {
+                      _tag: "document" as const,
+                      value: yield* runImport({ ...request.input, commandId: input.commandId }),
+                    };
+                  case "generate":
+                    return {
+                      _tag: "document" as const,
+                      value: yield* runGeneration({ ...request.input, commandId: input.commandId }),
+                    };
+                  case "export":
+                    return {
+                      _tag: "download" as const,
+                      value: yield* runExport({ ...request.input, commandId: input.commandId }),
+                    };
+                }
+              }),
+            ),
+          ),
+        "documents.changes": (input) =>
+          observeRpcStream(
+            "documents.changes",
+            Stream.unwrap(
+              withDocumentProject(
+                input,
+                Effect.succeed(
+                  Stream.merge(
+                    documentStore.subscribe(input.projectId),
+                    documentJobs.subscribe(input.projectId),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        "documents.list": (input) =>
+          observeRpcEffect("documents.list", withDocumentProject(input, documentStore.list(input))),
+        "documents.get": (input) =>
+          observeRpcEffect("documents.get", withDocumentProject(input, documentStore.get(input))),
+        "documents.history": (input) =>
+          observeRpcEffect(
+            "documents.history",
+            withDocumentProject(input, documentStore.history(input)),
+          ),
+        "documents.execute": (input) =>
+          observeRpcEffect(
+            "documents.execute",
+            withDocumentProject(input, documentStore.execute(input)),
+          ),
+        "documents.import": (input) =>
+          observeRpcEffect("documents.import", withDocumentProject(input, runImport(input))),
+        "documents.export": (input) =>
+          observeRpcEffect("documents.export", withDocumentProject(input, runExport(input))),
+        "documents.generate": (input) =>
+          observeRpcEffect("documents.generate", withDocumentProject(input, runGeneration(input))),
+        "documents.createWorkspace": (input) =>
+          observeRpcEffect(
+            "documents.createWorkspace",
+            Effect.gen(function* () {
+              const command = yield* normalizeDispatchCommand({
+                type: "project.create",
+                commandId: input.commandId,
+                projectId: input.projectId,
+                title: input.title,
+                workspaceRoot: path.join(
+                  config.stateDir,
+                  "workspaces",
+                  `workspace-${encodeURIComponent(input.projectId)}`,
+                ),
+                createWorkspaceRootIfMissing: true,
+                createdAt: DateTime.formatIso(yield* DateTime.now),
+              });
+              return yield* dispatchFromClient(command);
+            }).pipe(
+              Effect.asVoid,
+              Effect.mapError(
+                () =>
+                  new DocumentError({
+                    reason: "storage",
+                    message: "Could not create the workspace.",
+                  }),
+              ),
+            ),
+          ),
         [ORCHESTRATION_WS_METHODS.dispatchCommand]: (command) =>
           observeRpcEffect(
             ORCHESTRATION_WS_METHODS.dispatchCommand,
@@ -1763,6 +1943,28 @@ const makeWsRpcLayer = (
           observeRpcEffect(WS_METHODS.serverProbe, Effect.succeed({}), {
             "rpc.aggregate": "server",
           }),
+        [WS_METHODS.serverListConnectedApps]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.serverListConnectedApps,
+            Effect.gen(function* () {
+              const instance = yield* providerInstances.getInstance(input.instanceId);
+              if (!instance || !instance.enabled)
+                return yield* new ConnectedAppsError({
+                  message: "Enable this AI account in Settings before loading its apps.",
+                });
+              if (!instance.listConnectedApps)
+                return { supported: false, apps: [], nextCursor: null };
+              return yield* instance.listConnectedApps(input).pipe(
+                Effect.mapError(
+                  () =>
+                    new ConnectedAppsError({
+                      message:
+                        "Could not load apps. Check this AI account and update its provider if needed, then try again.",
+                    }),
+                ),
+              );
+            }),
+          ),
         [WS_METHODS.serverGetConfig]: (_input) =>
           observeRpcEffect(
             WS_METHODS.serverGetConfig,
@@ -2900,6 +3102,8 @@ const makeWsRpcLayer = (
 
 export const websocketRpcRouteLayer = Layer.unwrap(
   Effect.gen(function* () {
+    const documentStore = yield* DocumentStore;
+    const documentJobs = yield* DocumentJobs;
     const previewAutomationBroker = yield* PreviewAutomationBroker.PreviewAutomationBroker;
     const baseServerSelfUpdate = yield* ServerSelfUpdate.ServerSelfUpdate;
     const config = yield* ServerConfig.ServerConfig;
@@ -2960,6 +3164,8 @@ export const websocketRpcRouteLayer = Layer.unwrap(
               clientOrigin,
               clientAnalyticsProps,
               previewAutomationBroker,
+              documentStore,
+              documentJobs,
             ).pipe(
               Layer.provideMerge(RpcSerialization.layerJson),
               Layer.provide(AgentSessionScanner.layer),

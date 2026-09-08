@@ -36,7 +36,7 @@ export default mergeConfig(
       },
     },
     pack: {
-      entry: ["src/bin.ts"],
+      entry: ["src/bin.ts", "src/documents/DocumentWorker.ts"],
       outDir: "dist",
       sourcemap: true,
       clean: true,

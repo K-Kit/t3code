@@ -22,6 +22,8 @@
  * @module provider/ProviderDriver
  */
 import type {
+  ConnectedAppsInput,
+  ConnectedAppsPage,
   ProviderConsumeResetCreditOutcome,
   ProviderDriverKind,
   ProviderInstanceEnvironment,
@@ -83,6 +85,9 @@ export interface ProviderInstance {
     ProviderConsumeResetCreditOutcome,
     ProviderDriverError
   >;
+  readonly listConnectedApps?: (
+    input: ConnectedAppsInput,
+  ) => Effect.Effect<ConnectedAppsPage, ProviderDriverError>;
   readonly adapter: ProviderAdapterShape<ProviderAdapterError>;
   readonly textGeneration: TextGeneration.TextGeneration["Service"];
   readonly auth?: ProviderAuthController;

@@ -49,6 +49,8 @@ import {
 } from "../provider/ClaudeModelCatalog.ts";
 import { makeClaudeEnvironment } from "../provider/Drivers/ClaudeHome.ts";
 
+import { CLAUDE_DOCUMENT_ARGS, documentClaudeEnvironment } from "./ClaudeDocumentPolicy.ts";
+
 const CLAUDE_TIMEOUT_MS = 180_000;
 
 /**
@@ -100,7 +102,8 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
       | "generateCommitMessage"
       | "generatePrContent"
       | "generateBranchName"
-      | "generateThreadTitle",
+      | "generateThreadTitle"
+      | "generateDocument",
     value: unknown,
     detail: string,
   ): Effect.Effect<string, TextGenerationError> =>
@@ -130,7 +133,8 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
       | "generateCommitMessage"
       | "generatePrContent"
       | "generateBranchName"
-      | "generateThreadTitle";
+      | "generateThreadTitle"
+      | "generateDocument";
     cwd: string;
     prompt: string;
     outputSchemaJson: S;
@@ -171,6 +175,7 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
     const fastMode =
       fastModeDescriptor?.type === "boolean" ? fastModeDescriptor.currentValue : undefined;
     const settings = {
+      ...(operation === "generateDocument" ? { disableAllHooks: true } : {}),
       ...(typeof thinking === "boolean" ? { alwaysThinkingEnabled: thinking } : {}),
       ...(fastMode ? { fastMode: true } : {}),
       ...(ultracode ? { ultracode: true } : {}),
@@ -185,6 +190,10 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
         : undefined;
 
     const runClaudeCommand = Effect.fn("runClaudeJson.runClaudeCommand")(function* () {
+      const processEnvironment =
+        operation === "generateDocument"
+          ? documentClaudeEnvironment(claudeEnvironment)
+          : claudeEnvironment;
       const spawnCommand = yield* resolveSpawnCommand(
         claudeSettings.binaryPath || "claude",
         [
@@ -197,12 +206,14 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
           resolveClaudeCatalogApiModelId(catalog, resolvedModelSelection),
           ...(cliEffort ? ["--effort", cliEffort] : []),
           ...(settingsJson ? ["--settings", settingsJson] : []),
-          "--dangerously-skip-permissions",
+          ...(operation === "generateDocument"
+            ? CLAUDE_DOCUMENT_ARGS
+            : ["--dangerously-skip-permissions"]),
         ],
-        { env: claudeEnvironment },
+        { env: processEnvironment },
       );
       const command = ChildProcess.make(spawnCommand.command, spawnCommand.args, {
-        env: claudeEnvironment,
+        env: processEnvironment,
         cwd,
         shell: spawnCommand.shell,
         stdin: {
@@ -391,6 +402,14 @@ export const makeClaudeTextGeneration = Effect.fn("makeClaudeTextGeneration")(fu
     });
 
   return {
+    generateDocument: (input) =>
+      runClaudeJson({
+        ...input,
+        operation: "generateDocument",
+        outputSchemaJson: Schema.Struct({
+          markdown: Schema.String,
+        }),
+      }),
     generateCommitMessage,
     generatePrContent,
     generateBranchName,

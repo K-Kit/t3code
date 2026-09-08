@@ -3,6 +3,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./documentText": {
+      "types": "./src/documentText.ts",
+      "import": "./src/documentText.ts"
+    },
     "./themePalettes": {
       "types": "./src/themePalettes.ts",
       "import": "./src/themePalettes.ts"
@@ -278,6 +282,14 @@
     "./dateTime": {
       "types": "./src/dateTime.ts",
       "import": "./src/dateTime.ts"
+    },
+    "./connectedApps": {
+      "types": "./src/connectedApps.ts",
+      "import": "./src/connectedApps.ts"
+    },
+    "./researchPrompt": {
+      "types": "./src/researchPrompt.ts",
+      "import": "./src/researchPrompt.ts"
     }
   },
   "scripts": {

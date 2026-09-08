@@ -1,3 +1,6 @@
+import { DocumentId } from "@t3tools/contracts";
+import { DocumentStore } from "./documents/DocumentStore.ts";
+import { DocumentJobs } from "./documents/DocumentJobs.ts";
 import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import * as NodeSocket from "@effect/platform-node/NodeSocket";
 import * as NodeServices from "@effect/platform-node/NodeServices";
@@ -1018,6 +1021,11 @@ const buildAppUnderTest = (options?: {
     );
 
     const appLayer = servedRoutesLayer.pipe(
+      Layer.provide(
+        Layer.mergeAll(DocumentStore.layer, DocumentJobs.layer).pipe(
+          Layer.provide(SqlitePersistenceMemory),
+        ),
+      ),
       Layer.provide(resourceTelemetryLayer),
       Layer.provide(UsageService.layerTest),
       Layer.provide(
@@ -11653,3 +11661,166 @@ it.live(
     }).pipe(Effect.provide(NodeServices.layer)),
   120_000,
 );
+
+it.layer(NodeServices.layer)("document workspace RPC", (it) => {
+  it.effect("creates, edits, restores and exports a document through authenticated RPC", () =>
+    Effect.gen(function* () {
+      const projectId = ProjectId.make("documents-integration");
+      yield* buildAppUnderTest({
+        layers: {
+          projectionSnapshotQuery: {
+            getProjectShellById: (id) =>
+              Effect.succeed(
+                id === projectId
+                  ? Option.some({
+                      id: projectId,
+                      title: "Research",
+                      workspaceRoot: "/document-fixture",
+                      defaultModelSelection: null,
+                      scripts: [],
+                      createdAt: "2026-09-07T00:00:00Z",
+                      updatedAt: "2026-09-07T00:00:00Z",
+                    })
+                  : Option.none(),
+              ),
+          },
+        },
+      });
+      const wsUrl = yield* getWsServerUrl("/ws");
+      yield* Effect.scoped(
+        withWsRpcClient(wsUrl, (client) =>
+          Effect.gen(function* () {
+            const documentId = DocumentId.make("8ff75c44-344e-4a75-badc-df92fcb54aab");
+            yield* client["documents.createWorkspace"]({
+              projectId,
+              commandId: CommandId.make("create-document-workspace"),
+              title: "Research",
+            });
+            const original = yield* client["documents.execute"]({
+              _tag: "create",
+              projectId,
+              documentId,
+              commandId: CommandId.make("create-document"),
+              title: "Meeting notes",
+              content: "# Meeting notes\n\nOriginal content.",
+            });
+            const changed = yield* client["documents.execute"]({
+              _tag: "save",
+              projectId,
+              documentId,
+              commandId: CommandId.make("save-document"),
+              expectedVersion: 1,
+              title: "Meeting notes",
+              content: "Edited content.",
+            });
+            assert.equal(changed.content, "Edited content.");
+            const stale = yield* client["documents.execute"]({
+              _tag: "save",
+              projectId,
+              documentId,
+              commandId: CommandId.make("stale-document"),
+              expectedVersion: 1,
+              title: "Meeting notes",
+              content: "Stale content.",
+            }).pipe(Effect.flip);
+            assert.equal(stale._tag, "DocumentError");
+            const restored = yield* client["documents.execute"]({
+              _tag: "restore",
+              projectId,
+              documentId,
+              commandId: CommandId.make("restore-document"),
+              expectedVersion: 2,
+              revisionId: original.document.revisionId,
+            });
+            assert.equal(restored.content, original.content);
+            const exported = yield* client["documents.export"]({
+              projectId,
+              documentId,
+              revisionId: restored.document.revisionId,
+              format: "docx",
+            });
+            const response = yield* HttpClient.get(exported.relativeUrl);
+            assert.equal(response.status, 200);
+            const bytes = new Uint8Array(yield* response.arrayBuffer);
+            assert.deepEqual(Array.from(bytes.slice(0, 2)), [80, 75]);
+            const missing = yield* client["documents.get"]({
+              projectId: ProjectId.make("another-workspace"),
+              documentId,
+            }).pipe(Effect.flip);
+            assert.equal(missing._tag, "DocumentError");
+          }),
+        ),
+      );
+    }).pipe(Effect.provide(NodeHttpServer.layerTest)),
+  );
+});
+
+it.layer(NodeServices.layer)("connected app catalog RPC", (it) => {
+  it.effect("returns account-scoped app availability and rejects unknown accounts", () =>
+    Effect.gen(function* () {
+      const instanceId = ProviderInstanceId.make("catalog-test");
+      let receivedCursor: string | undefined;
+      const instance: ProviderInstance = {
+        instanceId,
+        driverKind: ProviderDriverKind.make("codex"),
+        continuationIdentity: {
+          driverKind: ProviderDriverKind.make("codex"),
+          continuationKey: "catalog-test",
+        },
+        enabled: true,
+        displayName: "Catalog test",
+        get adapter(): never {
+          throw new Error("App discovery must not start a chat.");
+        },
+        get snapshot(): never {
+          throw new Error("App discovery must not inspect private account details.");
+        },
+        get textGeneration(): never {
+          throw new Error("App discovery must not generate text.");
+        },
+        listConnectedApps: (input) =>
+          Effect.sync(() => {
+            receivedCursor = input.cursor;
+            return {
+              supported: true,
+              apps: [
+                {
+                  id: "test-app",
+                  name: "Research library",
+                  description: "Searchable reference material",
+                  state: "ready",
+                  installUrl: null,
+                },
+              ],
+              nextCursor: "next-page",
+            };
+          }),
+      };
+      yield* buildAppUnderTest({
+        layers: {
+          providerInstanceRegistry: {
+            getInstance: (id) => Effect.succeed(id === instanceId ? instance : undefined),
+          },
+        },
+      });
+      const wsUrl = yield* getWsServerUrl("/ws");
+      yield* Effect.scoped(
+        withWsRpcClient(wsUrl, (client) =>
+          Effect.gen(function* () {
+            const page = yield* client[WS_METHODS.serverListConnectedApps]({
+              instanceId,
+              cursor: "first-page",
+            });
+            assert.equal(page.apps[0]?.state, "ready");
+            assert.equal(page.nextCursor, "next-page");
+            assert.equal(receivedCursor, "first-page");
+            const failure = yield* client[WS_METHODS.serverListConnectedApps]({
+              instanceId: ProviderInstanceId.make("missing"),
+            }).pipe(Effect.flip);
+            assert.equal(failure._tag, "ConnectedAppsError");
+          }),
+        ),
+      );
+    }).pipe(Effect.provide(NodeHttpServer.layerTest)),
+  );
+});

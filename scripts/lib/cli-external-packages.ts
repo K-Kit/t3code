@@ -25,6 +25,13 @@
  * only inside the emitted bundle and is unreachable there. This closure is
  * enforced by a test, not by inspection.
  */
+const CLI_ASSET_EXTERNAL_PACKAGES = [
+  // PDF readers and writers load worker/font assets relative to their packages.
+  "pdfjs-dist",
+  "pdfkit",
+  "@napi-rs/canvas",
+] as const;
+
 export const CLI_RUNTIME_EXTERNAL_PREFIXES = [
   "node-pty",
   "ffi-rs",
@@ -69,7 +76,10 @@ export const CLI_EXTERNAL_PACKAGE_PREFIXES = [
 ] as const;
 
 export function isRuntimeExternalCliDependency(id: string): boolean {
-  return CLI_RUNTIME_EXTERNAL_PREFIXES.some((prefix) => id.startsWith(prefix));
+  return (
+    CLI_RUNTIME_EXTERNAL_PREFIXES.some((prefix) => id.startsWith(prefix)) ||
+    CLI_ASSET_EXTERNAL_PACKAGES.some((name) => id === name || id.startsWith(`${name}/`))
+  );
 }
 
 /**
@@ -83,7 +93,10 @@ export function isRuntimeExternalCliDependency(id: string): boolean {
  * inlined while node-pty (a declared dependency) stayed external.
  */
 export function isExternalCliDependency(id: string): boolean {
-  return CLI_EXTERNAL_PACKAGE_PREFIXES.some((prefix) => id.startsWith(prefix));
+  return (
+    isRuntimeExternalCliDependency(id) ||
+    CLI_BUILD_ONLY_EXTERNAL_PREFIXES.some((prefix) => id.startsWith(prefix))
+  );
 }
 
 /** True when the CLI bundle should inline `id` rather than leave it external. */

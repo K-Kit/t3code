@@ -1,3 +1,4 @@
+import { connectedAppMentions } from "@t3tools/shared/connectedApps";
 import {
   ApprovalRequestId,
   DEFAULT_MODEL,
@@ -615,6 +616,7 @@ export function buildTurnStartParams(input: {
       text: input.prompt,
     });
   }
+  turnInput.push(...connectedAppMentions(input.prompt ?? ""));
   for (const attachment of input.attachments ?? []) {
     turnInput.push(attachment);
   }

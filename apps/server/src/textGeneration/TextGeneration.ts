@@ -79,6 +79,11 @@ export interface ThreadTitleGenerationResult {
 export class TextGeneration extends Context.Service<
   TextGeneration,
   {
+    readonly generateDocument?: (input: {
+      readonly cwd: string;
+      readonly prompt: string;
+      readonly modelSelection: ModelSelection;
+    }) => Effect.Effect<{ readonly markdown: string }, TextGenerationError>;
     /**
      * Generate a commit message from staged change context.
      */

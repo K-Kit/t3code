@@ -21,6 +21,19 @@ type WsRpcMethod = RpcGroup.Rpcs<typeof WsRpcGroup>["_tag"];
  * runtime failure.
  */
 export const RPC_REQUIRED_SCOPES = {
+  "documents.list": AuthOrchestrationReadScope,
+  "documents.jobs": AuthOrchestrationReadScope,
+  "documents.sourceExcerpt": AuthOrchestrationReadScope,
+  "documents.cancelJob": AuthOrchestrationOperateScope,
+  "documents.retryJob": AuthOrchestrationOperateScope,
+  "documents.changes": AuthOrchestrationReadScope,
+  "documents.get": AuthOrchestrationReadScope,
+  "documents.history": AuthOrchestrationReadScope,
+  "documents.export": AuthOrchestrationReadScope,
+  "documents.execute": AuthOrchestrationOperateScope,
+  "documents.import": AuthOrchestrationOperateScope,
+  "documents.generate": AuthOrchestrationOperateScope,
+  "documents.createWorkspace": AuthOrchestrationOperateScope,
   [ORCHESTRATION_WS_METHODS.dispatchCommand]: AuthOrchestrationOperateScope,
   [ORCHESTRATION_WS_METHODS.getWorkflowScript]: AuthOrchestrationReadScope,
   [ORCHESTRATION_WS_METHODS.getTurnDiff]: AuthOrchestrationReadScope,
@@ -31,6 +44,7 @@ export const RPC_REQUIRED_SCOPES = {
   [ORCHESTRATION_WS_METHODS.subscribeThread]: AuthOrchestrationReadScope,
   [WS_METHODS.serverProbe]: AuthOrchestrationReadScope,
   [WS_METHODS.serverGetConfig]: AuthOrchestrationReadScope,
+  [WS_METHODS.serverListConnectedApps]: AuthOrchestrationReadScope,
   [WS_METHODS.serverRefreshProviders]: AuthOrchestrationOperateScope,
   [WS_METHODS.serverUpdateProvider]: AuthOrchestrationOperateScope,
   [WS_METHODS.providerAuthStart]: AuthOrchestrationOperateScope,

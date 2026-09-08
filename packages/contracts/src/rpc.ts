@@ -1,4 +1,6 @@
+import { ConnectedAppsInput, ConnectedAppsPage, ConnectedAppsError } from "./connectedApps.ts";
 import * as Schema from "effect/Schema";
+import * as Documents from "./documents.ts";
 import * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
 import { NonNegativeInt, TrimmedNonEmptyString } from "./baseSchemas.ts";
@@ -313,6 +315,7 @@ export const WS_METHODS = {
   // Server meta
   serverProbe: "server.probe",
   serverGetConfig: "server.getConfig",
+  serverListConnectedApps: "server.listConnectedApps",
   serverRefreshProviders: "server.refreshProviders",
   serverUpdateProvider: "server.updateProvider",
   serverUpdateServer: "server.updateServer",
@@ -397,6 +400,12 @@ const WsServerProbeRpc = Rpc.make(WS_METHODS.serverProbe, {
   payload: Schema.Struct({}),
   success: Schema.Struct({}),
   error: EnvironmentAuthorizationError,
+});
+
+const WsServerListConnectedAppsRpc = Rpc.make(WS_METHODS.serverListConnectedApps, {
+  payload: ConnectedAppsInput,
+  success: ConnectedAppsPage,
+  error: Schema.Union([ConnectedAppsError, EnvironmentAuthorizationError]),
 });
 
 const WsServerGetConfigRpc = Rpc.make(WS_METHODS.serverGetConfig, {
@@ -1182,8 +1191,75 @@ const WsSubscribeResourceTelemetryRpc = Rpc.make(WS_METHODS.subscribeResourceTel
 });
 
 export const WsRpcGroup = RpcGroup.make(
+  Rpc.make("documents.sourceExcerpt", {
+    payload: Documents.DocumentSourceExcerptInput,
+    success: Documents.DocumentSourceExcerpt,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.jobs", {
+    payload: Schema.Struct({ projectId: Documents.DocumentGetInput.fields.projectId }),
+    success: Schema.Array(Documents.DocumentJob),
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.cancelJob", {
+    payload: Documents.DocumentJobRef,
+    success: Documents.DocumentJob,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.retryJob", {
+    payload: Documents.DocumentJobRetry,
+    success: Documents.DocumentJobResult,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.changes", {
+    payload: Schema.Struct({ projectId: Documents.DocumentGetInput.fields.projectId }),
+    success: Schema.String,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+    stream: true,
+  }),
+  Rpc.make("documents.list", {
+    payload: Documents.DocumentListInput,
+    success: Documents.DocumentListResult,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.get", {
+    payload: Documents.DocumentGetInput,
+    success: Documents.DocumentDetail,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.execute", {
+    payload: Documents.DocumentCommand,
+    success: Documents.DocumentDetail,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.history", {
+    payload: Documents.DocumentHistoryInput,
+    success: Documents.DocumentHistoryResult,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.import", {
+    payload: Documents.DocumentImportInput,
+    success: Documents.DocumentDetail,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.export", {
+    payload: Documents.DocumentExportInput,
+    success: Documents.DocumentDownload,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.generate", {
+    payload: Documents.DocumentGenerateInput,
+    success: Documents.DocumentDetail,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
+  Rpc.make("documents.createWorkspace", {
+    payload: Documents.DocumentWorkspaceCreateInput,
+    success: Schema.Void,
+    error: Schema.Union([Documents.DocumentError, EnvironmentAuthorizationError]),
+  }),
   WsServerProbeRpc,
   WsServerGetConfigRpc,
+  WsServerListConnectedAppsRpc,
   WsServerRefreshProvidersRpc,
   WsServerUpdateProviderRpc,
   WsProviderConsumeResetCreditRpc,

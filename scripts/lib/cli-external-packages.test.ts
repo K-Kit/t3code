@@ -32,7 +32,14 @@ const decodeManifest = Schema.decodeUnknownSync(Schema.fromJsonString(PackageMan
 
 describe("shouldBundleCliDependency", () => {
   it("bundles ordinary runtime dependencies", () => {
-    for (const id of ["effect", "@effect/platform", "hono", "@t3tools/shared/hostProcess"]) {
+    for (const id of [
+      "effect",
+      "@effect/platform",
+      "hono",
+      "@t3tools/shared/hostProcess",
+      "base64-js",
+      "fflate",
+    ]) {
       assert.strictEqual(shouldBundleCliDependency(id), true, id);
     }
   });
@@ -87,7 +94,7 @@ describe("selectCliRuntimeExternalDependencies", () => {
   it("selects every external root declared by the server", () => {
     assert.deepStrictEqual(
       Object.keys(selectCliRuntimeExternalDependencies(serverPackageJson.dependencies)).sort(),
-      ["@ff-labs/fff-node", "msgpackr-extract", "node-pty"],
+      ["@ff-labs/fff-node", "msgpackr-extract", "node-pty", "pdfjs-dist", "pdfkit"],
     );
   });
 });

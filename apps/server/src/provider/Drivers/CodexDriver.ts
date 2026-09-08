@@ -1,3 +1,4 @@
+import { probeCodexApps } from "../Layers/CodexApps.ts";
 /**
  * CodexDriver — first concrete `ProviderDriver` in the new per-instance model.
  *
@@ -127,6 +128,7 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
   create: ({ instanceId, displayName, accentColor, environment, enabled, config }) =>
     Effect.gen(function* () {
       const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+      const serverConfig = yield* ServerConfig;
       const resetCreditCoordinator = yield* CodexResetCreditCoordinator;
       const fileSystem = yield* FileSystem.FileSystem;
       const pathService = yield* Path.Path;
@@ -342,6 +344,30 @@ export const CodexDriver: ProviderDriver<CodexSettings, CodexDriverEnv> = {
         enabled,
         snapshot,
         snapshotForCwd,
+        listConnectedApps: (input) =>
+          probeCodexApps(
+            {
+              binaryPath: effectiveConfig.binaryPath,
+              homePath: effectiveConfig.homePath,
+              launchArgs: resolveCodexLaunchArgs(effectiveConfig.launchArgs, processEnv),
+              cwd: serverConfig.stateDir,
+              environment: processEnv,
+            },
+            input.cursor,
+          ).pipe(
+            Effect.scoped,
+            Effect.timeout("40 seconds"),
+            Effect.provideService(ChildProcessSpawner.ChildProcessSpawner, spawner),
+            Effect.mapError(
+              (cause) =>
+                new ProviderDriverError({
+                  driver: DRIVER_KIND,
+                  instanceId,
+                  detail: "Could not load this account's app catalog.",
+                  cause,
+                }),
+            ),
+          ),
         consumeResetCredit,
         adapter,
         textGeneration,
